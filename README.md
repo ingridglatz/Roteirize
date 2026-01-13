@@ -1,55 +1,70 @@
-<<<<<<< HEAD
-# Welcome to your Expo app 👋
+# Roteirize ✈️🌍
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Roteirize é um aplicativo mobile de planejamento de viagens que cria **roteiros personalizados** de acordo com os interesses, estilo e preferências do usuário.
 
-## Get started
+O projeto foi desenvolvido a partir de um protótipo no Figma e está sendo implementado com **React Native + Expo**, com foco em experiência do usuário (UX/UI) e boas práticas de desenvolvimento.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🎯 Objetivo do projeto
 
-2. Start the app
+Criar uma aplicação intuitiva que ajude pessoas a:
+- Planejar viagens com mais facilidade
+- Descobrir destinos de acordo com seus interesses
+- Organizar roteiros personalizados em poucos minutos
 
-   ```bash
-   npx expo start
-   ```
+Este projeto faz parte do meu portfólio como desenvolvedora e designer.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🖼️ Protótipo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+O design da aplicação foi criado no **Figma**, contemplando:
+- Onboarding
+- Escolha de interesses
+- Estilo de viagem
+- Exploração de destinos
+- Perfil do usuário
+- Tela de plano Premium
 
-## Get a fresh project
+*(Link do Figma será adicionado futuramente)*
 
-When you're ready, run:
+---
+
+## 🛠️ Tecnologias utilizadas
+
+- React Native
+- Expo
+- TypeScript
+- Expo Router
+- Git & GitHub
+- Figma (UX/UI Design)
+
+---
+
+## 🚧 Status do projeto
+
+🚀 Em desenvolvimento
+
+Funcionalidades já implementadas:
+- Estrutura inicial do projeto
+- Navegação com Expo Router
+- Tela inicial (Welcome)
+- Configuração de tema e componentes reutilizáveis
+
+---
+
+## ▶️ Como rodar o projeto localmente
 
 ```bash
-npm run reset-project
-```
+# Clone o repositório
+git clone https://github.com/ingridglatz/roteirize.git
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+# Entre na pasta do projeto
+cd roteirize-app
 
-## Learn more
+# Instale as dependências
+npm install
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-=======
-# Roteirize
-App de planejamento de viagens com geração de roteiros personalizados (React Native + Expo).
->>>>>>> d0a1b74949296faf6e00e928ace3424fe0a77a5e
+# Inicie o projeto
+npm start
