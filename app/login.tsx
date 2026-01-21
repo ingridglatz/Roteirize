@@ -6,6 +6,7 @@ import {
   ScrollView,
   Image,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
@@ -17,12 +18,34 @@ import Button from '../components/Button';
 
 export default function Login() {
   const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [socialLoading, setSocialLoading] = useState<'apple' | 'google' | null>(
+    null,
+  );
 
   function handleLogin() {
     console.log({ email, password });
     router.replace('/interests');
+  }
+
+  function handleAppleLogin() {
+    setSocialLoading('apple');
+
+    setTimeout(() => {
+      setSocialLoading(null);
+      Alert.alert('Em breve', 'Login com Apple estará disponível em breve.');
+    }, 800);
+  }
+
+  function handleGoogleLogin() {
+    setSocialLoading('google');
+
+    setTimeout(() => {
+      setSocialLoading(null);
+      Alert.alert('Em breve', 'Login com Google estará disponível em breve.');
+    }, 800);
   }
 
   return (
@@ -59,17 +82,37 @@ export default function Login() {
         </View>
 
         <View style={styles.social}>
-          <Pressable style={styles.appleButton}>
+          <Pressable
+            onPress={handleAppleLogin}
+            disabled={socialLoading !== null}
+            style={({ pressed }) => [
+              styles.appleButton,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
             <MaterialCommunityIcons name="apple" size={22} color="#fff" />
-            <Text style={styles.appleText}>Continuar com Apple</Text>
+            <Text style={styles.appleText}>
+              {socialLoading === 'apple' ? 'Aguarde...' : 'Continuar com Apple'}
+            </Text>
           </Pressable>
 
-          <Pressable style={styles.googleButton}>
+          <Pressable
+            onPress={handleGoogleLogin}
+            disabled={socialLoading !== null}
+            style={({ pressed }) => [
+              styles.googleButton,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
             <Image
               source={require('../assets/images/google.png')}
               style={styles.googleIcon}
             />
-            <Text style={styles.googleText}>Continuar com Google</Text>
+            <Text style={styles.googleText}>
+              {socialLoading === 'google'
+                ? 'Aguarde...'
+                : 'Continuar com Google'}
+            </Text>
           </Pressable>
         </View>
 
@@ -170,6 +213,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
+  tabPressed: {
+    backgroundColor: '#e6e6e6',
+  },
+
   social: {
     gap: 12,
     marginBottom: 24,
@@ -255,8 +302,5 @@ const styles = StyleSheet.create({
     marginTop: 16,
     textAlign: 'center',
     color: colors.primary,
-  },
-  tabPressed: {
-    backgroundColor: '#e6e6e6',
   },
 });
