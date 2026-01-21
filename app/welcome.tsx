@@ -1,6 +1,6 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import { Link, Href } from 'expo-router';
+import { Link, Href, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Button from '../components/Button';
 import { colors } from '../theme/colors';
@@ -32,7 +32,7 @@ export default function Welcome() {
       </View>
 
       <View style={styles.footer}>
-        <Button title="Começar agora" href={'/login' as Href} />
+        <Button title="Começar agora" onPress={() => router.push('/signup')} />
 
         <Link href={'/login' as Href} style={styles.link}>
           Já tenho uma conta

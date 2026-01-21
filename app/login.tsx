@@ -22,7 +22,7 @@ export default function Login() {
 
   function handleLogin() {
     console.log({ email, password });
-    router.push('/interests');
+    router.replace('/interests');
   }
 
   return (
@@ -30,6 +30,7 @@ export default function Login() {
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <View style={styles.logoContainer}>
           <MaterialCommunityIcons
@@ -44,9 +45,17 @@ export default function Login() {
           <View style={styles.tabActive}>
             <Text style={styles.tabActiveText}>Entrar</Text>
           </View>
-          <View style={styles.tab}>
+
+          <Pressable
+            onPress={() => {
+              setTimeout(() => {
+                router.push('/signup');
+              }, 120);
+            }}
+            style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
+          >
             <Text style={styles.tabText}>Criar conta</Text>
-          </View>
+          </Pressable>
         </View>
 
         <View style={styles.social}>
@@ -86,11 +95,17 @@ export default function Login() {
             secureTextEntry
           />
 
-          <Text style={styles.forgot}>Esqueci minha senha</Text>
+          <Text
+            style={styles.forgot}
+            onPress={() => router.push('/reset-password')}
+          >
+            Esqueci minha senha
+          </Text>
         </View>
 
-        <View>
+        <View style={styles.actions}>
           <Button title="Entrar" onPress={handleLogin} />
+
           <Link href="/welcome" style={styles.link}>
             Voltar
           </Link>
@@ -128,13 +143,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#f2f2f2',
     borderRadius: 24,
     marginBottom: 24,
+    height: 48,
   },
 
   tabActive: {
     flex: 1,
     backgroundColor: colors.primary,
-    paddingVertical: 12,
     borderRadius: 24,
+    justifyContent: 'center',
     alignItems: 'center',
   },
 
@@ -145,12 +161,12 @@ const styles = StyleSheet.create({
 
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    justifyContent: 'center',
     alignItems: 'center',
   },
 
   tabText: {
-    color: colors.text,
+    color: colors.muted,
     fontWeight: '500',
   },
 
@@ -231,9 +247,16 @@ const styles = StyleSheet.create({
     marginBottom: 36,
   },
 
+  actions: {
+    marginTop: 'auto',
+  },
+
   link: {
     marginTop: 16,
     textAlign: 'center',
     color: colors.primary,
+  },
+  tabPressed: {
+    backgroundColor: '#e6e6e6',
   },
 });
