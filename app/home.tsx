@@ -51,13 +51,11 @@ export default function Home() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* HERO */}
         <Image
           source={require('../assets/images/ubatuba.jpg')}
           style={styles.hero}
         />
 
-        {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.title}>Ubatuba, Brasil</Text>
           <Text style={styles.subtitle}>
@@ -75,7 +73,6 @@ export default function Home() {
           </Pressable>
         </View>
 
-        {/* TABS */}
         <View style={styles.tabs}>
           {TABS.map((tab) => {
             const active = tab === activeTab;
@@ -96,10 +93,8 @@ export default function Home() {
           })}
         </View>
 
-        {/* VISÃO GERAL */}
         {activeTab === 'Visão geral' && (
           <>
-            {/* DESTAQUES */}
             <Text style={styles.section}>Destaques</Text>
 
             <ScrollView
@@ -128,7 +123,6 @@ export default function Home() {
               ))}
             </ScrollView>
 
-            {/* SOBRE */}
             <Text style={styles.section}>Por que visitar</Text>
 
             <View style={styles.infoCard}>
@@ -139,7 +133,6 @@ export default function Home() {
               </Text>
             </View>
 
-            {/* INFO GRID */}
             <View style={styles.infoGrid}>
               <View style={styles.infoBox}>
                 <Text style={styles.infoTitle}>🌤 Clima</Text>
