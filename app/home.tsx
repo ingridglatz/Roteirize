@@ -19,15 +19,24 @@ const TABS = ['Visão geral', 'Lugares', 'Posts', 'Roteiros'];
 
 const HIGHLIGHTS = [
   {
+    id: 'felix',
     title: 'Praia do Félix',
+    slug: 'praia-do-felix',
+    category: 'Praia',
     image: require('../assets/images/praia1.jpg'),
   },
   {
+    id: 'anchieta',
     title: 'Ilha Anchieta',
+    slug: 'ilha-anchieta',
+    category: 'Ilha',
     image: require('../assets/images/praia2.jpg'),
   },
   {
+    id: 'almada',
     title: 'Praia Almada',
+    slug: 'praia-almada',
+    category: 'Praia',
     image: require('../assets/images/praia3.jpg'),
   },
 ];
@@ -42,19 +51,31 @@ export default function Home() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
+        {/* HERO */}
         <Image
           source={require('../assets/images/ubatuba.jpg')}
           style={styles.hero}
         />
 
+        {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.title}>Ubatuba, Brasil</Text>
           <Text style={styles.subtitle}>
             Paraíso do litoral norte de São Paulo, com mais de 100 praias,
             trilhas na Mata Atlântica e diversas ilhas.
           </Text>
+
+          <Pressable
+            style={styles.createTripButton}
+            onPress={() => router.push('/select-days')}
+          >
+            <Text style={styles.createTripText}>
+              Criar roteiro personalizado
+            </Text>
+          </Pressable>
         </View>
 
+        {/* TABS */}
         <View style={styles.tabs}>
           {TABS.map((tab) => {
             const active = tab === activeTab;
@@ -75,8 +96,10 @@ export default function Home() {
           })}
         </View>
 
+        {/* VISÃO GERAL */}
         {activeTab === 'Visão geral' && (
           <>
+            {/* DESTAQUES */}
             <Text style={styles.section}>Destaques</Text>
 
             <ScrollView
@@ -86,22 +109,60 @@ export default function Home() {
             >
               {HIGHLIGHTS.map((item) => (
                 <Pressable
-                  key={item.title}
+                  key={item.slug}
                   style={styles.card}
-                  onPress={() => router.push('/places')}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/place/[slug]',
+                      params: { slug: item.slug },
+                    })
+                  }
                 >
                   <Image source={item.image} style={styles.cardImage} />
-                  <Text style={styles.cardTitle}>{item.title}</Text>
+
+                  <View style={styles.cardOverlay}>
+                    <Text style={styles.cardCategory}>{item.category}</Text>
+                    <Text style={styles.cardTitle}>{item.title}</Text>
+                  </View>
                 </Pressable>
               ))}
             </ScrollView>
+
+            {/* SOBRE */}
+            <Text style={styles.section}>Por que visitar</Text>
+
+            <View style={styles.infoCard}>
+              <Text style={styles.infoText}>
+                Ubatuba é ideal para quem busca contato com a natureza, praias
+                preservadas, trilhas, cachoeiras e uma atmosfera tranquila
+                combinada com boa gastronomia.
+              </Text>
+            </View>
+
+            {/* INFO GRID */}
+            <View style={styles.infoGrid}>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>🌤 Clima</Text>
+                <Text style={styles.infoSubtitle}>Quente o ano todo</Text>
+              </View>
+
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>🧭 Estilo</Text>
+                <Text style={styles.infoSubtitle}>Natureza & Praia</Text>
+              </View>
+
+              <View style={styles.infoBox}>
+                <Text style={styles.infoTitle}>📅 Duração</Text>
+                <Text style={styles.infoSubtitle}>3 a 7 dias</Text>
+              </View>
+            </View>
           </>
         )}
 
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      <Footer active={'home'} />
+      <Footer active="home" />
     </SafeAreaView>
   );
 }
@@ -137,6 +198,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.muted,
     lineHeight: 22,
+  },
+
+  createTripButton: {
+    marginTop: 16,
+    backgroundColor: colors.primary,
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: 'center',
+  },
+
+  createTripText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 
   tabs: {
@@ -185,29 +260,85 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    width: width * 0.6,
-    backgroundColor: '#fff',
-    borderRadius: 20,
+    width: width * 0.65,
+    height: 220,
+    borderRadius: 24,
     marginRight: 16,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
   },
 
   cardImage: {
     width: '100%',
-    height: 150,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    height: '100%',
     resizeMode: 'cover',
   },
 
+  cardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    padding: 14,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+
   cardTitle: {
-    padding: 12,
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  cardCategory: {
+    fontSize: 12,
+    color: '#fff',
+    opacity: 0.85,
+    marginBottom: 4,
+  },
+
+  infoCard: {
+    marginHorizontal: 24,
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  infoText: {
+    fontSize: 14,
+    color: colors.muted,
+    lineHeight: 20,
+  },
+
+  infoGrid: {
+    flexDirection: 'row',
+    marginHorizontal: 24,
+    marginTop: 16,
+    gap: 12,
+  },
+
+  infoBox: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  infoTitle: {
+    fontSize: 14,
     fontWeight: '600',
     color: colors.text,
+    marginBottom: 4,
+  },
+
+  infoSubtitle: {
+    fontSize: 13,
+    color: colors.muted,
   },
 });
