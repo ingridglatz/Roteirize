@@ -19,21 +19,18 @@ const TABS = ['Visão geral', 'Lugares', 'Posts', 'Roteiros'];
 
 const HIGHLIGHTS = [
   {
-    id: 'felix',
     title: 'Praia do Félix',
     slug: 'praia-do-felix',
     category: 'Praia',
     image: require('../assets/images/praia1.jpg'),
   },
   {
-    id: 'anchieta',
     title: 'Ilha Anchieta',
     slug: 'ilha-anchieta',
     category: 'Ilha',
     image: require('../assets/images/praia2.jpg'),
   },
   {
-    id: 'almada',
     title: 'Praia Almada',
     slug: 'praia-almada',
     category: 'Praia',
@@ -44,6 +41,25 @@ const HIGHLIGHTS = [
 export default function Home() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('Visão geral');
+
+  function handleTabPress(tab: string) {
+    if (tab === 'Lugares') {
+      router.push('/lugares');
+      return;
+    }
+
+    if (tab === 'Posts') {
+      router.push('/post');
+      return;
+    }
+
+    if (tab === 'Roteiros') {
+      router.push('/destiny');
+      return;
+    }
+
+    setActiveTab(tab);
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -81,7 +97,7 @@ export default function Home() {
               <Pressable
                 key={tab}
                 style={styles.tab}
-                onPress={() => setActiveTab(tab)}
+                onPress={() => handleTabPress(tab)}
               >
                 <Text style={[styles.tabText, active && styles.tabActiveText]}>
                   {tab}
@@ -132,23 +148,6 @@ export default function Home() {
                 combinada com boa gastronomia.
               </Text>
             </View>
-
-            <View style={styles.infoGrid}>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>🌤 Clima</Text>
-                <Text style={styles.infoSubtitle}>Quente o ano todo</Text>
-              </View>
-
-              <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>🧭 Estilo</Text>
-                <Text style={styles.infoSubtitle}>Natureza & Praia</Text>
-              </View>
-
-              <View style={styles.infoBox}>
-                <Text style={styles.infoTitle}>📅 Duração</Text>
-                <Text style={styles.infoSubtitle}>3 a 7 dias</Text>
-              </View>
-            </View>
           </>
         )}
 
@@ -161,24 +160,12 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  safe: { flex: 1, backgroundColor: colors.background },
+  container: { paddingBottom: 24 },
 
-  container: {
-    paddingBottom: 24,
-  },
+  hero: { width: '100%', height: 240 },
 
-  hero: {
-    width: '100%',
-    height: 240,
-  },
-
-  header: {
-    padding: 24,
-    paddingBottom: 12,
-  },
+  header: { padding: 24, paddingBottom: 12 },
 
   title: {
     fontSize: 26,
@@ -201,11 +188,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  createTripText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  createTripText: { color: '#fff', fontSize: 16, fontWeight: '600' },
 
   tabs: {
     flexDirection: 'row',
@@ -214,21 +197,11 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
 
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
 
-  tabText: {
-    fontSize: 15,
-    color: colors.muted,
-  },
+  tabText: { fontSize: 15, color: colors.muted },
 
-  tabActiveText: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
+  tabActiveText: { color: colors.primary, fontWeight: '600' },
 
   tabIndicator: {
     marginTop: 6,
@@ -247,10 +220,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  carousel: {
-    paddingLeft: 24,
-    paddingRight: 8,
-  },
+  carousel: { paddingLeft: 24, paddingRight: 8 },
 
   card: {
     width: width * 0.65,
@@ -259,18 +229,10 @@ const styles = StyleSheet.create({
     marginRight: 16,
     overflow: 'hidden',
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
     elevation: 8,
   },
 
-  cardImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
+  cardImage: { width: '100%', height: '100%', resizeMode: 'cover' },
 
   cardOverlay: {
     position: 'absolute',
@@ -280,17 +242,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
 
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  cardCategory: {
-    fontSize: 12,
-    color: '#fff',
-    opacity: 0.85,
-    marginBottom: 4,
-  },
+  cardCategory: { fontSize: 12, color: '#fff', opacity: 0.85 },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: '#fff' },
 
   infoCard: {
     marginHorizontal: 24,
@@ -301,37 +254,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
 
-  infoText: {
-    fontSize: 14,
-    color: colors.muted,
-    lineHeight: 20,
-  },
-
-  infoGrid: {
-    flexDirection: 'row',
-    marginHorizontal: 24,
-    marginTop: 16,
-    gap: 12,
-  },
-
-  infoBox: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-
-  infoSubtitle: {
-    fontSize: 13,
-    color: colors.muted,
-  },
+  infoText: { fontSize: 14, color: colors.muted, lineHeight: 20 },
 });
