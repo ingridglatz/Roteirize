@@ -1,3 +1,4 @@
+import { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -7,17 +8,33 @@ import {
   ScrollView,
   Pressable,
   Dimensions,
+  ImageSourcePropType,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { colors } from '../theme/colors';
 import Footer from '../components/Footer';
 
 const { width } = Dimensions.get('window');
 
-const TABS = ['Visão geral', 'Lugares', 'Posts', 'Roteiros'];
+type TabName = 'Visão geral' | 'Lugares' | 'Posts' | 'Roteiros';
 
-const HIGHLIGHTS = [
+type Highlight = {
+  title: string;
+  slug: string;
+  category: string;
+  image: ImageSourcePropType;
+};
+
+const TABS: TabName[] = ['Visão geral', 'Lugares', 'Posts', 'Roteiros'];
+
+const TAB_ROUTES = {
+  'Visão geral': null,
+  Lugares: '/lugares',
+  Posts: '/post',
+  Roteiros: '/destiny',
+} as const;
+
+const HIGHLIGHTS: Highlight[] = [
   {
     title: 'Praia do Félix',
     slug: 'praia-do-felix',
@@ -38,28 +55,120 @@ const HIGHLIGHTS = [
   },
 ];
 
+const DESTINATION = {
+  name: 'Ubatuba, Brasil',
+  description:
+    'Paraíso do litoral norte de São Paulo, com mais de 100 praias, trilhas na Mata Atlântica e diversas ilhas.',
+  whyVisit:
+    'Ubatuba é ideal para quem busca contato com a natureza, praias preservadas, trilhas, cachoeiras e uma atmosfera tranquila combinada com boa gastronomia.',
+  image: require('../assets/images/ubatuba.jpg'),
+};
+
+type TabBarProps = {
+  tabs: TabName[];
+  activeTab: TabName;
+  onTabPress: (tab: TabName) => void;
+};
+
+function TabBar({ tabs, activeTab, onTabPress }: TabBarProps) {
+  return (
+    <View style={styles.tabs}>
+      {tabs.map((tab) => {
+        const isActive = tab === activeTab;
+        return (
+          <Pressable
+            key={tab}
+            style={styles.tab}
+            onPress={() => onTabPress(tab)}
+          >
+            <Text
+              style={[styles.tabText, isActive && styles.tabActiveText]}
+            >
+              {tab}
+            </Text>
+            {isActive && <View style={styles.tabIndicator} />}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+type HighlightCardProps = {
+  item: Highlight;
+  onPress: () => void;
+};
+
+function HighlightCard({ item, onPress }: HighlightCardProps) {
+  return (
+    <Pressable style={styles.card} onPress={onPress}>
+      <Image source={item.image} style={styles.cardImage} />
+      <View style={styles.cardOverlay}>
+        <Text style={styles.cardCategory}>{item.category}</Text>
+        <Text style={styles.cardTitle}>{item.title}</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+type OverviewTabProps = {
+  highlights: Highlight[];
+  onHighlightPress: (slug: string) => void;
+  whyVisitText: string;
+};
+
+function OverviewTab({ highlights, onHighlightPress, whyVisitText }: OverviewTabProps) {
+  return (
+    <>
+      <Text style={styles.section}>Destaques</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.carousel}
+      >
+        {highlights.map((item) => (
+          <HighlightCard
+            key={item.slug}
+            item={item}
+            onPress={() => onHighlightPress(item.slug)}
+          />
+        ))}
+      </ScrollView>
+
+      <Text style={styles.section}>Por que visitar</Text>
+      <View style={styles.infoCard}>
+        <Text style={styles.infoText}>{whyVisitText}</Text>
+      </View>
+    </>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('Visão geral');
+  const [activeTab, setActiveTab] = useState<TabName>('Visão geral');
 
-  function handleTabPress(tab: string) {
-    if (tab === 'Lugares') {
-      router.push('/lugares');
-      return;
-    }
+  const handleTabPress = useCallback(
+    (tab: TabName) => {
+      const route = TAB_ROUTES[tab];
+      if (route !== null) {
+        router.push(route);
+      } else {
+        setActiveTab(tab);
+      }
+    },
+    [router]
+  );
 
-    if (tab === 'Posts') {
-      router.push('/post');
-      return;
-    }
+  const handleCreateTrip = useCallback(() => {
+    router.push('/select-days');
+  }, [router]);
 
-    if (tab === 'Roteiros') {
-      router.push('/destiny');
-      return;
-    }
-
-    setActiveTab(tab);
-  }
+  const handleHighlightPress = useCallback(
+    (slug: string) => {
+      router.push(`/place/${slug}`);
+    },
+    [router]
+  );
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -67,91 +176,30 @@ export default function Home() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        <Image
-          source={require('../assets/images/ubatuba.jpg')}
-          style={styles.hero}
-        />
+        <Image source={DESTINATION.image} style={styles.hero} />
 
         <View style={styles.header}>
-          <Text style={styles.title}>Ubatuba, Brasil</Text>
-          <Text style={styles.subtitle}>
-            Paraíso do litoral norte de São Paulo, com mais de 100 praias,
-            trilhas na Mata Atlântica e diversas ilhas.
-          </Text>
+          <Text style={styles.title}>{DESTINATION.name}</Text>
+          <Text style={styles.subtitle}>{DESTINATION.description}</Text>
 
-          <Pressable
-            style={styles.createTripButton}
-            onPress={() => router.push('/select-days')}
-          >
+          <Pressable style={styles.createTripButton} onPress={handleCreateTrip}>
             <Text style={styles.createTripText}>
               Criar roteiro personalizado
             </Text>
           </Pressable>
         </View>
 
-        <View style={styles.tabs}>
-          {TABS.map((tab) => {
-            const active = tab === activeTab;
-
-            return (
-              <Pressable
-                key={tab}
-                style={styles.tab}
-                onPress={() => handleTabPress(tab)}
-              >
-                <Text style={[styles.tabText, active && styles.tabActiveText]}>
-                  {tab}
-                </Text>
-
-                {active && <View style={styles.tabIndicator} />}
-              </Pressable>
-            );
-          })}
-        </View>
+        <TabBar tabs={TABS} activeTab={activeTab} onTabPress={handleTabPress} />
 
         {activeTab === 'Visão geral' && (
-          <>
-            <Text style={styles.section}>Destaques</Text>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.carousel}
-            >
-              {HIGHLIGHTS.map((item) => (
-                <Pressable
-                  key={item.slug}
-                  style={styles.card}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/place/[slug]',
-                      params: { slug: item.slug },
-                    })
-                  }
-                >
-                  <Image source={item.image} style={styles.cardImage} />
-
-                  <View style={styles.cardOverlay}>
-                    <Text style={styles.cardCategory}>{item.category}</Text>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
-                  </View>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <Text style={styles.section}>Por que visitar</Text>
-
-            <View style={styles.infoCard}>
-              <Text style={styles.infoText}>
-                Ubatuba é ideal para quem busca contato com a natureza, praias
-                preservadas, trilhas, cachoeiras e uma atmosfera tranquila
-                combinada com boa gastronomia.
-              </Text>
-            </View>
-          </>
+          <OverviewTab
+            highlights={HIGHLIGHTS}
+            onHighlightPress={handleHighlightPress}
+            whyVisitText={DESTINATION.whyVisit}
+          />
         )}
 
-        <View style={{ height: 120 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <Footer active="home" />
@@ -255,4 +303,6 @@ const styles = StyleSheet.create({
   },
 
   infoText: { fontSize: 14, color: colors.muted, lineHeight: 20 },
+
+  bottomSpacer: { height: 120 },
 });

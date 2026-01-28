@@ -1,17 +1,16 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { useEffect } from 'react';
+import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { colors } from '../theme/colors';
+
+const REDIRECT_DELAY_MS = 3000;
 
 export default function Loading() {
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/home');
-    }, 3000);
-
+    const timer = setTimeout(() => router.replace('/home'), REDIRECT_DELAY_MS);
     return () => clearTimeout(timer);
   }, [router]);
 
