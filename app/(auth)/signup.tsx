@@ -1,59 +1,60 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import { colors } from '../theme/colors';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import { colors } from '../../theme/colors';
 
 export default function Signup() {
   const router = useRouter();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  function handleSignup() {
+    router.replace('/(onboarding)/interests');
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Criar conta</Text>
         <Text style={styles.subtitle}>
-          Preencha os dados para começar sua jornada
+          Preencha os dados para comecar sua jornada
         </Text>
       </View>
 
       <View style={styles.form}>
         <Input
           placeholder="Nome completo"
-          value={''}
-          onChangeText={function (text: string): void {
-            throw new Error('Function not implemented.');
-          }}
+          value={name}
+          onChangeText={setName}
         />
         <Input
           placeholder="Email"
-          value={''}
-          onChangeText={function (text: string): void {
-            throw new Error('Function not implemented.');
-          }}
+          value={email}
+          onChangeText={setEmail}
         />
         <Input
           placeholder="Senha"
           secureTextEntry
-          value={''}
-          onChangeText={function (text: string): void {
-            throw new Error('Function not implemented.');
-          }}
+          value={password}
+          onChangeText={setPassword}
         />
         <Input
           placeholder="Confirmar senha"
           secureTextEntry
-          value={''}
-          onChangeText={function (text: string): void {
-            throw new Error('Function not implemented.');
-          }}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
         />
       </View>
 
       <View style={styles.actions}>
         <Button
           title="Criar conta"
-          onPress={() => router.replace('/interests')}
+          onPress={handleSignup}
         />
 
         <Text style={styles.back} onPress={() => router.back()}>

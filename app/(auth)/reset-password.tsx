@@ -1,12 +1,19 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import { colors } from '../theme/colors';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
+import { colors } from '../../theme/colors';
 
 export default function ResetPassword() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+
+  function handleReset() {
+    Alert.alert('Sucesso', 'Link de recuperacao enviado para seu email!');
+    router.back();
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -20,15 +27,13 @@ export default function ResetPassword() {
       <View style={styles.form}>
         <Input
           placeholder="Email"
-          value={''}
-          onChangeText={function (text: string): void {
-            throw new Error('Function not implemented.');
-          }}
+          value={email}
+          onChangeText={setEmail}
         />
       </View>
 
       <View style={styles.actions}>
-        <Button title="Enviar link de recuperação" />
+        <Button title="Enviar link de recuperacao" onPress={handleReset} />
 
         <Text style={styles.back} onPress={() => router.back()}>
           Voltar

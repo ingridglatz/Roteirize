@@ -12,9 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { colors } from '../theme/colors';
-import Input from '../components/Input';
-import Button from '../components/Button';
+import { colors } from '../../theme/colors';
+import Input from '../../components/Input';
+import Button from '../../components/Button';
 
 export default function Login() {
   const router = useRouter();
@@ -26,8 +26,7 @@ export default function Login() {
   );
 
   function handleLogin() {
-    console.log({ email, password });
-    router.replace('/interests');
+    router.replace('/(onboarding)/interests');
   }
 
   function handleAppleLogin() {
@@ -35,7 +34,7 @@ export default function Login() {
 
     setTimeout(() => {
       setSocialLoading(null);
-      Alert.alert('Em breve', 'Login com Apple estará disponível em breve.');
+      Alert.alert('Em breve', 'Login com Apple estara disponivel em breve.');
     }, 800);
   }
 
@@ -44,7 +43,7 @@ export default function Login() {
 
     setTimeout(() => {
       setSocialLoading(null);
-      Alert.alert('Em breve', 'Login com Google estará disponível em breve.');
+      Alert.alert('Em breve', 'Login com Google estara disponivel em breve.');
     }, 800);
   }
 
@@ -72,7 +71,7 @@ export default function Login() {
           <Pressable
             onPress={() => {
               setTimeout(() => {
-                router.push('/signup');
+                router.push('/(auth)/signup');
               }, 120);
             }}
             style={({ pressed }) => [styles.tab, pressed && styles.tabPressed]}
@@ -105,7 +104,7 @@ export default function Login() {
             ]}
           >
             <Image
-              source={require('../assets/images/google.png')}
+              source={require('../../assets/images/google.png')}
               style={styles.googleIcon}
             />
             <Text style={styles.googleText}>
@@ -140,7 +139,7 @@ export default function Login() {
 
           <Text
             style={styles.forgot}
-            onPress={() => router.push('/reset-password')}
+            onPress={() => router.push('/(auth)/reset-password')}
           >
             Esqueci minha senha
           </Text>
@@ -149,7 +148,7 @@ export default function Login() {
         <View style={styles.actions}>
           <Button title="Entrar" onPress={handleLogin} />
 
-          <Link href="/welcome" style={styles.link}>
+          <Link href="/(auth)/welcome" style={styles.link}>
             Voltar
           </Link>
         </View>

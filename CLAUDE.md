@@ -55,3 +55,4 @@ Currently uses mock data in `data/mockItineraries.ts`. The `Itinerary` type incl
 - Prettier config: single quotes, trailing commas, 80 char width
 - Portuguese language for user-facing strings
 - Screen components export default functions, helper components are non-exported functions within the same file
+- Git commits should NOT include AI co-author lines

@@ -14,12 +14,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { colors } from '../../theme/colors';
-import CommentsSheet from './CommentsSheet';
-import StoryViewer from './StoryViewer';
+import CommentsSheet from '../post/CommentsSheet';
+import StoryViewer from '../post/StoryViewer';
 
 const { width } = Dimensions.get('window');
-
-// --- Types ---
 
 type Story = {
   id: string;
@@ -42,8 +40,6 @@ type Post = {
   saved: boolean;
   time: string;
 };
-
-// --- Data ---
 
 const STORIES: Story[] = [
   {
@@ -164,8 +160,6 @@ const POSTS: Post[] = [
   },
 ];
 
-// --- Components ---
-
 function StoryBubble({
   story,
   onPress,
@@ -185,9 +179,7 @@ function StoryBubble({
   );
 }
 
-// --- Screen ---
-
-export default function Posts() {
+export default function Social() {
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [stories, setStories] = useState<Story[]>(STORIES);
@@ -207,7 +199,6 @@ export default function Posts() {
     if (doubleTapRef.current[id]) {
       clearTimeout(doubleTapRef.current[id]!);
       doubleTapRef.current[id] = null;
-      // Double tap -> like + animation
       setPosts((prev) =>
         prev.map((p) =>
           p.id === id && !p.liked
@@ -253,22 +244,19 @@ export default function Posts() {
     );
   }
 
-  const handleStoryPress = useCallback(
-    (index: number) => {
-      setStories((prev) =>
-        prev.map((s, i) => (i === index ? { ...s, seen: true } : s)),
-      );
-      setActiveStoryIndex(index);
-    },
-    [],
-  );
+  const handleStoryPress = useCallback((index: number) => {
+    setStories((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, seen: true } : s)),
+    );
+    setActiveStoryIndex(index);
+  }, []);
 
   const handleStoryClose = useCallback(() => {
     setActiveStoryIndex(null);
   }, []);
 
   const handleChatPress = useCallback(() => {
-    router.push('/post/chat');
+    router.push('/chat');
   }, [router]);
 
   function renderPost({ item }: { item: Post }) {
@@ -281,7 +269,6 @@ export default function Posts() {
 
     return (
       <View style={styles.post}>
-        {/* Header */}
         <View style={styles.postHeader}>
           <Pressable style={styles.postHeaderLeft}>
             <Image source={{ uri: item.avatar }} style={styles.postAvatar} />
@@ -293,7 +280,6 @@ export default function Posts() {
           <Ionicons name="ellipsis-horizontal" size={20} color={colors.text} />
         </View>
 
-        {/* Image with double-tap */}
         <Pressable onPress={() => handleDoubleTap(item.id)}>
           <Image source={item.image} style={styles.postImage} />
           <Animated.View
@@ -306,7 +292,6 @@ export default function Posts() {
           </Animated.View>
         </Pressable>
 
-        {/* Actions */}
         <View style={styles.postActions}>
           <View style={styles.postActionsLeft}>
             <Pressable onPress={() => toggleLike(item.id)}>
@@ -332,16 +317,13 @@ export default function Posts() {
           </Pressable>
         </View>
 
-        {/* Likes */}
         <Text style={styles.postLikes}>{item.likes} curtidas</Text>
 
-        {/* Caption */}
         <Text style={styles.postCaption}>
           <Text style={styles.postCaptionUser}>{item.user} </Text>
           {item.caption}
         </Text>
 
-        {/* Comments link */}
         <Pressable onPress={() => setSelectedPost(item)}>
           <Text style={styles.postCommentsLink}>
             Ver todos os {item.comments} comentarios
@@ -354,10 +336,9 @@ export default function Posts() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      {/* Top bar */}
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>Roteirize</Text>
+        <Text style={styles.topBarTitle}>Social</Text>
         <View style={styles.topBarActions}>
           <Pressable onPress={handleChatPress}>
             <Ionicons
@@ -374,6 +355,7 @@ export default function Posts() {
         keyExtractor={(item) => item.id}
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
         ListHeaderComponent={
           <ScrollView
             horizontal
@@ -391,13 +373,11 @@ export default function Posts() {
         }
       />
 
-      {/* Comments modal */}
       <CommentsSheet
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
       />
 
-      {/* Story viewer modal */}
       {activeStoryIndex !== null && (
         <StoryViewer
           stories={stories}
@@ -409,15 +389,11 @@ export default function Posts() {
   );
 }
 
-// --- Styles ---
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
   },
-
-  // Top bar
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,8 +412,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 18,
   },
-
-  // Stories
   storiesRow: {
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -470,8 +444,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
   },
-
-  // Post
   post: {
     marginBottom: 20,
   },

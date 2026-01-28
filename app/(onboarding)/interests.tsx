@@ -1,10 +1,10 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView, Text, StyleSheet, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useOnboarding } from '../context/OnboardingContext';
+import { useOnboarding } from '../../context/OnboardingContext';
 import { useState } from 'react';
-import { colors } from '../theme/colors';
-import Button from '../components/Button';
+import { colors } from '../../theme/colors';
+import Button from '../../components/Button';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const INTERESTS = [
@@ -30,7 +30,7 @@ export default function Interests() {
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Quais são seus interesses?</Text>
+        <Text style={styles.title}>Quais sao seus interesses?</Text>
         <Text style={styles.subtitle}>
           Selecione pelo menos 3 cards para personalizarmos o seu roteiro.
         </Text>
@@ -75,7 +75,7 @@ export default function Interests() {
             title="Continuar"
             onPress={() => {
               setInterests(selected);
-              router.push('/travel-style');
+              router.push('/(onboarding)/travel-style');
             }}
           />
         </View>

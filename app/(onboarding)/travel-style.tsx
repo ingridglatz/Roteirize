@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { colors } from '../theme/colors';
-import Button from '../components/Button';
-import { useOnboarding } from '../context/OnboardingContext';
+import { colors } from '../../theme/colors';
+import Button from '../../components/Button';
+import { useOnboarding } from '../../context/OnboardingContext';
 
-type Option = 'Econômico' | 'Moderado' | 'Luxo';
+type Option = 'Economico' | 'Moderado' | 'Luxo';
 type Pace = 'Tranquilo' | 'Equilibrado' | 'Intenso';
 
 export default function TravelStyle() {
@@ -28,7 +28,7 @@ export default function TravelStyle() {
 
     setBudget(budget);
     setPace(pace);
-    router.push('/loading');
+    router.push('/(onboarding)/loading');
   }
 
   return (
@@ -40,14 +40,14 @@ export default function TravelStyle() {
         <Text style={styles.title}>Qual o seu estilo de viagem?</Text>
 
         <Image
-          source={require('../assets/images/travel-style.png')}
+          source={require('../../assets/images/travel-style.png')}
           style={styles.image}
           resizeMode="contain"
         />
 
-        <Text style={styles.section}>Orçamento</Text>
+        <Text style={styles.section}>Orcamento</Text>
         <View style={styles.row}>
-          {(['Econômico', 'Moderado', 'Luxo'] as Option[]).map((item) => {
+          {(['Economico', 'Moderado', 'Luxo'] as Option[]).map((item) => {
             const active = budget === item;
 
             return (
