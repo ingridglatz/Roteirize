@@ -28,7 +28,7 @@ export default function TravelStyle() {
 
     setBudget(budget);
     setPace(pace);
-    router.push('/itineraries/create');
+    router.push('/loading');
   }
 
   return (

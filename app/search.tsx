@@ -178,7 +178,7 @@ export default function Search() {
                 >
                   <Pressable
                     style={styles.card}
-                    onPress={() => router.push('/itineraries/create')}
+                    onPress={() => router.push('/home')}
                   >
                     <Image source={item.image} style={styles.cardImage} />
                     <View style={styles.cardContent}>

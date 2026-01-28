@@ -77,7 +77,7 @@ export default function Lugares() {
 
                 <Pressable
                   style={styles.button}
-                  onPress={() => router.push('/itineraries/create')}
+                  onPress={() => router.push('/select-days')}
                 >
                   <Text style={styles.buttonText}>Criar roteiro</Text>
                 </Pressable>

@@ -8,16 +8,22 @@ import {
   ScrollView,
   Pressable,
   Dimensions,
+  ImageSourcePropType,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import Footer from '../components/Footer';
-import { PLACES_DATA, type Place } from '../data/places';
 
 const { width } = Dimensions.get('window');
 
 type TabName = 'Visão geral' | 'Lugares' | 'Posts' | 'Roteiros';
+
+type Highlight = {
+  title: string;
+  slug: string;
+  category: string;
+  image: ImageSourcePropType;
+};
 
 const TABS: TabName[] = ['Visão geral', 'Lugares', 'Posts', 'Roteiros'];
 
@@ -27,6 +33,27 @@ const TAB_ROUTES = {
   Posts: '/post',
   Roteiros: '/destiny',
 } as const;
+
+const HIGHLIGHTS: Highlight[] = [
+  {
+    title: 'Praia do Félix',
+    slug: 'praia-do-felix',
+    category: 'Praia',
+    image: require('../assets/images/praia1.jpg'),
+  },
+  {
+    title: 'Ilha Anchieta',
+    slug: 'ilha-anchieta',
+    category: 'Ilha',
+    image: require('../assets/images/praia2.jpg'),
+  },
+  {
+    title: 'Praia Almada',
+    slug: 'praia-almada',
+    category: 'Praia',
+    image: require('../assets/images/praia3.jpg'),
+  },
+];
 
 const DESTINATION = {
   name: 'Ubatuba, Brasil',
@@ -67,31 +94,30 @@ function TabBar({ tabs, activeTab, onTabPress }: TabBarProps) {
   );
 }
 
-function HighlightCard({ item, onPress }: { item: Place; onPress: () => void }) {
+type HighlightCardProps = {
+  item: Highlight;
+  onPress: () => void;
+};
+
+function HighlightCard({ item, onPress }: HighlightCardProps) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <Image source={item.image} style={styles.cardImage} />
       <View style={styles.cardOverlay}>
         <Text style={styles.cardCategory}>{item.category}</Text>
         <Text style={styles.cardTitle}>{item.title}</Text>
-        <View style={styles.cardRating}>
-          <Ionicons name="star" size={12} color="#FFC107" />
-          <Text style={styles.cardRatingText}>{item.rating}</Text>
-        </View>
       </View>
     </Pressable>
   );
 }
 
-function OverviewTab({
-  highlights,
-  onHighlightPress,
-  whyVisitText,
-}: {
-  highlights: Place[];
+type OverviewTabProps = {
+  highlights: Highlight[];
   onHighlightPress: (slug: string) => void;
   whyVisitText: string;
-}) {
+};
+
+function OverviewTab({ highlights, onHighlightPress, whyVisitText }: OverviewTabProps) {
   return (
     <>
       <Text style={styles.section}>Destaques</Text>
@@ -134,7 +160,7 @@ export default function Home() {
   );
 
   const handleCreateTrip = useCallback(() => {
-    router.push('/itineraries/create');
+    router.push('/select-days');
   }, [router]);
 
   const handleHighlightPress = useCallback(
@@ -167,7 +193,7 @@ export default function Home() {
 
         {activeTab === 'Visão geral' && (
           <OverviewTab
-            highlights={PLACES_DATA}
+            highlights={HIGHLIGHTS}
             onHighlightPress={handleHighlightPress}
             whyVisitText={DESTINATION.whyVisit}
           />
@@ -265,9 +291,7 @@ const styles = StyleSheet.create({
   },
 
   cardCategory: { fontSize: 12, color: '#fff', opacity: 0.85 },
-  cardTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginTop: 2 },
-  cardRating: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  cardRatingText: { fontSize: 12, color: '#fff', fontWeight: '700' },
+  cardTitle: { fontSize: 16, fontWeight: '600', color: '#fff' },
 
   infoCard: {
     marginHorizontal: 24,
