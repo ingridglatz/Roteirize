@@ -1,4 +1,3 @@
-// app/itineraries/create.tsx
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
 import { useState } from 'react';

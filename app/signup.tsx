@@ -10,7 +10,6 @@ export default function Signup() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.title}>Criar conta</Text>
         <Text style={styles.subtitle}>
@@ -18,7 +17,6 @@ export default function Signup() {
         </Text>
       </View>
 
-      {/* FORM */}
       <View style={styles.form}>
         <Input
           placeholder="Nome completo"
@@ -52,7 +50,6 @@ export default function Signup() {
         />
       </View>
 
-      {/* CTA */}
       <View style={styles.actions}>
         <Button
           title="Criar conta"

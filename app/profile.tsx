@@ -80,7 +80,6 @@ export default function Profile() {
           })}
         </View>
 
-        {/* GRID */}
         {activeTab === 'Viagens' && (
           <View style={styles.grid}>
             {TRIPS.map((trip) => (
@@ -95,7 +94,6 @@ export default function Profile() {
               </Pressable>
             ))}
 
-            {/* ADD CARD */}
             <Pressable style={[styles.card, styles.addCard]}>
               <Text style={styles.plus}>＋</Text>
             </Pressable>

@@ -11,7 +11,7 @@ export default function Travel() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/itinerary');
+      router.replace('/home');
     }, 3000);
 
     return () => clearTimeout(timer);
