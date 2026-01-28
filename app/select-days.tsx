@@ -16,7 +16,7 @@ export default function SelectDays() {
   function handleContinue() {
     if (!selected) return;
     setDays(selected);
-    router.push('/travel');
+    router.push('/itineraries/create');
   }
 
   return (
