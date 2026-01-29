@@ -1,8 +1,15 @@
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, Text, StyleSheet, Pressable, View } from 'react-native';
+import {
+  ScrollView,
+  Text,
+  StyleSheet,
+  Pressable,
+  View,
+  Animated,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '../../context/OnboardingContext';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { colors } from '../../theme/colors';
 import Button from '../../components/Button';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,28 +21,112 @@ const INTERESTS = [
   { label: 'Vida noturna', icon: 'glass-cocktail' },
   { label: 'Aventura', icon: 'compass' },
   { label: 'Gastronomia', icon: 'silverware-fork-knife' },
+  { label: 'História', icon: 'castle' },
+  { label: 'Esportes', icon: 'run' },
+  { label: 'Compras', icon: 'shopping' },
+  { label: 'Relaxamento', icon: 'spa' },
+  { label: 'Fotografia', icon: 'camera' },
+  { label: 'Música', icon: 'music' },
 ];
+
+const MIN_SELECTIONS = 3;
 
 export default function Interests() {
   const router = useRouter();
   const { setInterests } = useOnboarding();
   const [selected, setSelected] = useState<string[]>([]);
+  const [showError, setShowError] = useState(false);
+  const shakeAnimation = useRef(new Animated.Value(0)).current;
+
+  const isValid = selected.length >= MIN_SELECTIONS;
 
   function toggleInterest(item: string) {
+    setShowError(false);
     setSelected((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
     );
   }
 
+  function handleContinue() {
+    if (!isValid) {
+      setShowError(true);
+      Animated.sequence([
+        Animated.timing(shakeAnimation, {
+          toValue: 10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnimation, {
+          toValue: -10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnimation, {
+          toValue: 10,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shakeAnimation, {
+          toValue: 0,
+          duration: 50,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      return;
+    }
+
+    setInterests(selected);
+    router.push('/(onboarding)/travel-style');
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Quais sao seus interesses?</Text>
-        <Text style={styles.subtitle}>
-          Selecione pelo menos 3 cards para personalizarmos o seu roteiro.
-        </Text>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.header}>
+          <Text style={styles.title}>Quais são seus interesses?</Text>
+          <Text style={styles.subtitle}>
+            Selecione pelo menos {MIN_SELECTIONS} opções para personalizarmos
+            sua experiência
+          </Text>
 
-        <View style={styles.cards}>
+          <Animated.View
+            style={[
+              styles.counter,
+              { transform: [{ translateX: shakeAnimation }] },
+            ]}
+          >
+            <Text
+              style={[styles.counterText, isValid && styles.counterTextValid]}
+            >
+              {selected.length} de {MIN_SELECTIONS} selecionados
+            </Text>
+            {isValid && (
+              <MaterialCommunityIcons
+                name="check-circle"
+                size={18}
+                color={colors.primary}
+              />
+            )}
+          </Animated.View>
+
+          {showError && (
+            <View style={styles.errorContainer}>
+              <MaterialCommunityIcons
+                name="alert-circle"
+                size={16}
+                color="#ef4444"
+              />
+              <Text style={styles.errorText}>
+                Selecione pelo menos {MIN_SELECTIONS} interesses para continuar
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.grid}>
           {INTERESTS.map((item) => {
             const isActive = selected.includes(item.label);
 
@@ -43,27 +134,38 @@ export default function Interests() {
               <Pressable
                 key={item.label}
                 onPress={() => toggleInterest(item.label)}
-                style={[styles.card, isActive && styles.cardActive]}
+                style={({ pressed }) => [
+                  styles.card,
+                  isActive && styles.cardActive,
+                  pressed && styles.cardPressed,
+                ]}
               >
-                <View style={styles.cardLeft}>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    isActive && styles.iconContainerActive,
+                  ]}
+                >
                   <MaterialCommunityIcons
                     name={item.icon as any}
-                    size={20}
-                    color={isActive ? '#fff' : colors.muted}
+                    size={28}
+                    color={isActive ? '#fff' : colors.primary}
                   />
-                  <Text
-                    style={[styles.cardText, isActive && styles.cardTextActive]}
-                  >
-                    {item.label}
-                  </Text>
                 </View>
+                <Text
+                  style={[styles.cardText, isActive && styles.cardTextActive]}
+                >
+                  {item.label}
+                </Text>
 
                 {isActive && (
-                  <MaterialCommunityIcons
-                    name="check-circle"
-                    size={20}
-                    color="#fff"
-                  />
+                  <View style={styles.checkmark}>
+                    <MaterialCommunityIcons
+                      name="check-circle"
+                      size={22}
+                      color={colors.primary}
+                    />
+                  </View>
                 )}
               </Pressable>
             );
@@ -71,13 +173,7 @@ export default function Interests() {
         </View>
 
         <View style={styles.actions}>
-          <Button
-            title="Continuar"
-            onPress={() => {
-              setInterests(selected);
-              router.push('/(onboarding)/travel-style');
-            }}
-          />
+          <Button title="Continuar" onPress={handleContinue} />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -93,59 +189,132 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 24,
+    paddingBottom: 32,
+  },
+
+  header: {
+    marginBottom: 24,
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
     color: colors.primary,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
 
   subtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: colors.muted,
     textAlign: 'center',
-    marginBottom: 32,
+    lineHeight: 24,
+    marginBottom: 20,
   },
 
-  cards: {
-    gap: 16,
+  counter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 20,
+    alignSelf: 'center',
+  },
+
+  counterText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.muted,
+  },
+
+  counterTextValid: {
+    color: colors.primary,
+  },
+
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#fee2e2',
+    borderRadius: 12,
+  },
+
+  errorText: {
+    fontSize: 13,
+    color: '#ef4444',
+    fontWeight: '500',
+  },
+
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 24,
   },
 
   card: {
-    flexDirection: 'row',
+    width: '48%',
+    aspectRatio: 1,
+    padding: 16,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    backgroundColor: '#f1f1f1',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+
+  cardPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.98 }],
   },
 
   cardActive: {
+    backgroundColor: '#f0f9ff',
+    borderColor: colors.primary,
+  },
+
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#f0f9ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+
+  iconContainerActive: {
     backgroundColor: colors.primary,
   },
 
-  cardLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-
   cardText: {
-    fontSize: 16,
-    color: colors.muted,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
   },
 
   cardTextActive: {
-    color: '#fff',
-    fontWeight: '600',
+    color: colors.primary,
+  },
+
+  checkmark: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
 
   actions: {
     marginTop: 'auto',
-    paddingBottom: 16,
+    paddingTop: 16,
   },
 });

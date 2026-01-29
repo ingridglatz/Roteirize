@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { colors } from '../../theme/colors';
@@ -19,48 +20,65 @@ export default function Signup() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Criar conta</Text>
-        <Text style={styles.subtitle}>
-          Preencha os dados para comecar sua jornada
-        </Text>
-      </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <View style={styles.logoContainer}>
+              <MaterialCommunityIcons
+                name="map-marker"
+                size={32}
+                color={colors.primary}
+              />
+            </View>
+            <Text style={styles.title}>Criar conta</Text>
+            <Text style={styles.subtitle}>
+              Preencha os dados para começar sua jornada
+            </Text>
+          </View>
 
-      <View style={styles.form}>
-        <Input
-          placeholder="Nome completo"
-          value={name}
-          onChangeText={setName}
-        />
-        <Input
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <Input
-          placeholder="Senha"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-        <Input
-          placeholder="Confirmar senha"
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-      </View>
+          <View style={styles.form}>
+            <Input
+              placeholder="Nome completo"
+              value={name}
+              onChangeText={setName}
+              icon="account-outline"
+            />
+            <Input
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              icon="email-outline"
+            />
+            <Input
+              placeholder="Senha"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+              icon="lock-outline"
+            />
+            <Input
+              placeholder="Confirmar senha"
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              icon="lock-check-outline"
+            />
+          </View>
 
-      <View style={styles.actions}>
-        <Button
-          title="Criar conta"
-          onPress={handleSignup}
-        />
-
-        <Text style={styles.back} onPress={() => router.back()}>
-          Voltar
-        </Text>
-      </View>
+          <View style={styles.actions}>
+            <Button title="Criar conta" onPress={handleSignup} />
+            <Text style={styles.back} onPress={() => router.back()}>
+              Voltar
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -68,16 +86,36 @@ export default function Signup() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
     backgroundColor: colors.background,
   },
 
+  keyboardView: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    padding: 24,
+  },
+
   header: {
+    alignItems: 'center',
     marginBottom: 32,
+    marginTop: 16,
+  },
+
+  logoContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: `${colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
 
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 8,
@@ -86,16 +124,16 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     color: colors.muted,
-    lineHeight: 22,
+    textAlign: 'center',
   },
 
   form: {
     gap: 16,
-    marginBottom: 32,
   },
 
   actions: {
     marginTop: 'auto',
+    paddingTop: 32,
     paddingBottom: 16,
   },
 

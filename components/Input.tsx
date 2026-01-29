@@ -1,4 +1,5 @@
-import { View, TextInput, StyleSheet, Text } from "react-native";
+import { View, TextInput, StyleSheet, TextInputProps } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { colors } from "../theme/colors";
 
 type InputProps = {
@@ -6,23 +7,43 @@ type InputProps = {
   value: string;
   onChangeText: (text: string) => void;
   secureTextEntry?: boolean;
-};
+  icon?: keyof typeof MaterialCommunityIcons.glyphMap;
+  error?: boolean;
+  iconColor?: string;
+} & Omit<TextInputProps, 'placeholder' | 'value' | 'onChangeText' | 'secureTextEntry' | 'style'>;
 
 export default function Input({
   placeholder,
   value,
   onChangeText,
   secureTextEntry = false,
+  icon,
+  error = false,
+  iconColor,
+  ...rest
 }: InputProps) {
   return (
     <View style={styles.container}>
+      {icon && (
+        <MaterialCommunityIcons
+          name={icon}
+          size={20}
+          color={iconColor || (error ? colors.error : colors.muted)}
+          style={styles.icon}
+        />
+      )}
       <TextInput
         placeholder={placeholder}
         placeholderTextColor={colors.muted}
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={secureTextEntry}
-        style={styles.input}
+        style={[
+          styles.input,
+          icon && styles.inputWithIcon,
+          error && styles.inputError,
+        ]}
+        {...rest}
       />
     </View>
   );
@@ -31,6 +52,13 @@ export default function Input({
 const styles = StyleSheet.create({
   container: {
     width: "100%",
+    position: "relative",
+  },
+  icon: {
+    position: "absolute",
+    left: 14,
+    top: 14,
+    zIndex: 1,
   },
   input: {
     borderWidth: 1,
@@ -39,6 +67,12 @@ const styles = StyleSheet.create({
     padding: 14,
     fontSize: 16,
     color: colors.text,
-    marginBottom: 16,
+  },
+  inputWithIcon: {
+    paddingLeft: 44,
+  },
+  inputError: {
+    borderColor: colors.error,
+    borderWidth: 1.5,
   },
 });

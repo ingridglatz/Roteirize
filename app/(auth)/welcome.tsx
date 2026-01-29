@@ -1,72 +1,210 @@
+import { useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, Animated } from 'react-native';
 import { Link, Href, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import Button from '../../components/Button';
 import { colors } from '../../theme/colors';
 import Journey from '../../assets/images/Journey.png';
 
 export default function Welcome() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const scaleAnim = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, scaleAnim, slideAnim]);
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.logoContainer}>
-        <MaterialCommunityIcons
-          name="map-marker"
-          size={42}
-          color={colors.primary}
-        />
-        <Text style={styles.logoText}>Roteirize</Text>
-      </View>
+    <LinearGradient
+      colors={['#FFFFFF', '#F0FDFA', '#FFFFFF']}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.safe}>
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.logoBox}>
+            <MaterialCommunityIcons
+              name="map-marker"
+              size={36}
+              color={colors.primary}
+            />
+          </View>
+          <Text style={styles.logoText}>Roteirize</Text>
+        </Animated.View>
 
-      <View style={styles.imageContainer}>
-        <Image source={Journey} style={styles.image} resizeMode="contain" />
-      </View>
+        <Animated.View
+          style={[
+            styles.hero,
+            {
+              opacity: fadeAnim,
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        >
+          <View style={styles.imageContainer}>
+            <Image source={Journey} style={styles.image} resizeMode="contain" />
+          </View>
+        </Animated.View>
 
-      <View style={styles.textContainer}>
-        <Text style={styles.title}>Descubra. Planeje. Viva.</Text>
+        <Animated.View
+          style={[
+            styles.content,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>Descubra. Planeje. Viva.</Text>
+            <View style={styles.titleUnderline} />
+          </View>
 
-        <Text style={styles.subtitle}>
-          Crie roteiros de viagens personalizados em minutos e aproveite cada
-          momento.
-        </Text>
-      </View>
+          <Text style={styles.subtitle}>
+            Crie roteiros de viagens personalizados em minutos e aproveite cada
+            momento.
+          </Text>
 
-      <View style={styles.footer}>
-        <Button title="Comecar agora" onPress={() => router.push('/(auth)/signup')} />
+          <View style={styles.features}>
+            <View style={styles.feature}>
+              <View style={styles.featureIcon}>
+                <MaterialCommunityIcons
+                  name="compass-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.featureText}>Roteiros inteligentes</Text>
+            </View>
 
-        <Link href={'/(auth)/login' as Href} style={styles.link}>
-          Ja tenho uma conta
-        </Link>
-      </View>
-    </SafeAreaView>
+            <View style={styles.feature}>
+              <View style={styles.featureIcon}>
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.featureText}>Economize tempo</Text>
+            </View>
+
+            <View style={styles.feature}>
+              <View style={styles.featureIcon}>
+                <MaterialCommunityIcons
+                  name="heart-outline"
+                  size={20}
+                  color={colors.primary}
+                />
+              </View>
+              <Text style={styles.featureText}>Personalizado para você</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.footer,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <Button
+            title="Começar agora"
+            onPress={() => router.push('/(auth)/signup')}
+          />
+          <Link href={'/(auth)/login' as Href} style={styles.link}>
+            Já tenho uma conta
+          </Link>
+        </Animated.View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  gradient: {
     flex: 1,
-    backgroundColor: colors.background,
   },
 
-  logoContainer: {
+  safe: {
+    flex: 1,
+  },
+
+  header: {
     alignItems: 'center',
-    marginTop: 48,
-    marginBottom: 24,
+    paddingTop: 40,
+    paddingBottom: 20,
+  },
+
+  logoBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: `${colors.primary}20`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
   },
 
   logoText: {
-    fontSize: 30,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
     color: colors.text,
-    marginTop: 8,
+    letterSpacing: -0.5,
+  },
+
+  hero: {
+    flex: 1,
+    maxHeight: 280,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    marginVertical: 20,
   },
 
   imageContainer: {
-    height: 320,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 24,
-    marginBottom: 32,
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
+    overflow: 'hidden',
   },
 
   image: {
@@ -74,37 +212,81 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 
-  textContainer: {
+  content: {
     paddingHorizontal: 32,
+    paddingVertical: 24,
     alignItems: 'center',
-    marginBottom: 32,
+  },
+
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
 
   title: {
-    fontSize: 24,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
+    letterSpacing: -0.5,
+  },
+
+  titleUnderline: {
+    width: 60,
+    height: 4,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
   },
 
   subtitle: {
     fontSize: 16,
     color: colors.muted,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
+    marginBottom: 28,
+  },
+
+  features: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    paddingHorizontal: 8,
+  },
+
+  feature: {
+    alignItems: 'center',
+    flex: 1,
+  },
+
+  featureIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: `${colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+
+  featureText: {
+    fontSize: 12,
+    color: colors.muted,
+    textAlign: 'center',
+    fontWeight: '600',
   },
 
   footer: {
     paddingHorizontal: 24,
-    paddingBottom: 24,
-    marginTop: 'auto',
+    paddingBottom: 32,
+    paddingTop: 16,
   },
 
   link: {
-    marginTop: 16,
+    marginTop: 20,
     textAlign: 'center',
     color: colors.primary,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

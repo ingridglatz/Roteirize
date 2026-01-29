@@ -41,14 +41,29 @@ const DESTINATION = {
     },
   ],
   curiosities: [
-    { emoji: '🏖️', text: 'Ubatuba tem mais de 100 praias catalogadas, muitas acessiveis apenas por trilha ou barco.' },
-    { emoji: '🐢', text: 'A cidade abriga o Projeto Tamar, referencia na conservacao de tartarugas marinhas no Brasil.' },
-    { emoji: '🌧️', text: 'E conhecida como "Ubachuva" pela alta umidade, mas isso mantem a mata sempre verde e exuberante.' },
+    {
+      emoji: '🏖️',
+      text: 'Ubatuba tem mais de 100 praias catalogadas, muitas acessiveis apenas por trilha ou barco.',
+    },
+    {
+      emoji: '🐢',
+      text: 'A cidade abriga o Projeto Tamar, referencia na conservacao de tartarugas marinhas no Brasil.',
+    },
+    {
+      emoji: '🌧️',
+      text: 'E conhecida como "Ubachuva" pela alta umidade, mas isso mantem a mata sempre verde e exuberante.',
+    },
   ],
   image: require('../../assets/images/ubatuba.jpg'),
 };
 
-function HighlightCard({ item, onPress }: { item: Place; onPress: () => void }) {
+function HighlightCard({
+  item,
+  onPress,
+}: {
+  item: Place;
+  onPress: () => void;
+}) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <Image source={item.image} style={styles.cardImage} />
@@ -88,15 +103,17 @@ export default function Explorar() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Explorar</Text>
           <Pressable>
-            <Ionicons name="notifications-outline" size={24} color={colors.text} />
+            <Ionicons
+              name="notifications-outline"
+              size={24}
+              color={colors.text}
+            />
           </Pressable>
         </View>
 
-        {/* Search */}
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color={colors.muted} />
           <TextInput
@@ -106,7 +123,6 @@ export default function Explorar() {
           />
         </View>
 
-        {/* Hero */}
         <View style={styles.heroContainer}>
           <Image source={DESTINATION.image} style={styles.hero} />
           <View style={styles.heroGradient} />
@@ -117,7 +133,6 @@ export default function Explorar() {
           </View>
         </View>
 
-        {/* Highlights */}
         <Text style={styles.sectionTitle}>Destaques</Text>
         <ScrollView
           horizontal
@@ -133,7 +148,6 @@ export default function Explorar() {
           ))}
         </ScrollView>
 
-        {/* Curiosities */}
         <Text style={styles.sectionTitle}>Voce sabia?</Text>
         <View style={styles.sectionContent}>
           {DESTINATION.curiosities.map((item, idx) => (
@@ -144,7 +158,6 @@ export default function Explorar() {
           ))}
         </View>
 
-        {/* What to do */}
         <Text style={styles.sectionTitle}>O que fazer</Text>
         <View style={styles.sectionContent}>
           {PLACES_DATA.map((place) => (
@@ -165,13 +178,16 @@ export default function Explorar() {
           ))}
         </View>
 
-        {/* Why visit */}
         <Text style={styles.sectionTitle}>Por que visitar</Text>
         <View style={styles.sectionContent}>
           {DESTINATION.whyVisit.map((item, idx) => (
             <View key={idx} style={styles.reasonCard}>
               <View style={styles.reasonIconCircle}>
-                <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                <Ionicons
+                  name={item.icon as any}
+                  size={20}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.reasonBody}>
                 <Text style={styles.reasonTitle}>{item.title}</Text>
@@ -181,10 +197,11 @@ export default function Explorar() {
           ))}
         </View>
 
-        {/* CTA */}
         <Pressable style={styles.ctaButton} onPress={handleCreateTrip}>
           <Ionicons name="sparkles" size={18} color="#fff" />
-          <Text style={styles.ctaText}>Criar roteiro para {DESTINATION.name}</Text>
+          <Text style={styles.ctaText}>
+            Criar roteiro para {DESTINATION.name}
+          </Text>
         </Pressable>
 
         <View style={styles.bottomSpacer} />
@@ -202,7 +219,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
 
-  // Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -216,7 +232,6 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
 
-  // Search
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -234,7 +249,6 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
 
-  // Hero
   heroContainer: {
     marginHorizontal: 24,
     borderRadius: 20,
@@ -275,7 +289,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Section
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
@@ -288,7 +301,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
 
-  // Highlight cards
   carousel: {
     paddingLeft: 24,
     paddingRight: 8,
@@ -356,7 +368,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
   },
 
-  // Curiosities
   curiosityRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -374,7 +385,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Activities list
   activityCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -407,7 +417,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 
-  // Why visit reasons
   reasonCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -438,7 +447,6 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
 
-  // CTA
   ctaButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -457,6 +465,6 @@ const styles = StyleSheet.create({
   },
 
   bottomSpacer: {
-    height: 100,
+    height: 90,
   },
 });

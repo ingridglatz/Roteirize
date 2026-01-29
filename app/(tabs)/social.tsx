@@ -355,7 +355,7 @@ export default function Social() {
         keyExtractor={(item) => item.id}
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 90 }}
         ListHeaderComponent={
           <ScrollView
             horizontal

@@ -1,17 +1,25 @@
-import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: {
+          ...styles.tabBar,
+          paddingBottom: insets.bottom,
+          height: 60 + insets.bottom,
+        },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: styles.tabLabel,
+        tabBarShowLabel: false,
         tabBarItemStyle: styles.tabItem,
       }}
     >
@@ -19,8 +27,12 @@ export default function TabLayout() {
         name="explorar"
         options={{
           title: 'Explorar',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="compass-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'compass' : 'compass-outline'}
+              size={28}
+              color={color}
+            />
           ),
         }}
       />
@@ -28,29 +40,47 @@ export default function TabLayout() {
         name="social"
         options={{
           title: 'Social',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'people' : 'people-outline'}
+              size={28}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="create"
         options={{
-          title: '',
-          tabBarIcon: () => (
-            <View style={styles.createButton}>
-              <Ionicons name="add" size={28} color="#fff" />
+          title: 'Create',
+          tabBarIcon: ({ focused }) => (
+            <View
+              style={[
+                styles.createIcon,
+                focused && styles.createIconActive,
+              ]}
+            >
+              <Ionicons name="add" size={24} color={focused ? '#fff' : colors.muted} />
             </View>
           ),
-          tabBarLabel: () => null,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            router.push('/(tabs)/create');
+          },
         }}
       />
       <Tabs.Screen
         name="roteiros"
         options={{
           title: 'Roteiros',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="map-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'map' : 'map-outline'}
+              size={28}
+              color={color}
+            />
           ),
         }}
       />
@@ -58,8 +88,12 @@ export default function TabLayout() {
         name="perfil"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={28}
+              color={color}
+            />
           ),
         }}
       />
@@ -69,42 +103,27 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    height: 70,
     backgroundColor: '#fff',
-    borderRadius: 35,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 10,
-    borderTopWidth: 0,
-    paddingBottom: 0,
-    paddingTop: 10,
-  },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginBottom: Platform.OS === 'ios' ? 0 : 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   tabItem: {
-    paddingTop: 4,
+    paddingVertical: 8,
   },
-  createButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
+  createIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: colors.muted,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 28,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: 'transparent',
+  },
+  createIconActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
 });

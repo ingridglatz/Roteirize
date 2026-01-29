@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -10,17 +10,38 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+import { useRoteiros } from '../../context/RoteirosContext';
 
 type Step = 'destination' | 'days' | 'preferences' | 'generating';
 
 const DESTINATIONS = [
-  { id: 'ubatuba', name: 'Ubatuba', subtitle: 'Litoral Norte, SP', image: require('../../assets/images/ubatuba.jpg') },
-  { id: 'paraty', name: 'Paraty', subtitle: 'Costa Verde, RJ', image: require('../../assets/images/praia2.jpg') },
-  { id: 'floripa', name: 'Florianopolis', subtitle: 'Santa Catarina', image: require('../../assets/images/praia1.jpg') },
-  { id: 'buzios', name: 'Buzios', subtitle: 'Regiao dos Lagos, RJ', image: require('../../assets/images/praia3.jpg') },
+  {
+    id: 'ubatuba',
+    name: 'Ubatuba',
+    subtitle: 'Litoral Norte, SP',
+    image: require('../../assets/images/ubatuba.jpg'),
+  },
+  {
+    id: 'paraty',
+    name: 'Paraty',
+    subtitle: 'Costa Verde, RJ',
+    image: require('../../assets/images/praia2.jpg'),
+  },
+  {
+    id: 'floripa',
+    name: 'Florianopolis',
+    subtitle: 'Santa Catarina',
+    image: require('../../assets/images/praia1.jpg'),
+  },
+  {
+    id: 'buzios',
+    name: 'Buzios',
+    subtitle: 'Regiao dos Lagos, RJ',
+    image: require('../../assets/images/praia3.jpg'),
+  },
 ];
 
 const DAY_OPTIONS = [2, 3, 5, 7];
@@ -34,16 +55,28 @@ const INTERESTS = [
   { id: 'compras', label: 'Compras', icon: 'shopping' },
 ];
 
-const BUDGETS = ['Economico', 'Moderado', 'Luxo'];
+const BUDGETS = ['Econômico', 'Moderado', 'Luxo'];
 
 export default function Create() {
   const router = useRouter();
+  const { addRoteiro } = useRoteiros();
   const [step, setStep] = useState<Step>('destination');
   const [destination, setDestination] = useState<string | null>(null);
   const [days, setDays] = useState<number | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const [budget, setBudget] = useState<string | null>(null);
   const [tripName, setTripName] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      setStep('destination');
+      setDestination(null);
+      setDays(null);
+      setInterests([]);
+      setBudget(null);
+      setTripName('');
+    }, []),
+  );
 
   function toggleInterest(id: string) {
     setInterests((prev) =>
@@ -94,15 +127,54 @@ export default function Create() {
     }
   }
 
-  // Auto-redirect after generating
   useEffect(() => {
     if (step === 'generating') {
       const timer = setTimeout(() => {
-        router.replace('/(tabs)/roteiros');
+        const selectedDest = DESTINATIONS.find((d) => d.id === destination);
+
+        if (selectedDest && days && budget) {
+          const newRoteiro = {
+            id: Date.now().toString(),
+            title: tripName || `Viagem para ${selectedDest.name}`,
+            destinationId: selectedDest.id,
+            destinationName: selectedDest.name,
+            days: days,
+            budget: budget as 'Econômico' | 'Moderado' | 'Luxo',
+            interests: interests,
+            dailyPlan: Array.from({ length: days }, (_, i) => ({
+              day: i + 1,
+              title: `Dia ${i + 1} em ${selectedDest.name}`,
+              activities: ['Atividade será gerada pela IA'],
+              places: [],
+            })),
+            restaurants: [],
+            checklist: [
+              { id: '1', text: 'Reservar hospedagem', done: false },
+              { id: '2', text: 'Planejar transporte', done: false },
+              { id: '3', text: 'Fazer mala', done: false },
+            ],
+            createdAt: new Date().toISOString(),
+          };
+
+          addRoteiro(newRoteiro);
+
+          setTimeout(() => {
+            router.replace('/(tabs)/roteiros');
+          }, 100);
+        }
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [step, router]);
+  }, [
+    addRoteiro,
+    budget,
+    days,
+    destination,
+    interests,
+    router,
+    step,
+    tripName,
+  ]);
 
   function renderDestinationStep() {
     return (
@@ -144,9 +216,7 @@ export default function Create() {
     return (
       <>
         <Text style={styles.stepTitle}>Quantos dias voce vai ficar?</Text>
-        <Text style={styles.stepSubtitle}>
-          Escolha a duracao da sua viagem
-        </Text>
+        <Text style={styles.stepSubtitle}>Escolha a duracao da sua viagem</Text>
 
         <View style={styles.daysRow}>
           {DAY_OPTIONS.map((d) => {
@@ -157,10 +227,20 @@ export default function Create() {
                 style={[styles.dayCard, isSelected && styles.dayCardSelected]}
                 onPress={() => setDays(d)}
               >
-                <Text style={[styles.dayNumber, isSelected && styles.dayNumberSelected]}>
+                <Text
+                  style={[
+                    styles.dayNumber,
+                    isSelected && styles.dayNumberSelected,
+                  ]}
+                >
                   {d}
                 </Text>
-                <Text style={[styles.dayLabel, isSelected && styles.dayLabelSelected]}>
+                <Text
+                  style={[
+                    styles.dayLabel,
+                    isSelected && styles.dayLabelSelected,
+                  ]}
+                >
                   dias
                 </Text>
               </Pressable>
@@ -173,7 +253,9 @@ export default function Create() {
 
   function renderPreferencesStep() {
     const selectedDest = DESTINATIONS.find((d) => d.id === destination);
-    const defaultName = selectedDest ? `Viagem para ${selectedDest.name}` : 'Minha viagem';
+    const defaultName = selectedDest
+      ? `Viagem para ${selectedDest.name}`
+      : 'Minha viagem';
 
     return (
       <>
@@ -198,10 +280,18 @@ export default function Create() {
             return (
               <Pressable
                 key={b}
-                style={[styles.budgetCard, isSelected && styles.budgetCardSelected]}
+                style={[
+                  styles.budgetCard,
+                  isSelected && styles.budgetCardSelected,
+                ]}
                 onPress={() => setBudget(b)}
               >
-                <Text style={[styles.budgetText, isSelected && styles.budgetTextSelected]}>
+                <Text
+                  style={[
+                    styles.budgetText,
+                    isSelected && styles.budgetTextSelected,
+                  ]}
+                >
                   {b}
                 </Text>
               </Pressable>
@@ -216,7 +306,10 @@ export default function Create() {
             return (
               <Pressable
                 key={item.id}
-                style={[styles.interestCard, isSelected && styles.interestCardSelected]}
+                style={[
+                  styles.interestCard,
+                  isSelected && styles.interestCardSelected,
+                ]}
                 onPress={() => toggleInterest(item.id)}
               >
                 <MaterialCommunityIcons
@@ -224,7 +317,12 @@ export default function Create() {
                   size={20}
                   color={isSelected ? '#fff' : colors.muted}
                 />
-                <Text style={[styles.interestText, isSelected && styles.interestTextSelected]}>
+                <Text
+                  style={[
+                    styles.interestText,
+                    isSelected && styles.interestTextSelected,
+                  ]}
+                >
                   {item.label}
                 </Text>
               </Pressable>
@@ -250,11 +348,19 @@ export default function Create() {
 
         <View style={styles.generatingSummary}>
           <View style={styles.summaryItem}>
-            <Ionicons name="location-outline" size={18} color={colors.primary} />
+            <Ionicons
+              name="location-outline"
+              size={18}
+              color={colors.primary}
+            />
             <Text style={styles.summaryText}>{selectedDest?.name}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={colors.primary}
+            />
             <Text style={styles.summaryText}>{days} dias</Text>
           </View>
           <View style={styles.summaryItem}>
@@ -263,16 +369,26 @@ export default function Create() {
           </View>
         </View>
 
-        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
+        <ActivityIndicator
+          size="large"
+          color={colors.primary}
+          style={{ marginTop: 32 }}
+        />
       </View>
     );
   }
 
-  const stepNumber = step === 'destination' ? 1 : step === 'days' ? 2 : step === 'preferences' ? 3 : 4;
+  const stepNumber =
+    step === 'destination'
+      ? 1
+      : step === 'days'
+        ? 2
+        : step === 'preferences'
+          ? 3
+          : 4;
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       {step !== 'generating' && (
         <View style={styles.header}>
           <Pressable onPress={handleBack} hitSlop={12}>
@@ -283,7 +399,6 @@ export default function Create() {
         </View>
       )}
 
-      {/* Progress */}
       {step !== 'generating' && (
         <View style={styles.progress}>
           {[1, 2, 3].map((n) => (
@@ -298,7 +413,6 @@ export default function Create() {
         </View>
       )}
 
-      {/* Content */}
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -309,11 +423,13 @@ export default function Create() {
         {step === 'generating' && renderGeneratingStep()}
       </ScrollView>
 
-      {/* Footer button */}
       {step !== 'generating' && (
         <View style={styles.footer}>
           <Pressable
-            style={[styles.continueButton, !canContinue() && styles.continueButtonDisabled]}
+            style={[
+              styles.continueButton,
+              !canContinue() && styles.continueButtonDisabled,
+            ]}
             onPress={handleNext}
             disabled={!canContinue()}
           >
@@ -366,7 +482,7 @@ const styles = StyleSheet.create({
   content: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingBottom: 120,
+    paddingBottom: 140,
   },
   stepTitle: {
     fontSize: 24,
@@ -380,7 +496,6 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
 
-  // Destination step
   destinationsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -432,7 +547,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Days step
   daysRow: {
     flexDirection: 'row',
     gap: 14,
@@ -468,7 +582,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.8)',
   },
 
-  // Preferences step
   label: {
     fontSize: 15,
     fontWeight: '600',
@@ -535,7 +648,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  // Generating step
   generatingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -578,7 +690,6 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
 
-  // Footer
   footer: {
     position: 'absolute',
     bottom: 0,
@@ -586,7 +697,7 @@ const styles = StyleSheet.create({
     right: 0,
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 80,
     backgroundColor: colors.background,
     borderTopWidth: 1,
     borderTopColor: colors.border,

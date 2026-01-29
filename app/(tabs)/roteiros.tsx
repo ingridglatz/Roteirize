@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -13,42 +12,17 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
+import { useRoteiros } from '../../context/RoteirosContext';
+import { Itinerary } from '../../types/Itinerary';
 
-const { width } = Dimensions.get('window');
+Dimensions.get('window');
 
-type Itinerary = {
-  id: string;
-  title: string;
-  destination: string;
-  days: number;
-  image: any;
-  budget: string;
-  createdAt: string;
-  places: string[];
+const DESTINATION_IMAGES: Record<string, any> = {
+  ubatuba: require('../../assets/images/ubatuba.jpg'),
+  paraty: require('../../assets/images/praia2.jpg'),
+  floripa: require('../../assets/images/praia1.jpg'),
+  buzios: require('../../assets/images/praia3.jpg'),
 };
-
-const MOCK_ITINERARIES: Itinerary[] = [
-  {
-    id: '1',
-    title: 'Fim de semana em Ubatuba',
-    destination: 'Ubatuba, SP',
-    days: 3,
-    image: require('../../assets/images/ubatuba.jpg'),
-    budget: 'Moderado',
-    createdAt: '2024-01-15',
-    places: ['Praia do Felix', 'Ilha Anchieta', 'Praia da Almada'],
-  },
-  {
-    id: '2',
-    title: 'Aventura no litoral',
-    destination: 'Ubatuba, SP',
-    days: 5,
-    image: require('../../assets/images/praia1.jpg'),
-    budget: 'Economico',
-    createdAt: '2024-01-10',
-    places: ['Praia do Cedro', 'Cachoeira do Prumirim', 'Praia Vermelha'],
-  },
-];
 
 function EmptyState({ onPress }: { onPress: () => void }) {
   return (
@@ -58,7 +32,8 @@ function EmptyState({ onPress }: { onPress: () => void }) {
       </View>
       <Text style={styles.emptyTitle}>Nenhum roteiro ainda</Text>
       <Text style={styles.emptyText}>
-        Crie seu primeiro roteiro personalizado e comece a planejar sua proxima aventura!
+        Crie seu primeiro roteiro personalizado e comece a planejar sua proxima
+        aventura!
       </Text>
       <Pressable style={styles.emptyButton} onPress={onPress}>
         <Ionicons name="add" size={20} color="#fff" />
@@ -77,9 +52,13 @@ function ItineraryCard({
   onPress: () => void;
   onDelete: () => void;
 }) {
+  const image =
+    DESTINATION_IMAGES[item.destinationId] || DESTINATION_IMAGES.ubatuba;
+  const places = item.dailyPlan.flatMap((day) => day.places).filter(Boolean);
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      <Image source={item.image} style={styles.cardImage} />
+      <Image source={image} style={styles.cardImage} />
       <View style={styles.cardGradient} />
       <View style={styles.cardContent}>
         <View style={styles.cardBadge}>
@@ -87,14 +66,20 @@ function ItineraryCard({
         </View>
         <Text style={styles.cardTitle}>{item.title}</Text>
         <View style={styles.cardMeta}>
-          <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.8)" />
-          <Text style={styles.cardMetaText}>{item.destination}</Text>
+          <Ionicons
+            name="location-outline"
+            size={14}
+            color="rgba(255,255,255,0.8)"
+          />
+          <Text style={styles.cardMetaText}>{item.destinationName}</Text>
         </View>
-        <View style={styles.cardPlaces}>
-          <Text style={styles.cardPlacesText} numberOfLines={1}>
-            {item.places.join(' · ')}
-          </Text>
-        </View>
+        {places.length > 0 && (
+          <View style={styles.cardPlaces}>
+            <Text style={styles.cardPlacesText} numberOfLines={1}>
+              {places.join(' · ')}
+            </Text>
+          </View>
+        )}
       </View>
       <Pressable
         style={styles.cardDelete}
@@ -111,7 +96,7 @@ function ItineraryCard({
 
 export default function Roteiros() {
   const router = useRouter();
-  const [itineraries, setItineraries] = useState<Itinerary[]>(MOCK_ITINERARIES);
+  const { roteiros, deleteRoteiro } = useRoteiros();
 
   function handleCreatePress() {
     router.push('/(tabs)/create');
@@ -131,7 +116,7 @@ export default function Roteiros() {
           text: 'Excluir',
           style: 'destructive',
           onPress: () => {
-            setItineraries((prev) => prev.filter((i) => i.id !== id));
+            deleteRoteiro(id);
           },
         },
       ],
@@ -143,15 +128,16 @@ export default function Roteiros() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Meus Roteiros</Text>
         <Text style={styles.headerSubtitle}>
-          {itineraries.length} roteiro{itineraries.length !== 1 ? 's' : ''} criado{itineraries.length !== 1 ? 's' : ''}
+          {roteiros.length} roteiro{roteiros.length !== 1 ? 's' : ''} criado
+          {roteiros.length !== 1 ? 's' : ''}
         </Text>
       </View>
 
-      {itineraries.length === 0 ? (
+      {roteiros.length === 0 ? (
         <EmptyState onPress={handleCreatePress} />
       ) : (
         <FlatList
-          data={itineraries}
+          data={roteiros}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
@@ -190,7 +176,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: 24,
-    paddingBottom: 120,
+    paddingBottom: 90,
   },
   card: {
     width: '100%',

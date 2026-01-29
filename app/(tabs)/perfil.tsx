@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 
-const { width } = Dimensions.get('window');
+Dimensions.get('window');
 
 const TRIPS = [
   {
@@ -51,7 +51,13 @@ function Stat({ number, label }: { number: string; label: string }) {
   );
 }
 
-function TripCard({ trip, onPress }: { trip: typeof TRIPS[0]; onPress: () => void }) {
+function TripCard({
+  trip,
+  onPress,
+}: {
+  trip: (typeof TRIPS)[0];
+  onPress: () => void;
+}) {
   return (
     <Pressable style={styles.tripCard} onPress={onPress}>
       <Image source={trip.image} style={styles.tripImage} />
@@ -71,10 +77,8 @@ export default function Perfil() {
   function handleMenuPress(id: string) {
     switch (id) {
       case 'settings':
-        // router.push('/settings');
         break;
       case 'favorites':
-        // router.push('/favorites');
         break;
     }
   }
@@ -85,14 +89,12 @@ export default function Perfil() {
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Pressable style={styles.settingsButton}>
             <Ionicons name="settings-outline" size={22} color={colors.text} />
           </Pressable>
         </View>
 
-        {/* Profile info */}
         <View style={styles.profileSection}>
           <Image
             source={require('../../assets/images/profile.jpg')}
@@ -114,7 +116,6 @@ export default function Perfil() {
           </Pressable>
         </View>
 
-        {/* Recent trips */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Viagens recentes</Text>
           <ScrollView
@@ -136,7 +137,6 @@ export default function Perfil() {
           </ScrollView>
         </View>
 
-        {/* Menu */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Menu</Text>
           <View style={styles.menuContainer}>
@@ -148,7 +148,11 @@ export default function Perfil() {
               >
                 <View style={styles.menuItemLeft}>
                   <View style={styles.menuIconCircle}>
-                    <Ionicons name={item.icon as any} size={20} color={colors.primary} />
+                    <Ionicons
+                      name={item.icon as any}
+                      size={20}
+                      color={colors.primary}
+                    />
                   </View>
                   <Text style={styles.menuItemLabel}>{item.label}</Text>
                 </View>
@@ -156,7 +160,11 @@ export default function Perfil() {
                   {item.count !== undefined && (
                     <Text style={styles.menuItemCount}>{item.count}</Text>
                   )}
-                  <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={colors.muted}
+                  />
                 </View>
               </Pressable>
             ))}
@@ -175,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   container: {
-    paddingBottom: 24,
+    paddingBottom: 90,
   },
   header: {
     flexDirection: 'row',
