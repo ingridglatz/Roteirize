@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -9,6 +9,7 @@ import {
   Pressable,
   Dimensions,
   TextInput,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,6 +58,45 @@ const DESTINATION = {
   image: require('../../assets/images/ubatuba.jpg'),
 };
 
+const NOTIFICATIONS = [
+  {
+    id: '1',
+    type: 'trip',
+    title: 'Roteiro confirmado!',
+    message: 'Seu roteiro para Ubatuba está pronto para ser explorado.',
+    time: '2h atrás',
+    read: false,
+    icon: 'checkmark-circle',
+  },
+  {
+    id: '2',
+    type: 'recommendation',
+    title: 'Nova recomendação',
+    message: 'Descobrimos novos lugares em Ubatuba que combinam com você.',
+    time: '5h atrás',
+    read: false,
+    icon: 'sparkles',
+  },
+  {
+    id: '3',
+    type: 'reminder',
+    title: 'Não esqueça!',
+    message: 'Sua viagem começa em 3 dias. Já fez o check-in?',
+    time: '1d atrás',
+    read: true,
+    icon: 'calendar',
+  },
+  {
+    id: '4',
+    type: 'update',
+    title: 'Atualização de clima',
+    message: 'Previsão de sol para o final de semana em Ubatuba.',
+    time: '2d atrás',
+    read: true,
+    icon: 'sunny',
+  },
+];
+
 function HighlightCard({
   item,
   onPress,
@@ -85,6 +125,7 @@ function HighlightCard({
 
 export default function Explorar() {
   const router = useRouter();
+  const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const handleHighlightPress = useCallback(
     (slug: string) => {
@@ -97,20 +138,93 @@ export default function Explorar() {
     router.push('/(tabs)/create?destination=ubatuba');
   }, [router]);
 
+  const toggleNotifications = useCallback(() => {
+    setNotificationsVisible((prev) => !prev);
+  }, []);
+
+  const unreadCount = NOTIFICATIONS.filter((n) => !n.read).length;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
+      <Modal
+        visible={notificationsVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={toggleNotifications}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={toggleNotifications}
+          activeOpacity={1}
+        >
+          <Pressable
+            style={styles.modalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Notificações</Text>
+              <Pressable onPress={toggleNotifications}>
+                <Ionicons name="close" size={24} color={colors.text} />
+              </Pressable>
+            </View>
+
+            <ScrollView style={styles.notificationsList}>
+              {NOTIFICATIONS.map((notification) => (
+                <Pressable
+                  key={notification.id}
+                  style={[
+                    styles.notificationItem,
+                    !notification.read && styles.notificationUnread,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.notificationIconContainer,
+                      !notification.read && styles.notificationIconUnread,
+                    ]}
+                  >
+                    <Ionicons
+                      name={notification.icon as any}
+                      size={20}
+                      color={!notification.read ? colors.primary : colors.muted}
+                    />
+                  </View>
+                  <View style={styles.notificationContent}>
+                    <Text style={styles.notificationTitle}>
+                      {notification.title}
+                    </Text>
+                    <Text style={styles.notificationMessage}>
+                      {notification.message}
+                    </Text>
+                    <Text style={styles.notificationTime}>
+                      {notification.time}
+                    </Text>
+                  </View>
+                  {!notification.read && <View style={styles.unreadDot} />}
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
       <ScrollView
         contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Explorar</Text>
-          <Pressable>
+          <Pressable onPress={toggleNotifications} style={styles.notificationButton}>
             <Ionicons
               name="notifications-outline"
               size={24}
               color={colors.text}
             />
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
           </Pressable>
         </View>
 
@@ -466,5 +580,107 @@ const styles = StyleSheet.create({
 
   bottomSpacer: {
     height: 90,
+  },
+
+  notificationButton: {
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '80%',
+    paddingBottom: 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+
+  notificationsList: {
+    paddingHorizontal: 24,
+  },
+  notificationItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: 12,
+  },
+  notificationUnread: {
+    backgroundColor: '#F0FDFB',
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+  },
+  notificationIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationIconUnread: {
+    backgroundColor: '#E0F9F5',
+  },
+  notificationContent: {
+    flex: 1,
+  },
+  notificationTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: colors.muted,
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  notificationTime: {
+    fontSize: 12,
+    color: colors.muted,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+    marginTop: 6,
   },
 });
