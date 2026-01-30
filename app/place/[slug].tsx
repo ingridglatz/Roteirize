@@ -1,17 +1,17 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  Image,
   Dimensions,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
 import { getPlaceBySlug } from '../../data/places';
+import { colors } from '../../theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -26,7 +26,7 @@ export default function PlaceDetails() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.notFound}>
           <Ionicons name="compass-outline" size={56} color={colors.disabled} />
-          <Text style={styles.notFoundText}>Lugar nao encontrado</Text>
+          <Text style={styles.notFoundText}>Lugar não encontrado</Text>
           <Pressable style={styles.notFoundBtn} onPress={() => router.back()}>
             <Text style={styles.notFoundBtnText}>Voltar</Text>
           </Pressable>
@@ -134,7 +134,7 @@ export default function PlaceDetails() {
         <View style={styles.ctaSection}>
           <Pressable
             style={styles.ctaButton}
-            onPress={() => router.push('/itineraries/create')}
+            onPress={() => router.push('/(tabs)/create')}
           >
             <Ionicons name="sparkles" size={20} color="#fff" />
             <Text style={styles.ctaText}>Criar roteiro com este lugar</Text>

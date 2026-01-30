@@ -1,18 +1,18 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-  FlatList,
-  ScrollView,
   Animated,
   Dimensions,
+  FlatList,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useState, useRef, useCallback } from 'react';
-import { useRouter } from 'expo-router';
 import { colors } from '../../theme/colors';
 import CommentsSheet from '../post/CommentsSheet';
 import StoryViewer from '../post/StoryViewer';
@@ -99,7 +99,8 @@ const POSTS: Post[] = [
     location: 'Praia do Felix, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=1',
     image: require('../../assets/images/praia1.jpg'),
-    caption: 'Passei um dia incrivel na Praia do Felix! A agua e cristalina demais',
+    caption:
+      'Passei um dia incrivel na Praia do Felix! A água e cristalina demais',
     likes: 142,
     comments: 18,
     liked: false,
@@ -125,7 +126,7 @@ const POSTS: Post[] = [
     location: 'Praia da Almada, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=5',
     image: require('../../assets/images/praia3.jpg'),
-    caption: 'Almoco pe-na-areia com peixe fresco do dia. Nao tem preco!',
+    caption: 'Almoço pé-na-areia com peixe fresco do dia. Não tem preço!',
     likes: 234,
     comments: 31,
     liked: false,
@@ -185,7 +186,9 @@ export default function Social() {
   const [stories, setStories] = useState<Story[]>(STORIES);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
-  const doubleTapRef = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
+  const doubleTapRef = useRef<
+    Record<string, ReturnType<typeof setTimeout> | null>
+  >({});
   const heartAnims = useRef<Record<string, Animated.Value>>({});
 
   function getHeartAnim(id: string) {
@@ -232,7 +235,11 @@ export default function Social() {
     setPosts((prev) =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
+          ? {
+              ...p,
+              liked: !p.liked,
+              likes: p.liked ? p.likes - 1 : p.likes + 1,
+            }
           : p,
       ),
     );
@@ -302,10 +309,18 @@ export default function Social() {
               />
             </Pressable>
             <Pressable onPress={() => setSelectedPost(item)}>
-              <Ionicons name="chatbubble-outline" size={24} color={colors.text} />
+              <Ionicons
+                name="chatbubble-outline"
+                size={24}
+                color={colors.text}
+              />
             </Pressable>
             <Pressable>
-              <Ionicons name="paper-plane-outline" size={24} color={colors.text} />
+              <Ionicons
+                name="paper-plane-outline"
+                size={24}
+                color={colors.text}
+              />
             </Pressable>
           </View>
           <Pressable onPress={() => toggleSave(item.id)}>
@@ -326,11 +341,11 @@ export default function Social() {
 
         <Pressable onPress={() => setSelectedPost(item)}>
           <Text style={styles.postCommentsLink}>
-            Ver todos os {item.comments} comentarios
+            Ver todos os {item.comments} comentários
           </Text>
         </Pressable>
 
-        <Text style={styles.postTime}>{item.time} atras</Text>
+        <Text style={styles.postTime}>{item.time} atrás</Text>
       </View>
     );
   }

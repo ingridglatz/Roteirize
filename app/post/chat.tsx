@@ -1,21 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
   FlatList,
-  TextInput,
+  Image,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useState, useRef } from 'react';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { colors } from '../../theme/colors';
-
-// --- Types ---
 
 type Contact = {
   id: string;
@@ -33,8 +31,6 @@ type Message = {
   fromMe: boolean;
   time: string;
 };
-
-// --- Data ---
 
 const CONTACTS: Contact[] = [
   {
@@ -154,8 +150,6 @@ const MOCK_MESSAGES: Record<string, Message[]> = {
   ],
 };
 
-// --- Contact List ---
-
 function ContactList({ onSelect }: { onSelect: (contact: Contact) => void }) {
   return (
     <FlatList
@@ -196,8 +190,6 @@ function ContactList({ onSelect }: { onSelect: (contact: Contact) => void }) {
   );
 }
 
-// --- Conversation ---
-
 function Conversation({
   contact,
   onBack,
@@ -225,7 +217,6 @@ function Conversation({
     setMessages((prev) => [...prev, newMsg]);
     setText('');
 
-    // Simulate reply
     setTimeout(() => {
       const replies = [
         'Que legal!',
@@ -254,7 +245,6 @@ function Conversation({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* Header */}
       <View style={styles.convHeader}>
         <Pressable onPress={onBack} hitSlop={12}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -268,7 +258,6 @@ function Conversation({
         </View>
       </View>
 
-      {/* Messages */}
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -295,9 +284,7 @@ function Conversation({
             <Text
               style={[
                 styles.messageTime,
-                item.fromMe
-                  ? styles.myMessageTime
-                  : styles.theirMessageTime,
+                item.fromMe ? styles.myMessageTime : styles.theirMessageTime,
               ]}
             >
               {item.time}
@@ -306,7 +293,6 @@ function Conversation({
         )}
       />
 
-      {/* Input */}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.chatInput}
@@ -332,8 +318,6 @@ function Conversation({
   );
 }
 
-// --- Main Screen ---
-
 export default function ChatScreen() {
   const router = useRouter();
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
@@ -351,7 +335,6 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
       <View style={styles.listHeader}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
@@ -365,15 +348,12 @@ export default function ChatScreen() {
   );
 }
 
-// --- Styles ---
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
   },
 
-  // Contact list header
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -389,7 +369,6 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
 
-  // Contact list
   contactList: {
     paddingVertical: 8,
   },
@@ -464,7 +443,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Conversation
   conversationContainer: {
     flex: 1,
   },
@@ -495,7 +473,6 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
 
-  // Messages
   messagesList: {
     padding: 16,
     paddingBottom: 8,
@@ -539,7 +516,6 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
 
-  // Input
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  TextInput,
   ActivityIndicator,
   Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoteiros } from '../../context/RoteirosContext';
+import { colors } from '../../theme/colors';
 
 type Step = 'destination' | 'days' | 'preferences' | 'generating';
 
@@ -196,7 +196,7 @@ export default function Create() {
   function renderDestinationStep() {
     return (
       <>
-        <Text style={styles.stepTitle}>Para onde voce quer ir?</Text>
+        <Text style={styles.stepTitle}>Para onde você quer ir?</Text>
         <Text style={styles.stepSubtitle}>
           Selecione o destino da sua viagem
         </Text>
@@ -232,8 +232,8 @@ export default function Create() {
   function renderDaysStep() {
     return (
       <>
-        <Text style={styles.stepTitle}>Quantos dias voce vai ficar?</Text>
-        <Text style={styles.stepSubtitle}>Escolha a duracao da sua viagem</Text>
+        <Text style={styles.stepTitle}>Quantos dias você vai ficar?</Text>
+        <Text style={styles.stepSubtitle}>Escolha a duração da sua viagem</Text>
 
         <View style={styles.daysRow}>
           {DAY_OPTIONS.map((d) => {
@@ -278,7 +278,7 @@ export default function Create() {
       <>
         <Text style={styles.stepTitle}>Personalize sua viagem</Text>
         <Text style={styles.stepSubtitle}>
-          Conte-nos sobre suas preferencias
+          Conte-nos sobre suas preferências
         </Text>
 
         <Text style={styles.label}>Nome do roteiro</Text>
@@ -290,7 +290,7 @@ export default function Create() {
           onChangeText={setTripName}
         />
 
-        <Text style={styles.label}>Orcamento</Text>
+        <Text style={styles.label}>Orçamento</Text>
         <View style={styles.budgetRow}>
           {BUDGETS.map((b) => {
             const isSelected = budget === b;

@@ -1,25 +1,23 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useCallback, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-  FlatList,
-  ScrollView,
   Animated,
   Dimensions,
+  FlatList,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useState, useRef, useCallback } from 'react';
-import { useRouter } from 'expo-router';
 import { colors } from '../../theme/colors';
 import CommentsSheet from './CommentsSheet';
 import StoryViewer from './StoryViewer';
 
 const { width } = Dimensions.get('window');
-
-// --- Types ---
 
 type Story = {
   id: string;
@@ -42,8 +40,6 @@ type Post = {
   saved: boolean;
   time: string;
 };
-
-// --- Data ---
 
 const STORIES: Story[] = [
   {
@@ -103,7 +99,8 @@ const POSTS: Post[] = [
     location: 'Praia do Felix, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=1',
     image: require('../../assets/images/praia1.jpg'),
-    caption: 'Passei um dia incrivel na Praia do Felix! A agua e cristalina demais',
+    caption:
+      'Passei um dia incrivel na Praia do Felix! A agua e cristalina demais',
     likes: 142,
     comments: 18,
     liked: false,
@@ -164,8 +161,6 @@ const POSTS: Post[] = [
   },
 ];
 
-// --- Components ---
-
 function StoryBubble({
   story,
   onPress,
@@ -185,15 +180,15 @@ function StoryBubble({
   );
 }
 
-// --- Screen ---
-
 export default function Posts() {
   const router = useRouter();
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [stories, setStories] = useState<Story[]>(STORIES);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
-  const doubleTapRef = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
+  const doubleTapRef = useRef<
+    Record<string, ReturnType<typeof setTimeout> | null>
+  >({});
   const heartAnims = useRef<Record<string, Animated.Value>>({});
 
   function getHeartAnim(id: string) {
@@ -207,7 +202,6 @@ export default function Posts() {
     if (doubleTapRef.current[id]) {
       clearTimeout(doubleTapRef.current[id]!);
       doubleTapRef.current[id] = null;
-      // Double tap -> like + animation
       setPosts((prev) =>
         prev.map((p) =>
           p.id === id && !p.liked
@@ -241,7 +235,11 @@ export default function Posts() {
     setPosts((prev) =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
+          ? {
+              ...p,
+              liked: !p.liked,
+              likes: p.liked ? p.likes - 1 : p.likes + 1,
+            }
           : p,
       ),
     );
@@ -253,15 +251,12 @@ export default function Posts() {
     );
   }
 
-  const handleStoryPress = useCallback(
-    (index: number) => {
-      setStories((prev) =>
-        prev.map((s, i) => (i === index ? { ...s, seen: true } : s)),
-      );
-      setActiveStoryIndex(index);
-    },
-    [],
-  );
+  const handleStoryPress = useCallback((index: number) => {
+    setStories((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, seen: true } : s)),
+    );
+    setActiveStoryIndex(index);
+  }, []);
 
   const handleStoryClose = useCallback(() => {
     setActiveStoryIndex(null);
@@ -281,7 +276,6 @@ export default function Posts() {
 
     return (
       <View style={styles.post}>
-        {/* Header */}
         <View style={styles.postHeader}>
           <Pressable style={styles.postHeaderLeft}>
             <Image source={{ uri: item.avatar }} style={styles.postAvatar} />
@@ -293,7 +287,6 @@ export default function Posts() {
           <Ionicons name="ellipsis-horizontal" size={20} color={colors.text} />
         </View>
 
-        {/* Image with double-tap */}
         <Pressable onPress={() => handleDoubleTap(item.id)}>
           <Image source={item.image} style={styles.postImage} />
           <Animated.View
@@ -306,7 +299,6 @@ export default function Posts() {
           </Animated.View>
         </Pressable>
 
-        {/* Actions */}
         <View style={styles.postActions}>
           <View style={styles.postActionsLeft}>
             <Pressable onPress={() => toggleLike(item.id)}>
@@ -317,10 +309,18 @@ export default function Posts() {
               />
             </Pressable>
             <Pressable onPress={() => setSelectedPost(item)}>
-              <Ionicons name="chatbubble-outline" size={24} color={colors.text} />
+              <Ionicons
+                name="chatbubble-outline"
+                size={24}
+                color={colors.text}
+              />
             </Pressable>
             <Pressable>
-              <Ionicons name="paper-plane-outline" size={24} color={colors.text} />
+              <Ionicons
+                name="paper-plane-outline"
+                size={24}
+                color={colors.text}
+              />
             </Pressable>
           </View>
           <Pressable onPress={() => toggleSave(item.id)}>
@@ -332,30 +332,26 @@ export default function Posts() {
           </Pressable>
         </View>
 
-        {/* Likes */}
         <Text style={styles.postLikes}>{item.likes} curtidas</Text>
 
-        {/* Caption */}
         <Text style={styles.postCaption}>
           <Text style={styles.postCaptionUser}>{item.user} </Text>
           {item.caption}
         </Text>
 
-        {/* Comments link */}
         <Pressable onPress={() => setSelectedPost(item)}>
           <Text style={styles.postCommentsLink}>
-            Ver todos os {item.comments} comentarios
+            Ver todos os {item.comments} comentários
           </Text>
         </Pressable>
 
-        <Text style={styles.postTime}>{item.time} atras</Text>
+        <Text style={styles.postTime}>{item.time} atrás</Text>
       </View>
     );
   }
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Top bar */}
       <View style={styles.topBar}>
         <Text style={styles.topBarTitle}>Roteirize</Text>
         <View style={styles.topBarActions}>
@@ -391,13 +387,11 @@ export default function Posts() {
         }
       />
 
-      {/* Comments modal */}
       <CommentsSheet
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
       />
 
-      {/* Story viewer modal */}
       {activeStoryIndex !== null && (
         <StoryViewer
           stories={stories}
@@ -409,15 +403,12 @@ export default function Posts() {
   );
 }
 
-// --- Styles ---
-
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
   },
 
-  // Top bar
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -437,7 +428,6 @@ const styles = StyleSheet.create({
     gap: 18,
   },
 
-  // Stories
   storiesRow: {
     paddingHorizontal: 12,
     paddingVertical: 12,
@@ -471,7 +461,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Post
   post: {
     marginBottom: 20,
   },

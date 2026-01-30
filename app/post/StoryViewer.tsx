@@ -1,20 +1,19 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-  Dimensions,
-  Modal,
-  TextInput,
   Animated,
-  Platform,
+  Dimensions,
+  Image,
   KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { colors } from '../../theme/colors';
 
 const { width, height } = Dimensions.get('window');
 
@@ -118,19 +117,14 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Background image */}
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={(e) => handleTap(e.nativeEvent.locationX)}
         >
-          <Image
-            source={story.images[imageIndex]}
-            style={styles.storyImage}
-          />
+          <Image source={story.images[imageIndex]} style={styles.storyImage} />
           <View style={styles.overlay} />
         </Pressable>
 
-        {/* Progress bars */}
         <SafeAreaView style={styles.topSection} edges={['top']}>
           <View style={styles.progressRow}>
             {story.images.map((_, idx) => {
@@ -153,7 +147,6 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
             })}
           </View>
 
-          {/* User info + close */}
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
               <Image
@@ -163,13 +156,12 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
               <Text style={styles.headerUser}>{story.user}</Text>
               <Text style={styles.headerTime}>2h</Text>
             </View>
-            <Pressable onPress={onClose} hitSlop={12}>
+            <Pressable onPress={onClose} hitSlop={8} style={styles.closeButton}>
               <Ionicons name="close" size={28} color="#fff" />
             </Pressable>
           </View>
         </SafeAreaView>
 
-        {/* Reaction animation */}
         {sentReaction && (
           <Animated.View
             style={[
@@ -181,7 +173,6 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
           </Animated.View>
         )}
 
-        {/* Bottom: reactions + reply */}
         <SafeAreaView style={styles.bottomSection} edges={['bottom']}>
           <View style={styles.reactionsRow}>
             {REACTIONS.map((emoji) => (
@@ -232,7 +223,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.15)',
   },
 
-  // Top
   topSection: {
     position: 'absolute',
     top: 0,
@@ -261,7 +251,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 12,
+    marginTop: 16,
+    paddingBottom: 8,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -284,8 +275,11 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.6)',
     fontSize: 13,
   },
+  closeButton: {
+    padding: 4,
+    marginRight: -4,
+  },
 
-  // Reaction float
   reactionFloat: {
     position: 'absolute',
     top: '40%',
@@ -295,7 +289,6 @@ const styles = StyleSheet.create({
     fontSize: 80,
   },
 
-  // Bottom
   bottomSection: {
     position: 'absolute',
     bottom: 0,

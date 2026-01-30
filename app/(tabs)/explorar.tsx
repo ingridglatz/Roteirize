@@ -1,20 +1,20 @@
-import { useCallback, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  Pressable,
-  Dimensions,
-  TextInput,
-  Modal,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
+import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PLACES_DATA, type Place } from '../../data/places';
+import { colors } from '../../theme/colors';
 
 const { width } = Dimensions.get('window');
 
@@ -23,32 +23,32 @@ const DESTINATION = {
   fullName: 'Ubatuba, Brasil',
   tagline: 'Litoral norte de Sao Paulo',
   description:
-    'Mais de 100 praias, trilhas na Mata Atlantica e diversas ilhas paradisiacas.',
+    'Mais de 100 praias, trilhas na Mata Atlântica e diversas ilhas paradisíacas.',
   whyVisit: [
     {
       icon: 'leaf-outline',
       title: 'Natureza preservada',
-      text: 'Praias cercadas por Mata Atlantica, cachoeiras escondidas e trilhas com vistas incriveis.',
+      text: 'Praias cercadas por Mata Atlântica, cachoeiras escondidas e trilhas com vistas incriveis.',
     },
     {
       icon: 'restaurant-outline',
-      title: 'Gastronomia caicara',
-      text: 'Frutos do mar frescos servidos pe-na-areia por comunidades tradicionais de pescadores.',
+      title: 'Gastronomia caiçara',
+      text: 'Frutos do mar frescos servidos pé-na-areia por comunidades tradicionais de pescadores.',
     },
     {
       icon: 'compass-outline',
       title: 'Aventura para todos',
-      text: 'Do surf em ondas fortes ao mergulho em aguas cristalinas, ha atividades para todos os perfis.',
+      text: 'Do surf em ondas fortes ao mergulho em águas cristalinas, há atividades para todos os perfis.',
     },
   ],
   curiosities: [
     {
       emoji: '🏖️',
-      text: 'Ubatuba tem mais de 100 praias catalogadas, muitas acessiveis apenas por trilha ou barco.',
+      text: 'Ubatuba tem mais de 100 praias catalogadas, muitas acessíveis apenas por trilha ou barco.',
     },
     {
       emoji: '🐢',
-      text: 'A cidade abriga o Projeto Tamar, referencia na conservacao de tartarugas marinhas no Brasil.',
+      text: 'A cidade abriga o Projeto Tamar, referência na conservação de tartarugas marinhas no Brasil.',
     },
     {
       emoji: '🌧️',
@@ -152,11 +152,7 @@ export default function Explorar() {
         transparent
         onRequestClose={toggleNotifications}
       >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={toggleNotifications}
-          activeOpacity={1}
-        >
+        <Pressable style={styles.modalOverlay} onPress={toggleNotifications}>
           <Pressable
             style={styles.modalContainer}
             onPress={(e) => e.stopPropagation()}
@@ -214,7 +210,10 @@ export default function Explorar() {
       >
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Explorar</Text>
-          <Pressable onPress={toggleNotifications} style={styles.notificationButton}>
+          <Pressable
+            onPress={toggleNotifications}
+            style={styles.notificationButton}
+          >
             <Ionicons
               name="notifications-outline"
               size={24}
@@ -262,7 +261,7 @@ export default function Explorar() {
           ))}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Voce sabia?</Text>
+        <Text style={styles.sectionTitle}>Você sabia?</Text>
         <View style={styles.sectionContent}>
           {DESTINATION.curiosities.map((item, idx) => (
             <View key={idx} style={styles.curiosityRow}>

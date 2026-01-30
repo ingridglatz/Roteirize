@@ -1,14 +1,14 @@
-import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  ScrollView,
-  Pressable,
-} from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
 
 const MOCK_ITINERARY = {
@@ -68,11 +68,10 @@ const MOCK_ITINERARY = {
 
 export default function ItineraryDetail() {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  useLocalSearchParams();
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Hero with back button */}
       <View>
         <Image source={MOCK_ITINERARY.image} style={styles.hero} />
         <View style={styles.heroOverlay} />
@@ -85,8 +84,14 @@ export default function ItineraryDetail() {
           </View>
           <Text style={styles.heroTitle}>{MOCK_ITINERARY.title}</Text>
           <View style={styles.heroMeta}>
-            <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.heroMetaText}>{MOCK_ITINERARY.destination}</Text>
+            <Ionicons
+              name="location-outline"
+              size={14}
+              color="rgba(255,255,255,0.8)"
+            />
+            <Text style={styles.heroMetaText}>
+              {MOCK_ITINERARY.destination}
+            </Text>
           </View>
         </View>
       </View>
@@ -95,20 +100,22 @@ export default function ItineraryDetail() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Info row */}
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Ionicons name="wallet-outline" size={18} color={colors.primary} />
             <Text style={styles.infoText}>{MOCK_ITINERARY.budget}</Text>
           </View>
           <View style={styles.infoItem}>
-            <Ionicons name="calendar-outline" size={18} color={colors.primary} />
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={colors.primary}
+            />
             <Text style={styles.infoText}>{MOCK_ITINERARY.createdAt}</Text>
           </View>
         </View>
 
-        {/* Daily plan */}
-        <Text style={styles.sectionTitle}>Roteiro diario</Text>
+        <Text style={styles.sectionTitle}>Roteiro diário</Text>
         {MOCK_ITINERARY.dailyPlan.map((day) => (
           <View key={day.day} style={styles.dayCard}>
             <View style={styles.dayHeader}>
@@ -126,13 +133,16 @@ export default function ItineraryDetail() {
           </View>
         ))}
 
-        {/* Restaurants */}
         <Text style={styles.sectionTitle}>Restaurantes sugeridos</Text>
         <View style={styles.restaurantsContainer}>
           {MOCK_ITINERARY.restaurants.map((r, idx) => (
             <View key={idx} style={styles.restaurantCard}>
               <View style={styles.restaurantIcon}>
-                <Ionicons name="restaurant-outline" size={20} color={colors.primary} />
+                <Ionicons
+                  name="restaurant-outline"
+                  size={20}
+                  color={colors.primary}
+                />
               </View>
               <View style={styles.restaurantBody}>
                 <Text style={styles.restaurantName}>{r.name}</Text>
@@ -143,15 +153,21 @@ export default function ItineraryDetail() {
           ))}
         </View>
 
-        {/* Checklist */}
         <Text style={styles.sectionTitle}>Checklist</Text>
         <View style={styles.checklistContainer}>
           {MOCK_ITINERARY.checklist.map((item, idx) => (
             <View key={idx} style={styles.checklistItem}>
               <View style={[styles.checkbox, item.done && styles.checkboxDone]}>
-                {item.done && <Ionicons name="checkmark" size={14} color="#fff" />}
+                {item.done && (
+                  <Ionicons name="checkmark" size={14} color="#fff" />
+                )}
               </View>
-              <Text style={[styles.checklistText, item.done && styles.checklistTextDone]}>
+              <Text
+                style={[
+                  styles.checklistText,
+                  item.done && styles.checklistTextDone,
+                ]}
+              >
                 {item.text}
               </Text>
             </View>
