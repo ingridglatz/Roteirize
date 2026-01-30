@@ -2,19 +2,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
   FlatList,
   Image,
   Pressable,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useUser } from '../../context/UserContext';
 import { colors } from '../../theme/colors';
 import CommentsSheet from '../post/CommentsSheet';
+import CreateContentSheet from '../post/CreateContentSheet';
+import PostActionsSheet from '../post/PostActionsSheet';
 import StoryViewer from '../post/StoryViewer';
 
 const { width } = Dimensions.get('window');
@@ -29,6 +34,7 @@ type Story = {
 
 type Post = {
   id: string;
+  userId: string;
   user: string;
   location: string;
   avatar: string;
@@ -95,9 +101,10 @@ const STORIES: Story[] = [
 const POSTS: Post[] = [
   {
     id: '1',
-    user: 'Ana Souza',
+    userId: 'user-1',
+    user: 'Juliana Santos',
     location: 'Praia do Felix, Ubatuba',
-    avatar: 'https://i.pravatar.cc/100?img=1',
+    avatar: 'https://i.pravatar.cc/100?img=12',
     image: require('../../assets/images/praia1.jpg'),
     caption:
       'Passei um dia incrivel na Praia do Felix! A água e cristalina demais',
@@ -109,6 +116,7 @@ const POSTS: Post[] = [
   },
   {
     id: '2',
+    userId: 'user-2',
     user: 'Lucas Oliveira',
     location: 'Ilha Anchieta, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=3',
@@ -122,6 +130,7 @@ const POSTS: Post[] = [
   },
   {
     id: '3',
+    userId: 'user-3',
     user: 'Mariana Lima',
     location: 'Praia da Almada, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=5',
@@ -135,6 +144,7 @@ const POSTS: Post[] = [
   },
   {
     id: '4',
+    userId: 'user-4',
     user: 'Pedro Santos',
     location: 'Ubatuba, SP',
     avatar: 'https://i.pravatar.cc/100?img=7',
@@ -148,6 +158,7 @@ const POSTS: Post[] = [
   },
   {
     id: '5',
+    userId: 'user-5',
     user: 'Julia Costa',
     location: 'Ilha Anchieta, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=9',
@@ -182,10 +193,15 @@ function StoryBubble({
 
 export default function Social() {
   const router = useRouter();
+  const { currentUser } = useUser();
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [stories, setStories] = useState<Story[]>(STORIES);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedPostForActions, setSelectedPostForActions] =
+    useState<Post | null>(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [createSheetVisible, setCreateSheetVisible] = useState(false);
   const doubleTapRef = useRef<
     Record<string, ReturnType<typeof setTimeout> | null>
   >({});
@@ -266,6 +282,101 @@ export default function Social() {
     router.push('/chat');
   }, [router]);
 
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
+
+  function handlePostMenuPress(post: Post) {
+    setSelectedPostForActions(post);
+  }
+
+  function handleEditPost() {
+    if (!selectedPostForActions) return;
+
+    setSelectedPostForActions(null);
+
+    Alert.alert(
+      'Editar publicação',
+      'Funcionalidade de edição será implementada em breve.',
+      [{ text: 'OK' }],
+    );
+  }
+
+  function handleDeletePost() {
+    if (!selectedPostForActions) return;
+
+    const postId = selectedPostForActions.id;
+    setSelectedPostForActions(null);
+
+    Alert.alert(
+      'Excluir publicação',
+      'Tem certeza que deseja excluir esta publicação?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            setPosts((prev) => prev.filter((p) => p.id !== postId));
+          },
+        },
+      ],
+    );
+  }
+
+  function handleReportPost() {
+    if (!selectedPostForActions) return;
+
+    setSelectedPostForActions(null);
+
+    Alert.alert(
+      'Denúncia enviada',
+      'Obrigado por nos ajudar a manter a comunidade segura. Analisaremos sua denúncia em breve.',
+      [{ text: 'OK' }],
+    );
+  }
+
+  function handleCreatePost(caption: string, image: any) {
+    const newPost: Post = {
+      id: Date.now().toString(),
+      userId: currentUser.id,
+      user: currentUser.name,
+      location: 'Ubatuba, SP',
+      avatar: currentUser.avatar,
+      image: image,
+      caption: caption,
+      likes: 0,
+      comments: 0,
+      liked: false,
+      saved: false,
+      time: 'agora',
+    };
+
+    setPosts((prev) => [newPost, ...prev]);
+    setCreateSheetVisible(false);
+
+    Alert.alert('Sucesso', 'Sua publicação foi criada!');
+  }
+
+  function handleCreateStory(image: any) {
+    const newStory: Story = {
+      id: Date.now().toString(),
+      user: currentUser.name,
+      avatar: currentUser.avatar,
+      images: [image],
+      seen: false,
+    };
+
+    setStories((prev) => [newStory, ...prev]);
+    setCreateSheetVisible(false);
+
+    Alert.alert('Sucesso', 'Seu story foi publicado!');
+  }
+
   function renderPost({ item }: { item: Post }) {
     const heartAnim = getHeartAnim(item.id);
     const heartScale = heartAnim.interpolate({
@@ -284,7 +395,13 @@ export default function Social() {
               <Text style={styles.postLocation}>{item.location}</Text>
             </View>
           </Pressable>
-          <Ionicons name="ellipsis-horizontal" size={20} color={colors.text} />
+          <Pressable onPress={() => handlePostMenuPress(item)}>
+            <Ionicons
+              name="ellipsis-horizontal"
+              size={20}
+              color={colors.text}
+            />
+          </Pressable>
         </View>
 
         <Pressable onPress={() => handleDoubleTap(item.id)}>
@@ -355,6 +472,9 @@ export default function Social() {
       <View style={styles.topBar}>
         <Text style={styles.topBarTitle}>Social</Text>
         <View style={styles.topBarActions}>
+          <Pressable onPress={() => setCreateSheetVisible(true)}>
+            <Ionicons name="add-circle-outline" size={24} color={colors.text} />
+          </Pressable>
           <Pressable onPress={handleChatPress}>
             <Ionicons
               name="chatbubble-ellipses-outline"
@@ -371,6 +491,14 @@ export default function Social() {
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 90 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         ListHeaderComponent={
           <ScrollView
             horizontal
@@ -391,6 +519,22 @@ export default function Social() {
       <CommentsSheet
         post={selectedPost}
         onClose={() => setSelectedPost(null)}
+      />
+
+      <PostActionsSheet
+        post={selectedPostForActions}
+        isOwnPost={selectedPostForActions?.userId === currentUser.id}
+        onClose={() => setSelectedPostForActions(null)}
+        onEdit={handleEditPost}
+        onDelete={handleDeletePost}
+        onReport={handleReportPost}
+      />
+
+      <CreateContentSheet
+        visible={createSheetVisible}
+        onClose={() => setCreateSheetVisible(false)}
+        onCreatePost={handleCreatePost}
+        onCreateStory={handleCreateStory}
       />
 
       {activeStoryIndex !== null && (
