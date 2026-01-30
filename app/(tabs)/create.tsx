@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { useRoteiros } from '../../context/RoteirosContext';
@@ -60,8 +60,15 @@ const BUDGETS = ['Econômico', 'Moderado', 'Luxo'];
 export default function Create() {
   const router = useRouter();
   const { addRoteiro } = useRoteiros();
-  const [step, setStep] = useState<Step>('destination');
-  const [destination, setDestination] = useState<string | null>(null);
+  const params = useLocalSearchParams();
+  const preselectedDestination = params.destination as string | undefined;
+
+  const [step, setStep] = useState<Step>(
+    preselectedDestination ? 'days' : 'destination',
+  );
+  const [destination, setDestination] = useState<string | null>(
+    preselectedDestination || null,
+  );
   const [days, setDays] = useState<number | null>(null);
   const [interests, setInterests] = useState<string[]>([]);
   const [budget, setBudget] = useState<string | null>(null);
@@ -70,14 +77,17 @@ export default function Create() {
 
   useFocusEffect(
     useCallback(() => {
-      setStep('destination');
-      setDestination(null);
+      const initialStep = preselectedDestination ? 'days' : 'destination';
+      const initialDestination = preselectedDestination || null;
+
+      setStep(initialStep);
+      setDestination(initialDestination);
       setDays(null);
       setInterests([]);
       setBudget(null);
       setTripName('');
       isGeneratingRef.current = false;
-    }, []),
+    }, [preselectedDestination]),
   );
 
   function toggleInterest(id: string) {
@@ -89,7 +99,11 @@ export default function Create() {
   function handleBack() {
     switch (step) {
       case 'days':
-        setStep('destination');
+        if (preselectedDestination) {
+          router.back();
+        } else {
+          setStep('destination');
+        }
         break;
       case 'preferences':
         setStep('days');
@@ -381,14 +395,21 @@ export default function Create() {
     );
   }
 
-  const stepNumber =
-    step === 'destination'
+  const stepNumber = preselectedDestination
+    ? step === 'days'
+      ? 1
+      : step === 'preferences'
+        ? 2
+        : 3
+    : step === 'destination'
       ? 1
       : step === 'days'
         ? 2
         : step === 'preferences'
           ? 3
           : 4;
+
+  const totalSteps = preselectedDestination ? 2 : 3;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -404,7 +425,7 @@ export default function Create() {
 
       {step !== 'generating' && (
         <View style={styles.progress}>
-          {[1, 2, 3].map((n) => (
+          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((n) => (
             <View
               key={n}
               style={[

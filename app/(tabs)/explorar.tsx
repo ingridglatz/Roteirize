@@ -94,7 +94,7 @@ export default function Explorar() {
   );
 
   const handleCreateTrip = useCallback(() => {
-    router.push('/(tabs)/create');
+    router.push('/(tabs)/create?destination=ubatuba');
   }, [router]);
 
   return (
