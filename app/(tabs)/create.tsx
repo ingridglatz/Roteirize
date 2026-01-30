@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View,
@@ -66,6 +66,7 @@ export default function Create() {
   const [interests, setInterests] = useState<string[]>([]);
   const [budget, setBudget] = useState<string | null>(null);
   const [tripName, setTripName] = useState('');
+  const isGeneratingRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -75,6 +76,7 @@ export default function Create() {
       setInterests([]);
       setBudget(null);
       setTripName('');
+      isGeneratingRef.current = false;
     }, []),
   );
 
@@ -128,7 +130,8 @@ export default function Create() {
   }
 
   useEffect(() => {
-    if (step === 'generating') {
+    if (step === 'generating' && !isGeneratingRef.current) {
+      isGeneratingRef.current = true;
       const timer = setTimeout(() => {
         const selectedDest = DESTINATIONS.find((d) => d.id === destination);
 
