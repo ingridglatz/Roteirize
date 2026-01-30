@@ -14,88 +14,105 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../../theme/colors';
+import { Post, Story } from '../../types/Social';
 import CommentsSheet from './CommentsSheet';
 import StoryViewer from './StoryViewer';
 
 const { width } = Dimensions.get('window');
 
-type Story = {
-  id: string;
-  user: string;
-  avatar: string;
-  images: any[];
-  seen: boolean;
-};
-
-type Post = {
-  id: string;
-  user: string;
-  location: string;
-  avatar: string;
-  image: any;
-  caption: string;
-  likes: number;
-  comments: number;
-  liked: boolean;
-  saved: boolean;
-  time: string;
-};
-
 const STORIES: Story[] = [
   {
     id: 's1',
+    userId: 'u12',
     user: 'Seu story',
+    username: 'voce',
     avatar: 'https://i.pravatar.cc/100?img=12',
     images: [require('../../assets/images/praia1.jpg')],
     seen: false,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reactions: [],
+    replies: [],
   },
   {
     id: 's2',
+    userId: 'u1',
     user: 'Ana Souza',
+    username: 'anasouza',
     avatar: 'https://i.pravatar.cc/100?img=1',
     images: [
       require('../../assets/images/praia2.jpg'),
       require('../../assets/images/praia3.jpg'),
     ],
     seen: false,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reactions: [],
+    replies: [],
   },
   {
     id: 's3',
+    userId: 'u3',
     user: 'Lucas',
+    username: 'lucas',
     avatar: 'https://i.pravatar.cc/100?img=3',
     images: [require('../../assets/images/praia1.jpg')],
     seen: false,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reactions: [],
+    replies: [],
   },
   {
     id: 's4',
+    userId: 'u5',
     user: 'Mariana',
+    username: 'mariana',
     avatar: 'https://i.pravatar.cc/100?img=5',
     images: [
       require('../../assets/images/praia3.jpg'),
       require('../../assets/images/praia2.jpg'),
     ],
     seen: false,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reactions: [],
+    replies: [],
   },
   {
     id: 's5',
+    userId: 'u7',
     user: 'Pedro',
+    username: 'pedro',
     avatar: 'https://i.pravatar.cc/100?img=7',
     images: [require('../../assets/images/praia1.jpg')],
     seen: false,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reactions: [],
+    replies: [],
   },
   {
     id: 's6',
+    userId: 'u9',
     user: 'Julia',
+    username: 'julia',
     avatar: 'https://i.pravatar.cc/100?img=9',
     images: [require('../../assets/images/praia2.jpg')],
     seen: true,
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    reactions: [],
+    replies: [],
   },
 ];
 
 const POSTS: Post[] = [
   {
     id: '1',
+    userId: 'u1',
     user: 'Ana Souza',
+    username: 'anasouza',
     location: 'Praia do Felix, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=1',
     image: require('../../assets/images/praia1.jpg'),
@@ -106,10 +123,15 @@ const POSTS: Post[] = [
     liked: false,
     saved: false,
     time: '2h',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    allowComments: true,
+    hideLikes: false,
   },
   {
     id: '2',
+    userId: 'u3',
     user: 'Lucas Oliveira',
+    username: 'lucasoliveira',
     location: 'Ilha Anchieta, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=3',
     image: require('../../assets/images/praia2.jpg'),
@@ -119,10 +141,15 @@ const POSTS: Post[] = [
     liked: false,
     saved: false,
     time: '4h',
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    allowComments: true,
+    hideLikes: false,
   },
   {
     id: '3',
+    userId: 'u5',
     user: 'Mariana Lima',
+    username: 'marianalima',
     location: 'Praia da Almada, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=5',
     image: require('../../assets/images/praia3.jpg'),
@@ -132,10 +159,15 @@ const POSTS: Post[] = [
     liked: false,
     saved: false,
     time: '6h',
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    allowComments: true,
+    hideLikes: false,
   },
   {
     id: '4',
+    userId: 'u7',
     user: 'Pedro Santos',
+    username: 'pedrosantos',
     location: 'Ubatuba, SP',
     avatar: 'https://i.pravatar.cc/100?img=7',
     image: require('../../assets/images/praia1.jpg'),
@@ -145,10 +177,15 @@ const POSTS: Post[] = [
     liked: false,
     saved: false,
     time: '8h',
+    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    allowComments: true,
+    hideLikes: false,
   },
   {
     id: '5',
+    userId: 'u9',
     user: 'Julia Costa',
+    username: 'juliacosta',
     location: 'Ilha Anchieta, Ubatuba',
     avatar: 'https://i.pravatar.cc/100?img=9',
     image: require('../../assets/images/praia2.jpg'),
@@ -158,6 +195,9 @@ const POSTS: Post[] = [
     liked: false,
     saved: false,
     time: '1d',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    allowComments: true,
+    hideLikes: false,
   },
 ];
 

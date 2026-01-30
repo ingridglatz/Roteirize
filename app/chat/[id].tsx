@@ -1,105 +1,222 @@
-import { useState, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
+  Alert,
   FlatList,
-  TextInput,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import SharedPostPreview from '../../components/chat/SharedPostPreview';
+import UserAvatar from '../../components/social/UserAvatar';
+import { useChat } from '../../context/ChatContext';
+import { useSocial } from '../../context/SocialContext';
+import { useUser } from '../../context/UserContext';
 import { colors } from '../../theme/colors';
-
-type Message = {
-  id: string;
-  text: string;
-  fromMe: boolean;
-  time: string;
-};
-
-const CONTACTS: Record<string, { name: string; avatar: string; online: boolean }> = {
-  c1: { name: 'Ana Souza', avatar: 'https://i.pravatar.cc/100?img=1', online: true },
-  c2: { name: 'Lucas Oliveira', avatar: 'https://i.pravatar.cc/100?img=3', online: true },
-  c3: { name: 'Mariana Lima', avatar: 'https://i.pravatar.cc/100?img=5', online: false },
-  c4: { name: 'Pedro Santos', avatar: 'https://i.pravatar.cc/100?img=7', online: false },
-  c5: { name: 'Julia Costa', avatar: 'https://i.pravatar.cc/100?img=9', online: true },
-};
-
-const MOCK_MESSAGES: Record<string, Message[]> = {
-  c1: [
-    { id: 'm1', text: 'Oi! Tudo bem?', fromMe: false, time: '10:30' },
-    { id: 'm2', text: 'Tudo sim! E voce?', fromMe: true, time: '10:31' },
-    { id: 'm3', text: 'Voce viu a praia do Felix? Incrivel!', fromMe: false, time: '10:32' },
-    { id: 'm4', text: 'Sim!! Fui ontem, a agua tava cristalina', fromMe: true, time: '10:33' },
-    { id: 'm5', text: 'Preciso ir la! Qual lado e melhor pra nadar?', fromMe: false, time: '10:34' },
-  ],
-  c2: [
-    { id: 'm1', text: 'E ai, mergulho amanha?', fromMe: false, time: '09:15' },
-    { id: 'm2', text: 'Bora! Ilha Anchieta?', fromMe: true, time: '09:20' },
-    { id: 'm3', text: 'Bora mergulhar amanha?', fromMe: false, time: '09:22' },
-  ],
-  c3: [
-    { id: 'm1', text: 'Conhece algum restaurante bom na Almada?', fromMe: true, time: '14:00' },
-    { id: 'm2', text: 'Aquele restaurante e demais!', fromMe: false, time: '14:05' },
-  ],
-  c4: [
-    { id: 'm1', text: 'Manda o roteiro que vc fez', fromMe: false, time: '11:00' },
-  ],
-  c5: [
-    { id: 'm1', text: 'Adorei as fotos da trilha!', fromMe: false, time: '08:00' },
-  ],
-};
+import { Message } from '../../types/Social';
+import { formatTimeAgo } from '../../utils/socialHelpers';
 
 export default function Conversation() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const contact = CONTACTS[id as string] || { name: 'Usuario', avatar: '', online: false };
+  const { currentUser } = useUser();
+  const {
+    getConversation,
+    getMessages,
+    sendMessage,
+    markAsRead,
+    setTyping,
+    reactToMessage,
+    deleteMessage,
+  } = useChat();
+  const { getUser } = useSocial();
 
-  const [messages, setMessages] = useState<Message[]>(
-    MOCK_MESSAGES[id as string] || [],
-  );
+  const conversation = getConversation(id as string);
+  const messages = getMessages(id as string);
   const [text, setText] = useState('');
+  // eslint-disable-next-line no-empty-pattern
+  const [] = useState<Message | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
-  function handleSend() {
-    if (!text.trim()) return;
-    const newMsg: Message = {
-      id: Date.now().toString(),
-      text: text.trim(),
-      fromMe: true,
-      time: new Date().toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
-    setMessages((prev) => [...prev, newMsg]);
-    setText('');
+  const recipient = useMemo(() => {
+    if (!conversation) return null;
+    const recipientId = conversation.participants.find(
+      (p) => p.id !== currentUser.id,
+    );
+    return recipientId ? getUser(recipientId.id) : null;
+  }, [conversation, currentUser.id, getUser]);
 
-    setTimeout(() => {
-      const replies = [
-        'Que legal!',
-        'Concordo!',
-        'Vamos sim!',
-        'Adorei!',
-        'Me conta mais!',
-        'Incrivel!',
-      ];
-      const replyMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        text: replies[Math.floor(Math.random() * replies.length)],
-        fromMe: false,
-        time: new Date().toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
-      setMessages((prev) => [...prev, replyMsg]);
-    }, 1500);
+  const isTyping = conversation?.typing && conversation.typing.length > 0;
+
+  useEffect(() => {
+    if (id) {
+      markAsRead(id as string);
+    }
+  }, [id, markAsRead]);
+
+  useEffect(() => {
+    let typingTimeout: NodeJS.Timeout | number;
+    if (text.trim()) {
+      setTyping(id as string, true);
+      typingTimeout = setTimeout(() => {
+        setTyping(id as string, false);
+      }, 2000);
+    } else {
+      setTyping(id as string, false);
+    }
+    return () => {
+      if (typingTimeout) clearTimeout(typingTimeout);
+      setTyping(id as string, false);
+    };
+  }, [text, id, setTyping]);
+
+  function handleSend() {
+    if (!text.trim() || !recipient) return;
+
+    sendMessage(id as string, {
+      conversationId: id as string,
+      senderId: currentUser.id,
+      recipientId: recipient.id,
+      text: text.trim(),
+      read: false,
+    });
+
+    setText('');
+  }
+
+  function handleLongPress(message: Message) {
+    if (message.senderId !== currentUser.id) {
+      Alert.alert('Reagir à mensagem', '', [
+        {
+          text: '❤️',
+          onPress: () => reactToMessage(message.id, '❤️'),
+        },
+        {
+          text: '😂',
+          onPress: () => reactToMessage(message.id, '😂'),
+        },
+        {
+          text: '😮',
+          onPress: () => reactToMessage(message.id, '😮'),
+        },
+        {
+          text: '😢',
+          onPress: () => reactToMessage(message.id, '😢'),
+        },
+        {
+          text: '👍',
+          onPress: () => reactToMessage(message.id, '👍'),
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ]);
+    } else {
+      Alert.alert('Opções da mensagem', '', [
+        {
+          text: 'Excluir mensagem',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Excluir mensagem',
+              'Tem certeza que deseja excluir esta mensagem?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'Excluir',
+                  style: 'destructive',
+                  onPress: () => deleteMessage(message.id),
+                },
+              ],
+            );
+          },
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ]);
+    }
+  }
+
+  function renderMessage({ item }: { item: Message }) {
+    const isMe = item.senderId === currentUser.id;
+    const showReadReceipt = isMe && item.read;
+
+    return (
+      <Pressable
+        onLongPress={() => handleLongPress(item)}
+        style={[
+          styles.messageBubble,
+          isMe ? styles.myMessage : styles.theirMessage,
+        ]}
+      >
+        {item.text && (
+          <Text
+            style={[
+              styles.messageText,
+              isMe ? styles.myMessageText : styles.theirMessageText,
+            ]}
+          >
+            {item.text}
+          </Text>
+        )}
+
+        {item.sharedPost && (
+          <SharedPostPreview postId={item.sharedPost.postId} />
+        )}
+
+        {item.reaction && (
+          <View style={styles.reactionBadge}>
+            <Text style={styles.reactionEmoji}>{item.reaction}</Text>
+          </View>
+        )}
+
+        <View style={styles.messageFooter}>
+          <Text
+            style={[
+              styles.messageTime,
+              isMe ? styles.myMessageTime : styles.theirMessageTime,
+            ]}
+          >
+            {formatTimeAgo(item.createdAt)}
+          </Text>
+          {showReadReceipt && (
+            <Ionicons
+              name="checkmark-done"
+              size={14}
+              color="rgba(255,255,255,0.7)"
+              style={{ marginLeft: 4 }}
+            />
+          )}
+          {isMe && !showReadReceipt && (
+            <Ionicons
+              name="checkmark"
+              size={14}
+              color="rgba(255,255,255,0.7)"
+              style={{ marginLeft: 4 }}
+            />
+          )}
+        </View>
+      </Pressable>
+    );
+  }
+
+  if (!conversation || !recipient) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Conversa não encontrada</Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -107,18 +224,37 @@ export default function Conversation() {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
-          <Image source={{ uri: contact.avatar }} style={styles.avatar} />
-          <View style={styles.headerInfo}>
-            <Text style={styles.headerName}>{contact.name}</Text>
+          <UserAvatar
+            uri={recipient.avatar}
+            size={36}
+            verified={recipient.verified}
+            onPress={() => router.push(`/profile/${recipient.id}` as any)}
+          />
+          <Pressable
+            style={styles.headerInfo}
+            onPress={() => router.push(`/profile/${recipient.id}` as any)}
+          >
+            <View style={styles.headerNameRow}>
+              <Text style={styles.headerName}>{recipient.name}</Text>
+              {recipient.verified && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={14}
+                  color={colors.primary}
+                  style={{ marginLeft: 4 }}
+                />
+              )}
+            </View>
             <Text style={styles.headerStatus}>
-              {contact.online ? 'Online' : 'Offline'}
+              {isTyping ? 'digitando...' : 'Ativo há 5m'}
             </Text>
-          </View>
+          </Pressable>
         </View>
 
         <FlatList
@@ -129,31 +265,21 @@ export default function Conversation() {
           onContentSizeChange={() =>
             flatListRef.current?.scrollToEnd({ animated: true })
           }
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.messageBubble,
-                item.fromMe ? styles.myMessage : styles.theirMessage,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.messageText,
-                  item.fromMe ? styles.myMessageText : styles.theirMessageText,
-                ]}
-              >
-                {item.text}
-              </Text>
-              <Text
-                style={[
-                  styles.messageTime,
-                  item.fromMe ? styles.myMessageTime : styles.theirMessageTime,
-                ]}
-              >
-                {item.time}
+          renderItem={renderMessage}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <UserAvatar
+                uri={recipient.avatar}
+                size={80}
+                verified={recipient.verified}
+              />
+              <Text style={styles.emptyName}>{recipient.name}</Text>
+              <Text style={styles.emptyUsername}>@{recipient.username}</Text>
+              <Text style={styles.emptyText}>
+                Envie uma mensagem para iniciar a conversa
               </Text>
             </View>
-          )}
+          }
         />
 
         <View style={styles.inputRow}>
@@ -165,10 +291,13 @@ export default function Conversation() {
             onChangeText={setText}
             onSubmitEditing={handleSend}
             returnKeyType="send"
+            multiline
+            maxLength={500}
           />
           <Pressable
             style={[styles.sendBtn, !text.trim() && styles.sendBtnDisabled]}
             onPress={handleSend}
+            disabled={!text.trim()}
           >
             <Ionicons
               name="send"
@@ -199,13 +328,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
   headerInfo: {
     flex: 1,
+  },
+  headerNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerName: {
     fontSize: 16,
@@ -215,6 +343,7 @@ const styles = StyleSheet.create({
   headerStatus: {
     fontSize: 12,
     color: colors.muted,
+    marginTop: 2,
   },
   messagesList: {
     padding: 16,
@@ -226,6 +355,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     marginBottom: 8,
+    position: 'relative',
   },
   myMessage: {
     alignSelf: 'flex-end',
@@ -247,20 +377,37 @@ const styles = StyleSheet.create({
   theirMessageText: {
     color: colors.text,
   },
+  messageFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
   messageTime: {
     fontSize: 10,
-    marginTop: 4,
   },
   myMessageTime: {
     color: 'rgba(255,255,255,0.6)',
-    textAlign: 'right',
   },
   theirMessageTime: {
     color: colors.muted,
   },
+  reactionBadge: {
+    position: 'absolute',
+    bottom: -8,
+    right: 8,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  reactionEmoji: {
+    fontSize: 14,
+  },
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderTopWidth: 1,
@@ -273,8 +420,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
     borderRadius: 22,
     paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+    paddingTop: Platform.OS === 'ios' ? 10 : 8,
+    paddingBottom: Platform.OS === 'ios' ? 10 : 8,
     fontSize: 15,
+    maxHeight: 100,
   },
   sendBtn: {
     width: 40,
@@ -286,5 +435,37 @@ const styles = StyleSheet.create({
   },
   sendBtnDisabled: {
     backgroundColor: '#E0E0E0',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginTop: 16,
+  },
+  emptyUsername: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 12,
+    textAlign: 'center',
+    paddingHorizontal: 40,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: colors.muted,
   },
 });

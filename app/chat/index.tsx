@@ -1,79 +1,65 @@
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-  FlatList,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import UserAvatar from '../../components/social/UserAvatar';
+import { useChat } from '../../context/ChatContext';
+import { useUser } from '../../context/UserContext';
 import { colors } from '../../theme/colors';
-
-type Contact = {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  time: string;
-  unread: number;
-  online: boolean;
-};
-
-const CONTACTS: Contact[] = [
-  {
-    id: 'c1',
-    name: 'Ana Souza',
-    avatar: 'https://i.pravatar.cc/100?img=1',
-    lastMessage: 'Voce viu a praia do Felix? Incrivel!',
-    time: '2min',
-    unread: 2,
-    online: true,
-  },
-  {
-    id: 'c2',
-    name: 'Lucas Oliveira',
-    avatar: 'https://i.pravatar.cc/100?img=3',
-    lastMessage: 'Bora mergulhar amanha?',
-    time: '15min',
-    unread: 1,
-    online: true,
-  },
-  {
-    id: 'c3',
-    name: 'Mariana Lima',
-    avatar: 'https://i.pravatar.cc/100?img=5',
-    lastMessage: 'Aquele restaurante e demais!',
-    time: '1h',
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 'c4',
-    name: 'Pedro Santos',
-    avatar: 'https://i.pravatar.cc/100?img=7',
-    lastMessage: 'Manda o roteiro que vc fez',
-    time: '3h',
-    unread: 0,
-    online: false,
-  },
-  {
-    id: 'c5',
-    name: 'Julia Costa',
-    avatar: 'https://i.pravatar.cc/100?img=9',
-    lastMessage: 'Adorei as fotos da trilha!',
-    time: '5h',
-    unread: 0,
-    online: true,
-  },
-];
+import { Conversation } from '../../types/Social';
+import { formatTimeAgo } from '../../utils/socialHelpers';
 
 export default function ChatList() {
   const router = useRouter();
+  const { currentUser } = useUser();
+  const { conversations } = useChat();
+  const [searchQuery, setSearchQuery] = useState('');
 
-  function handleContactPress(id: string) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  function getOtherParticipant(conv: Conversation) {
+    return conv.participants.find((p) => p.id !== currentUser.id);
+  }
+
+  const filteredConversations = useMemo(() => {
+    if (!searchQuery.trim()) return conversations;
+    const query = searchQuery.toLowerCase();
+    return conversations.filter((conv) => {
+      const otherUser = getOtherParticipant(conv);
+      return (
+        otherUser?.name.toLowerCase().includes(query) ||
+        otherUser?.username.toLowerCase().includes(query)
+      );
+    });
+  }, [searchQuery, conversations, getOtherParticipant]);
+
+  function handleConversationPress(id: string) {
     router.push(`/chat/${id}`);
+  }
+
+  function getLastMessagePreview(conv: (typeof conversations)[0]) {
+    if (!conv.lastMessage) return 'Enviar mensagem';
+
+    if (conv.lastMessage.sharedPost) {
+      return 'Enviou uma publicação';
+    }
+
+    if (conv.lastMessage.text) {
+      return conv.lastMessage.text;
+    }
+
+    return '';
+  }
+
+  function isConversationUnread(conv: (typeof conversations)[0]) {
+    return conv.lastMessage && !conv.lastMessage.read;
   }
 
   return (
@@ -83,46 +69,113 @@ export default function ChatList() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
         <Text style={styles.headerTitle}>Mensagens</Text>
-        <View style={{ width: 24 }} />
+        <Pressable onPress={() => {}} hitSlop={12}>
+          <Ionicons name="create-outline" size={24} color={colors.text} />
+        </Pressable>
+      </View>
+
+      <View style={styles.searchContainer}>
+        <Ionicons
+          name="search"
+          size={18}
+          color={colors.muted}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Buscar"
+          placeholderTextColor={colors.muted}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        {searchQuery.length > 0 && (
+          <Pressable onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={18} color={colors.muted} />
+          </Pressable>
+        )}
       </View>
 
       <FlatList
-        data={CONTACTS}
+        data={filteredConversations}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.contactRow}
-            onPress={() => handleContactPress(item.id)}
-          >
-            <View>
-              <Image source={{ uri: item.avatar }} style={styles.avatar} />
-              {item.online && <View style={styles.onlineDot} />}
-            </View>
-            <View style={styles.contactBody}>
-              <View style={styles.contactTop}>
-                <Text style={styles.contactName}>{item.name}</Text>
-                <Text style={styles.contactTime}>{item.time}</Text>
-              </View>
-              <View style={styles.contactBottom}>
-                <Text
-                  style={[
-                    styles.contactMsg,
-                    item.unread > 0 && styles.contactMsgUnread,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {item.lastMessage}
-                </Text>
-                {item.unread > 0 && (
-                  <View style={styles.unreadBadge}>
-                    <Text style={styles.unreadText}>{item.unread}</Text>
+        renderItem={({ item }) => {
+          const otherUser = getOtherParticipant(item);
+          const isTyping = item.typing && item.typing.length > 0;
+          const isUnread = isConversationUnread(item);
+
+          if (!otherUser) return null;
+
+          return (
+            <Pressable
+              style={styles.conversationRow}
+              onPress={() => handleConversationPress(item.id)}
+            >
+              <UserAvatar
+                uri={otherUser.avatar}
+                size={56}
+                verified={otherUser.verified}
+                onPress={() => router.push(`/profile/${otherUser.id}` as any)}
+              />
+              <View style={styles.conversationBody}>
+                <View style={styles.conversationTop}>
+                  <View style={styles.nameRow}>
+                    <Text
+                      style={[
+                        styles.conversationName,
+                        isUnread && styles.conversationNameUnread,
+                      ]}
+                    >
+                      {otherUser.name}
+                    </Text>
+                    {otherUser.verified && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color={colors.primary}
+                        style={{ marginLeft: 4 }}
+                      />
+                    )}
                   </View>
-                )}
+                  {item.lastMessage && (
+                    <Text style={styles.conversationTime}>
+                      {formatTimeAgo(item.lastMessage.createdAt)}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.conversationBottom}>
+                  <Text
+                    style={[
+                      styles.conversationMsg,
+                      isUnread && styles.conversationMsgUnread,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {isTyping ? 'digitando...' : getLastMessagePreview(item)}
+                  </Text>
+                  {isUnread && !isTyping && <View style={styles.unreadDot} />}
+                </View>
               </View>
-            </View>
-          </Pressable>
-        )}
+            </Pressable>
+          );
+        }}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons
+              name="chatbubbles-outline"
+              size={64}
+              color={colors.muted}
+            />
+            <Text style={styles.emptyTitle}>
+              {searchQuery ? 'Nenhuma conversa encontrada' : 'Sem mensagens'}
+            </Text>
+            <Text style={styles.emptyText}>
+              {searchQuery
+                ? 'Tente buscar por outro nome'
+                : 'Envie mensagens privadas para seus amigos'}
+            </Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -147,77 +200,99 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 10,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: colors.text,
+  },
   list: {
     paddingVertical: 8,
   },
-  contactRow: {
+  conversationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 12,
   },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-  },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#4CAF50',
-    borderWidth: 2,
-    borderColor: colors.background,
-  },
-  contactBody: {
+  conversationBody: {
     flex: 1,
   },
-  contactTop: {
+  conversationTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  contactName: {
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  conversationName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '400',
     color: colors.text,
   },
-  contactTime: {
+  conversationNameUnread: {
+    fontWeight: '700',
+  },
+  conversationTime: {
     fontSize: 12,
     color: colors.muted,
+    marginLeft: 8,
   },
-  contactBottom: {
+  conversationBottom: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 3,
   },
-  contactMsg: {
+  conversationMsg: {
     fontSize: 14,
     color: colors.muted,
     flex: 1,
     marginRight: 8,
   },
-  contactMsgUnread: {
+  conversationMsgUnread: {
     color: colors.text,
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  unreadBadge: {
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
   },
-  unreadText: {
-    color: '#fff',
-    fontSize: 11,
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  emptyTitle: {
+    fontSize: 20,
     fontWeight: '700',
+    color: colors.text,
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });

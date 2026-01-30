@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -15,162 +15,22 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import FollowButton from '../../components/social/FollowButton';
+import LikesListModal from '../../components/social/LikesListModal';
+import SharePostSheet from '../../components/social/SharePostSheet';
+import UserAvatar from '../../components/social/UserAvatar';
+import UserProfileModal from '../../components/social/UserProfileModal';
+import { useNotifications } from '../../context/NotificationContext';
+import { useSocial } from '../../context/SocialContext';
 import { useUser } from '../../context/UserContext';
 import { colors } from '../../theme/colors';
+import { Post, Story } from '../../types/Social';
 import CommentsSheet from '../post/CommentsSheet';
 import CreateContentSheet from '../post/CreateContentSheet';
 import PostActionsSheet from '../post/PostActionsSheet';
 import StoryViewer from '../post/StoryViewer';
 
 const { width } = Dimensions.get('window');
-
-type Story = {
-  id: string;
-  user: string;
-  avatar: string;
-  images: any[];
-  seen: boolean;
-};
-
-type Post = {
-  id: string;
-  userId: string;
-  user: string;
-  location: string;
-  avatar: string;
-  image: any;
-  caption: string;
-  likes: number;
-  comments: number;
-  liked: boolean;
-  saved: boolean;
-  time: string;
-};
-
-const STORIES: Story[] = [
-  {
-    id: 's1',
-    user: 'Seu story',
-    avatar: 'https://i.pravatar.cc/100?img=12',
-    images: [require('../../assets/images/praia1.jpg')],
-    seen: false,
-  },
-  {
-    id: 's2',
-    user: 'Ana Souza',
-    avatar: 'https://i.pravatar.cc/100?img=1',
-    images: [
-      require('../../assets/images/praia2.jpg'),
-      require('../../assets/images/praia3.jpg'),
-    ],
-    seen: false,
-  },
-  {
-    id: 's3',
-    user: 'Lucas',
-    avatar: 'https://i.pravatar.cc/100?img=3',
-    images: [require('../../assets/images/praia1.jpg')],
-    seen: false,
-  },
-  {
-    id: 's4',
-    user: 'Mariana',
-    avatar: 'https://i.pravatar.cc/100?img=5',
-    images: [
-      require('../../assets/images/praia3.jpg'),
-      require('../../assets/images/praia2.jpg'),
-    ],
-    seen: false,
-  },
-  {
-    id: 's5',
-    user: 'Pedro',
-    avatar: 'https://i.pravatar.cc/100?img=7',
-    images: [require('../../assets/images/praia1.jpg')],
-    seen: false,
-  },
-  {
-    id: 's6',
-    user: 'Julia',
-    avatar: 'https://i.pravatar.cc/100?img=9',
-    images: [require('../../assets/images/praia2.jpg')],
-    seen: true,
-  },
-];
-
-const POSTS: Post[] = [
-  {
-    id: '1',
-    userId: 'user-1',
-    user: 'Juliana Santos',
-    location: 'Praia do Felix, Ubatuba',
-    avatar: 'https://i.pravatar.cc/100?img=12',
-    image: require('../../assets/images/praia1.jpg'),
-    caption:
-      'Passei um dia incrivel na Praia do Felix! A água e cristalina demais',
-    likes: 142,
-    comments: 18,
-    liked: false,
-    saved: false,
-    time: '2h',
-  },
-  {
-    id: '2',
-    userId: 'user-2',
-    user: 'Lucas Oliveira',
-    location: 'Ilha Anchieta, Ubatuba',
-    avatar: 'https://i.pravatar.cc/100?img=3',
-    image: require('../../assets/images/praia2.jpg'),
-    caption: 'Mergulho na Ilha Anchieta. Visibilidade perfeita hoje!',
-    likes: 89,
-    comments: 12,
-    liked: false,
-    saved: false,
-    time: '4h',
-  },
-  {
-    id: '3',
-    userId: 'user-3',
-    user: 'Mariana Lima',
-    location: 'Praia da Almada, Ubatuba',
-    avatar: 'https://i.pravatar.cc/100?img=5',
-    image: require('../../assets/images/praia3.jpg'),
-    caption: 'Almoço pé-na-areia com peixe fresco do dia. Não tem preço!',
-    likes: 234,
-    comments: 31,
-    liked: false,
-    saved: false,
-    time: '6h',
-  },
-  {
-    id: '4',
-    userId: 'user-4',
-    user: 'Pedro Santos',
-    location: 'Ubatuba, SP',
-    avatar: 'https://i.pravatar.cc/100?img=7',
-    image: require('../../assets/images/praia1.jpg'),
-    caption: 'Surf no final da tarde. Ondas perfeitas hoje no Felix!',
-    likes: 67,
-    comments: 5,
-    liked: false,
-    saved: false,
-    time: '8h',
-  },
-  {
-    id: '5',
-    userId: 'user-5',
-    user: 'Julia Costa',
-    location: 'Ilha Anchieta, Ubatuba',
-    avatar: 'https://i.pravatar.cc/100?img=9',
-    image: require('../../assets/images/praia2.jpg'),
-    caption: 'Trilha do presidio com vista incrivel. Vale cada passo!',
-    likes: 178,
-    comments: 22,
-    liked: false,
-    saved: false,
-    time: '1d',
-  },
-];
 
 function StoryBubble({
   story,
@@ -194,14 +54,39 @@ function StoryBubble({
 export default function Social() {
   const router = useRouter();
   const { currentUser } = useUser();
-  const [posts, setPosts] = useState<Post[]>(POSTS);
-  const [stories, setStories] = useState<Story[]>(STORIES);
+  const {
+    posts: allPosts,
+    stories: allStories,
+    toggleLikePost,
+    toggleSavePost,
+    deletePost: deletePostContext,
+    addPost: addPostContext,
+    addStory: addStoryContext,
+    markStorySeen,
+    isBlocked,
+    isFollowing,
+  } = useSocial();
+  const { unreadCount } = useNotifications();
+
+  const posts = useMemo(
+    () => allPosts.filter((p) => !isBlocked(p.userId)),
+    [allPosts, isBlocked],
+  );
+
+  const stories = useMemo(
+    () => allStories.filter((s) => !isBlocked(s.userId)),
+    [allStories, isBlocked],
+  );
+
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [selectedPostForActions, setSelectedPostForActions] =
     useState<Post | null>(null);
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
+  const [profileModalUserId, setProfileModalUserId] = useState<string | null>(null);
+  const [selectedPostForLikes, setSelectedPostForLikes] = useState<string | null>(null);
+  const [selectedPostForShare, setSelectedPostForShare] = useState<Post | null>(null);
   const doubleTapRef = useRef<
     Record<string, ReturnType<typeof setTimeout> | null>
   >({});
@@ -218,13 +103,12 @@ export default function Social() {
     if (doubleTapRef.current[id]) {
       clearTimeout(doubleTapRef.current[id]!);
       doubleTapRef.current[id] = null;
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === id && !p.liked
-            ? { ...p, liked: true, likes: p.likes + 1 }
-            : p,
-        ),
-      );
+
+      const post = posts.find((p) => p.id === id);
+      if (post && !post.liked) {
+        toggleLikePost(id);
+      }
+
       const anim = getHeartAnim(id);
       anim.setValue(0);
       Animated.sequence([
@@ -248,31 +132,23 @@ export default function Social() {
   }
 
   function toggleLike(id: string) {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              liked: !p.liked,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-            }
-          : p,
-      ),
-    );
+    toggleLikePost(id);
   }
 
   function toggleSave(id: string) {
-    setPosts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, saved: !p.saved } : p)),
-    );
+    toggleSavePost(id);
   }
 
-  const handleStoryPress = useCallback((index: number) => {
-    setStories((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, seen: true } : s)),
-    );
-    setActiveStoryIndex(index);
-  }, []);
+  const handleStoryPress = useCallback(
+    (index: number) => {
+      const story = stories[index];
+      if (story) {
+        markStorySeen(story.id);
+      }
+      setActiveStoryIndex(index);
+    },
+    [stories, markStorySeen],
+  );
 
   const handleStoryClose = useCallback(() => {
     setActiveStoryIndex(null);
@@ -297,13 +173,10 @@ export default function Social() {
   function handleEditPost() {
     if (!selectedPostForActions) return;
 
+    const postId = selectedPostForActions.id;
     setSelectedPostForActions(null);
 
-    Alert.alert(
-      'Editar publicação',
-      'Funcionalidade de edição será implementada em breve.',
-      [{ text: 'OK' }],
-    );
+    router.push(`/post/edit/${postId}` as any);
   }
 
   function handleDeletePost() {
@@ -321,7 +194,7 @@ export default function Social() {
           text: 'Excluir',
           style: 'destructive',
           onPress: () => {
-            setPosts((prev) => prev.filter((p) => p.id !== postId));
+            deletePostContext(postId);
           },
         },
       ],
@@ -345,6 +218,7 @@ export default function Social() {
       id: Date.now().toString(),
       userId: currentUser.id,
       user: currentUser.name,
+      username: currentUser.username,
       location: 'Ubatuba, SP',
       avatar: currentUser.avatar,
       image: image,
@@ -354,24 +228,28 @@ export default function Social() {
       liked: false,
       saved: false,
       time: 'agora',
+      createdAt: new Date().toISOString(),
+      allowComments: true,
+      hideLikes: false,
     };
 
-    setPosts((prev) => [newPost, ...prev]);
+    addPostContext(newPost);
     setCreateSheetVisible(false);
 
     Alert.alert('Sucesso', 'Sua publicação foi criada!');
   }
 
   function handleCreateStory(image: any) {
-    const newStory: Story = {
-      id: Date.now().toString(),
+    addStoryContext({
+      userId: currentUser.id,
       user: currentUser.name,
+      username: currentUser.username,
       avatar: currentUser.avatar,
       images: [image],
       seen: false,
-    };
-
-    setStories((prev) => [newStory, ...prev]);
+      reactions: [],
+      replies: [],
+    });
     setCreateSheetVisible(false);
 
     Alert.alert('Sucesso', 'Seu story foi publicado!');
@@ -385,23 +263,62 @@ export default function Social() {
     });
     const heartOpacity = heartAnim;
 
+    const user = {
+      id: item.userId,
+      verified:
+        item.userId === 'user-1' ||
+        item.userId === 'user-3' ||
+        item.userId === 'user-5' ||
+        item.userId === 'user-7' ||
+        item.userId === 'user-10',
+    };
+
+    const shouldShowFollowButton =
+      item.userId !== currentUser.id && !isFollowing(item.userId);
+
     return (
       <View style={styles.post}>
         <View style={styles.postHeader}>
           <Pressable style={styles.postHeaderLeft}>
-            <Image source={{ uri: item.avatar }} style={styles.postAvatar} />
-            <View>
-              <Text style={styles.postUser}>{item.user}</Text>
+            <UserAvatar
+              uri={item.avatar}
+              size={36}
+              verified={user.verified}
+              hasStory={false}
+              onPress={() => setProfileModalUserId(item.userId)}
+            />
+            <View style={styles.postHeaderInfo}>
+              <Pressable onPress={() => setProfileModalUserId(item.userId)}>
+                <View style={styles.postUserRow}>
+                  <Text style={styles.postUser}>{item.user}</Text>
+                  {user.verified && (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={14}
+                      color={colors.primary}
+                      style={{ marginLeft: 4 }}
+                    />
+                  )}
+                </View>
+              </Pressable>
               <Text style={styles.postLocation}>{item.location}</Text>
             </View>
           </Pressable>
-          <Pressable onPress={() => handlePostMenuPress(item)}>
-            <Ionicons
-              name="ellipsis-horizontal"
-              size={20}
-              color={colors.text}
-            />
-          </Pressable>
+          <View style={styles.postHeaderRight}>
+            {shouldShowFollowButton && (
+              <FollowButton userId={item.userId} size="small" />
+            )}
+            <Pressable
+              onPress={() => handlePostMenuPress(item)}
+              style={{ marginLeft: 8 }}
+            >
+              <Ionicons
+                name="ellipsis-horizontal"
+                size={20}
+                color={colors.text}
+              />
+            </Pressable>
+          </View>
         </View>
 
         <Pressable onPress={() => handleDoubleTap(item.id)}>
@@ -432,7 +349,7 @@ export default function Social() {
                 color={colors.text}
               />
             </Pressable>
-            <Pressable>
+            <Pressable onPress={() => setSelectedPostForShare(item)}>
               <Ionicons
                 name="paper-plane-outline"
                 size={24}
@@ -449,7 +366,9 @@ export default function Social() {
           </Pressable>
         </View>
 
-        <Text style={styles.postLikes}>{item.likes} curtidas</Text>
+        <Pressable onPress={() => setSelectedPostForLikes(item.id)}>
+          <Text style={styles.postLikes}>{item.likes} curtidas</Text>
+        </Pressable>
 
         <Text style={styles.postCaption}>
           <Text style={styles.postCaptionUser}>{item.user} </Text>
@@ -472,8 +391,25 @@ export default function Social() {
       <View style={styles.topBar}>
         <Text style={styles.topBarTitle}>Social</Text>
         <View style={styles.topBarActions}>
+          <Pressable onPress={() => router.push('/search' as any)}>
+            <Ionicons name="search-outline" size={24} color={colors.text} />
+          </Pressable>
           <Pressable onPress={() => setCreateSheetVisible(true)}>
             <Ionicons name="add-circle-outline" size={24} color={colors.text} />
+          </Pressable>
+          <Pressable
+            onPress={() => router.push('/(tabs)/notifications' as any)}
+          >
+            <View>
+              <Ionicons name="heart-outline" size={24} color={colors.text} />
+              {unreadCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </Text>
+                </View>
+              )}
+            </View>
           </Pressable>
           <Pressable onPress={handleChatPress}>
             <Ionicons
@@ -544,6 +480,22 @@ export default function Social() {
           onClose={handleStoryClose}
         />
       )}
+
+      <UserProfileModal
+        userId={profileModalUserId}
+        onClose={() => setProfileModalUserId(null)}
+      />
+
+      <LikesListModal
+        postId={selectedPostForLikes}
+        onClose={() => setSelectedPostForLikes(null)}
+        onUserPress={setProfileModalUserId}
+      />
+
+      <SharePostSheet
+        post={selectedPostForShare}
+        onClose={() => setSelectedPostForShare(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -570,6 +522,23 @@ const styles = StyleSheet.create({
   topBarActions: {
     flexDirection: 'row',
     gap: 18,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    backgroundColor: '#E53935',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  notificationBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
   storiesRow: {
     paddingHorizontal: 12,
@@ -617,6 +586,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flex: 1,
+  },
+  postHeaderInfo: {
+    flex: 1,
+  },
+  postUserRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  postHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   postAvatar: {
     width: 36,

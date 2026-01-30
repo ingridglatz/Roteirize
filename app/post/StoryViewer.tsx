@@ -1,8 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Animated,
   Dimensions,
+  FlatList,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -14,16 +16,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import UserAvatar from '../../components/social/UserAvatar';
+import { useChat } from '../../context/ChatContext';
+import { useSocial } from '../../context/SocialContext';
+import { useUser } from '../../context/UserContext';
+import { colors } from '../../theme/colors';
+import { Story } from '../../types/Social';
+import { formatTimeAgo } from '../../utils/socialHelpers';
 
 const { width, height } = Dimensions.get('window');
-
-type Story = {
-  id: string;
-  user: string;
-  avatar: string;
-  images: any[];
-  seen: boolean;
-};
 
 type Props = {
   stories: Story[];
@@ -34,15 +35,22 @@ type Props = {
 const REACTIONS = ['❤️', '😂', '😮', '😢', '👏', '🔥'];
 
 export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
+  const { currentUser } = useUser();
+  const { addStoryReaction, getStoryReactions } = useSocial();
+  const { conversations, sendMessage } = useChat();
+
   const [storyIndex, setStoryIndex] = useState(initialIndex);
   const [imageIndex, setImageIndex] = useState(0);
   const [reply, setReply] = useState('');
   const [sentReaction, setSentReaction] = useState<string | null>(null);
+  const [showReactions, setShowReactions] = useState(false);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const reactionScale = useRef(new Animated.Value(0)).current;
 
   const story = stories[storyIndex];
   const totalImages = story?.images.length ?? 0;
+  const storyReactions = story ? getStoryReactions(story.id) : [];
+  const isOwnStory = story?.userId === currentUser.id;
 
   const goNext = useCallback(() => {
     if (imageIndex < totalImages - 1) {
@@ -64,7 +72,6 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
     }
   }, [imageIndex, storyIndex, stories]);
 
-  // Auto-advance timer
   useEffect(() => {
     progressAnim.setValue(0);
     const anim = Animated.timing(progressAnim, {
@@ -87,6 +94,9 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
   }
 
   function handleReaction(emoji: string) {
+    if (!story) return;
+
+    addStoryReaction(story.id, emoji);
     setSentReaction(emoji);
     reactionScale.setValue(0);
     Animated.sequence([
@@ -105,8 +115,34 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
   }
 
   function handleSendReply() {
-    if (!reply.trim()) return;
+    if (!reply.trim() || !story) return;
+
+    const conversation = conversations.find((conv) =>
+      conv.participantIds.includes(story.userId),
+    );
+
+    if (conversation) {
+      sendMessage(conversation.id, {
+        conversationId: conversation.id,
+        senderId: currentUser.id,
+        recipientId: story.userId,
+        text: `Respondeu ao seu story: ${reply.trim()}`,
+        read: false,
+      });
+    }
+
     setReply('');
+    Alert.alert(
+      'Resposta enviada',
+      'Sua resposta foi enviada como mensagem direta',
+      [{ text: 'OK' }],
+    );
+  }
+
+  function handleViewReactions() {
+    if (isOwnStory && storyReactions.length > 0) {
+      setShowReactions(true);
+    }
   }
 
   if (!story) return null;
@@ -149,12 +185,11 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
 
           <View style={styles.headerRow}>
             <View style={styles.headerLeft}>
-              <Image
-                source={{ uri: story.avatar }}
-                style={styles.headerAvatar}
-              />
+              <UserAvatar uri={story.avatar} size={32} hasStory={false} />
               <Text style={styles.headerUser}>{story.user}</Text>
-              <Text style={styles.headerTime}>2h</Text>
+              <Text style={styles.headerTime}>
+                {formatTimeAgo(story.createdAt)}
+              </Text>
             </View>
             <Pressable onPress={onClose} hitSlop={8} style={styles.closeButton}>
               <Ionicons name="close" size={28} color="#fff" />
@@ -165,12 +200,24 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
         {sentReaction && (
           <Animated.View
             style={[
-              styles.reactionFloat,
+              styles.reactionPop,
               { transform: [{ scale: reactionScale }] },
             ]}
           >
-            <Text style={styles.reactionFloatText}>{sentReaction}</Text>
+            <Text style={styles.reactionPopEmoji}>{sentReaction}</Text>
           </Animated.View>
+        )}
+
+        {isOwnStory && storyReactions.length > 0 && (
+          <Pressable
+            style={styles.reactionsCount}
+            onPress={handleViewReactions}
+          >
+            <Ionicons name="heart" size={16} color="#fff" />
+            <Text style={styles.reactionsCountText}>
+              {storyReactions.length}
+            </Text>
+          </Pressable>
         )}
 
         <SafeAreaView style={styles.bottomSection} edges={['bottom']}>
@@ -178,32 +225,81 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
             {REACTIONS.map((emoji) => (
               <Pressable
                 key={emoji}
-                style={styles.reactionBtn}
                 onPress={() => handleReaction(emoji)}
+                style={styles.reactionButton}
               >
                 <Text style={styles.reactionEmoji}>{emoji}</Text>
               </Pressable>
             ))}
           </View>
 
-          <View style={styles.replyRow}>
-            <TextInput
-              style={styles.replyInput}
-              placeholder="Envie uma mensagem..."
-              placeholderTextColor="rgba(255,255,255,0.5)"
-              value={reply}
-              onChangeText={setReply}
-            />
-            <Pressable onPress={handleSendReply}>
-              <Ionicons
-                name="send"
-                size={22}
-                color={reply.trim() ? '#fff' : 'rgba(255,255,255,0.3)'}
+          {!isOwnStory && (
+            <View style={styles.replyRow}>
+              <TextInput
+                style={styles.replyInput}
+                placeholder="Enviar mensagem..."
+                placeholderTextColor="rgba(255,255,255,0.5)"
+                value={reply}
+                onChangeText={setReply}
+                maxLength={200}
               />
-            </Pressable>
-          </View>
+              <Pressable
+                onPress={handleSendReply}
+                disabled={!reply.trim()}
+                style={[
+                  styles.sendButton,
+                  !reply.trim() && styles.sendButtonDisabled,
+                ]}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={
+                    reply.trim() ? colors.primary : 'rgba(255,255,255,0.3)'
+                  }
+                />
+              </Pressable>
+            </View>
+          )}
         </SafeAreaView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={showReactions}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowReactions(false)}
+      >
+        <Pressable
+          style={styles.reactionsModalOverlay}
+          onPress={() => setShowReactions(false)}
+        >
+          <Pressable
+            style={styles.reactionsModalSheet}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.reactionsModalHeader}>
+              <View style={styles.drag} />
+              <Text style={styles.reactionsModalTitle}>Reações</Text>
+            </View>
+            <FlatList
+              data={storyReactions}
+              keyExtractor={(item, index) => `${item.userId}-${index}`}
+              renderItem={({ item }) => (
+                <View style={styles.reactionItem}>
+                  <View style={styles.reactionItemInfo}>
+                    <Text style={styles.reactionItemName}>{item.username}</Text>
+                    <Text style={styles.reactionItemTime}>
+                      {formatTimeAgo(item.createdAt)}
+                    </Text>
+                  </View>
+                  <Text style={styles.reactionItemEmoji}>{item.emoji}</Text>
+                </View>
+              )}
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </Modal>
   );
 }
@@ -220,75 +316,83 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.15)',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
-
   topSection: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     paddingHorizontal: 12,
-    paddingTop: 8,
   },
   progressRow: {
     flexDirection: 'row',
     gap: 4,
+    marginBottom: 14,
   },
   progressTrack: {
     flex: 1,
-    height: 2.5,
+    height: 2,
     backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 2,
+    borderRadius: 1,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#fff',
-    borderRadius: 2,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
-    paddingBottom: 8,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  headerAvatar: {
+  headerUser: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  headerTime: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+  },
+  closeButton: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  headerUser: {
+  reactionPop: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -40,
+    marginLeft: -40,
+  },
+  reactionPopEmoji: {
+    fontSize: 80,
+  },
+  reactionsCount: {
+    position: 'absolute',
+    right: 16,
+    top: height * 0.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  reactionsCountText: {
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
   },
-  headerTime: {
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 13,
-  },
-  closeButton: {
-    padding: 4,
-    marginRight: -4,
-  },
-
-  reactionFloat: {
-    position: 'absolute',
-    top: '40%',
-    alignSelf: 'center',
-  },
-  reactionFloatText: {
-    fontSize: 80,
-  },
-
   bottomSection: {
     position: 'absolute',
     bottom: 0,
@@ -300,32 +404,97 @@ const styles = StyleSheet.create({
   reactionsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 12,
+    gap: 16,
     marginBottom: 12,
   },
-  reactionBtn: {
+  reactionButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 22,
   },
   reactionEmoji: {
-    fontSize: 22,
+    fontSize: 24,
   },
   replyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 4,
-    gap: 10,
+    gap: 8,
   },
   replyInput: {
     flex: 1,
-    color: '#fff',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     fontSize: 15,
+    color: '#fff',
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
+  },
+  reactionsModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  reactionsModalSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+    maxHeight: height * 0.6,
+  },
+  reactionsModalHeader: {
+    paddingTop: 10,
+    paddingBottom: 16,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  drag: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#ccc',
+    marginBottom: 12,
+  },
+  reactionsModalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  reactionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  reactionItemInfo: {
+    flex: 1,
+  },
+  reactionItemName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  reactionItemTime: {
+    fontSize: 12,
+    color: colors.muted,
+    marginTop: 2,
+  },
+  reactionItemEmoji: {
+    fontSize: 24,
   },
 });

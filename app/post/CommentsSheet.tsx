@@ -1,68 +1,104 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   FlatList,
-  TextInput,
-  Pressable,
   KeyboardAvoidingView,
-  Platform,
   Modal,
-  Image,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { useState } from 'react';
+import CommentItem from '../../components/social/CommentItem';
+import CommentReplies from '../../components/social/CommentReplies';
+import { useSocial } from '../../context/SocialContext';
+import { useUser } from '../../context/UserContext';
 import { colors } from '../../theme/colors';
-
-type Comment = {
-  id: string;
-  user: string;
-  avatar: string;
-  text: string;
-};
+import { Comment, Post } from '../../types/Social';
 
 type Props = {
-  post: any | null;
+  post: Post | null;
   onClose: () => void;
 };
 
+type SortType = 'recent' | 'top';
+
 export default function CommentsSheet({ post, onClose }: Props) {
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: '1',
-      user: 'Lucas Oliveira',
-      avatar: 'https://i.pravatar.cc/100?img=3',
-      text: 'Que lugar lindo!',
-    },
-    {
-      id: '2',
-      user: 'Ana Clara',
-      avatar: 'https://i.pravatar.cc/100?img=4',
-      text: 'Uau, quero conhecer!',
-    },
-  ]);
+  const { currentUser } = useUser();
+  const { getComments, addComment } = useSocial();
 
   const [text, setText] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
+  const [sortType, setSortType] = useState<SortType>('recent');
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(
+    new Set(),
+  );
 
-  function handleSend() {
-    if (!text.trim()) return;
+  const allComments = post ? getComments(post.id) : [];
 
-    setComments((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        user: 'Você',
-        avatar: 'https://i.pravatar.cc/100?img=12',
-        text,
-      },
-    ]);
-
-    setText('');
-  }
+  const sortedComments = useMemo(() => {
+    if (sortType === 'top') {
+      return [...allComments].sort((a, b) => b.likes - a.likes);
+    }
+    return allComments;
+  }, [allComments, sortType]);
 
   if (!post) return null;
 
+  function handleSend() {
+    if (!text.trim() || !post) return;
+
+    const newComment: Omit<Comment, 'id' | 'createdAt'> = {
+      postId: post.id,
+      userId: currentUser.id,
+      user: currentUser.name,
+      username: currentUser.username,
+      avatar: currentUser.avatar,
+      text: text.trim(),
+      likes: 0,
+      liked: false,
+      parentId: replyingTo?.id,
+      repliesCount: 0,
+    };
+
+    addComment(newComment);
+    setText('');
+    setReplyingTo(null);
+
+    if (replyingTo) {
+      setExpandedComments((prev) => new Set(prev).add(replyingTo.id));
+    }
+  }
+
+  function handleReply(comment: Comment) {
+    if (comment.repliesCount > 0) {
+      setExpandedComments((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(comment.id)) {
+          newSet.delete(comment.id);
+        } else {
+          newSet.add(comment.id);
+        }
+        return newSet;
+      });
+    }
+
+    setReplyingTo(comment);
+  }
+
+  function handleCancelReply() {
+    setReplyingTo(null);
+    setText('');
+  }
+
+  function handleUserPress(userId: string) {
+    console.log('Navigate to user:', userId);
+  }
+
   return (
-    <Modal animationType="slide" transparent>
+    <Modal animationType="slide" transparent visible={!!post}>
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -71,41 +107,122 @@ export default function CommentsSheet({ post, onClose }: Props) {
           <View style={styles.header}>
             <View style={styles.drag} />
 
-            <Text style={styles.title}>Comentários</Text>
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>Comentários</Text>
+
+              <View style={styles.sortButtons}>
+                <Pressable
+                  style={[
+                    styles.sortButton,
+                    sortType === 'recent' && styles.sortButtonActive,
+                  ]}
+                  onPress={() => setSortType('recent')}
+                >
+                  <Text
+                    style={[
+                      styles.sortButtonText,
+                      sortType === 'recent' && styles.sortButtonTextActive,
+                    ]}
+                  >
+                    Recentes
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.sortButton,
+                    sortType === 'top' && styles.sortButtonActive,
+                  ]}
+                  onPress={() => setSortType('top')}
+                >
+                  <Text
+                    style={[
+                      styles.sortButtonText,
+                      sortType === 'top' && styles.sortButtonTextActive,
+                    ]}
+                  >
+                    Top
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
 
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <Text style={styles.closeText}>Fechar</Text>
+              <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
           </View>
 
           <FlatList
-            data={comments}
+            data={sortedComments}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
-              <View style={styles.comment}>
-                <Image source={{ uri: item.avatar }} style={styles.avatar} />
-                <View style={styles.commentContent}>
-                  <Text style={styles.user}>{item.user}</Text>
-                  <Text style={styles.text}>{item.text}</Text>
-                </View>
+              <View key={item.id}>
+                <CommentItem
+                  comment={item}
+                  onReply={handleReply}
+                  onUserPress={handleUserPress}
+                />
+                {expandedComments.has(item.id) && (
+                  <CommentReplies
+                    parentCommentId={item.id}
+                    onReply={handleReply}
+                    onUserPress={handleUserPress}
+                  />
+                )}
               </View>
             )}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={48}
+                  color={colors.muted}
+                />
+                <Text style={styles.emptyText}>Nenhum comentário ainda</Text>
+                <Text style={styles.emptySubtext}>
+                  Seja o primeiro a comentar
+                </Text>
+              </View>
+            }
           />
 
           <View style={styles.inputContainer}>
-            <TextInput
-              placeholder="Adicione um comentário..."
-              placeholderTextColor={colors.muted}
-              value={text}
-              onChangeText={setText}
-              style={styles.input}
-            />
-            <Pressable onPress={handleSend}>
-              <Text style={[styles.send, !text && { opacity: 0.4 }]}>
-                Enviar
-              </Text>
-            </Pressable>
+            {replyingTo && (
+              <View style={styles.replyingToBar}>
+                <Text style={styles.replyingToText}>
+                  Respondendo @{replyingTo.username}
+                </Text>
+                <Pressable onPress={handleCancelReply} hitSlop={8}>
+                  <Ionicons name="close" size={18} color={colors.muted} />
+                </Pressable>
+              </View>
+            )}
+            <View style={styles.inputRow}>
+              <TextInput
+                placeholder={
+                  replyingTo
+                    ? `Responder para @${replyingTo.username}...`
+                    : 'Adicione um comentário...'
+                }
+                placeholderTextColor={colors.muted}
+                value={text}
+                onChangeText={setText}
+                style={styles.input}
+                multiline
+                maxLength={500}
+              />
+              <Pressable
+                onPress={handleSend}
+                disabled={!text.trim()}
+                style={styles.sendButton}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={text.trim() ? colors.primary : colors.muted}
+                />
+              </Pressable>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -119,7 +236,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
-
   sheet: {
     height: '80%',
     backgroundColor: '#fff',
@@ -127,96 +243,108 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     overflow: 'hidden',
   },
-
   header: {
     paddingTop: 10,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-
   drag: {
     width: 40,
     height: 4,
     borderRadius: 2,
     backgroundColor: '#ccc',
-    marginBottom: 8,
+    marginBottom: 12,
+    alignSelf: 'center',
   },
-
+  headerContent: {
+    paddingHorizontal: 16,
+  },
   title: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
   },
-
   closeButton: {
     position: 'absolute',
     right: 16,
-    top: 18,
+    top: 16,
   },
-
-  closeText: {
-    color: colors.primary,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-
-  list: {
-    padding: 16,
-    paddingBottom: 12,
-  },
-
-  comment: {
+  sortButtons: {
     flexDirection: 'row',
-    marginBottom: 16,
+    gap: 8,
   },
-
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 12,
+  sortButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#F0F0F0',
   },
-
-  commentContent: {
-    flex: 1,
+  sortButtonActive: {
+    backgroundColor: colors.text,
   },
-
-  user: {
+  sortButtonText: {
+    fontSize: 13,
     fontWeight: '600',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-
-  text: {
-    fontSize: 14,
     color: colors.text,
   },
-
-  inputContainer: {
-    flexDirection: 'row',
+  sortButtonTextActive: {
+    color: '#fff',
+  },
+  list: {
+    flexGrow: 1,
+    paddingBottom: 12,
+  },
+  emptyState: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 12,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  inputContainer: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: '#fff',
   },
-
+  replyingToBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  replyingToText: {
+    fontSize: 13,
+    color: colors.text,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+    gap: 12,
+  },
   input: {
     flex: 1,
     fontSize: 15,
     paddingVertical: 8,
-    paddingRight: 12,
+    maxHeight: 100,
+    color: colors.text,
   },
-
-  send: {
-    marginLeft: 8,
-    paddingHorizontal: 8,
-    color: colors.primary,
-    fontWeight: '600',
-    fontSize: 15,
+  sendButton: {
+    paddingBottom: 8,
   },
 });
