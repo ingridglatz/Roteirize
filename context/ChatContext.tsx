@@ -12,6 +12,8 @@ type ChatContextType = {
   setTyping: (conversationId: string, isTyping: boolean) => void;
   reactToMessage: (messageId: string, emoji: string) => void;
   deleteMessage: (messageId: string) => void;
+  deleteConversation: (conversationId: string) => void;
+  createConversation: (participantId: string) => Conversation;
   sharePost: (
     conversationId: string,
     postId: string,
@@ -155,6 +157,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   }, []);
 
+  const deleteConversation = useCallback((conversationId: string) => {
+    setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+    setMessages((prev) => prev.filter((m) => m.conversationId !== conversationId));
+  }, []);
+
+  const createConversation = useCallback(
+    (participantId: string) => {
+      const existingConv = conversations.find((c) =>
+        c.participantIds.includes(participantId) && c.participantIds.includes(currentUser.id)
+      );
+
+      if (existingConv) return existingConv;
+
+      const newConversation: Conversation = {
+        id: `conv-${Date.now()}`,
+        participantIds: [currentUser.id, participantId],
+        participants: [], // Will be populated by the component
+        unreadCount: 0,
+        typing: [],
+      };
+
+      setConversations((prev) => [newConversation, ...prev]);
+      return newConversation;
+    },
+    [conversations, currentUser.id]
+  );
+
   const sharePost = useCallback(
     (
       conversationId: string,
@@ -208,6 +237,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setTyping,
         reactToMessage,
         deleteMessage,
+        deleteConversation,
+        createConversation,
         sharePost,
       }}
     >

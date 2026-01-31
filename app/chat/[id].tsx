@@ -1,9 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActionSheetIOS,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -40,8 +44,6 @@ export default function Conversation() {
   const conversation = getConversation(id as string);
   const messages = getMessages(id as string);
   const [text, setText] = useState('');
-  // eslint-disable-next-line no-empty-pattern
-  const [] = useState<Message | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const recipient = useMemo(() => {
@@ -88,6 +90,112 @@ export default function Conversation() {
     });
 
     setText('');
+  }
+
+  async function handlePickImage() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permissão necessária',
+        'Precisamos de permissão para acessar suas fotos.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0] && recipient) {
+      sendMessage(id as string, {
+        conversationId: id as string,
+        senderId: currentUser.id,
+        recipientId: recipient.id,
+        mediaUrl: result.assets[0].uri,
+        mediaType: 'image',
+        read: false,
+      });
+    }
+  }
+
+  async function handlePickVideo() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permissão necessária',
+        'Precisamos de permissão para acessar seus vídeos.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0] && recipient) {
+      sendMessage(id as string, {
+        conversationId: id as string,
+        senderId: currentUser.id,
+        recipientId: recipient.id,
+        mediaUrl: result.assets[0].uri,
+        mediaType: 'video',
+        read: false,
+      });
+    }
+  }
+
+  async function handlePickDocument() {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled === false && result.assets[0] && recipient) {
+        sendMessage(id as string, {
+          conversationId: id as string,
+          senderId: currentUser.id,
+          recipientId: recipient.id,
+          mediaUrl: result.assets[0].uri,
+          mediaType: 'document',
+          mediaName: result.assets[0].name,
+          read: false,
+        });
+      }
+    } catch (err) {
+      Alert.alert('Erro', 'Não foi possível selecionar o documento.');
+    }
+  }
+
+  function handleAttachmentPress() {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancelar', 'Foto', 'Vídeo', 'Documento'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            handlePickImage();
+          } else if (buttonIndex === 2) {
+            handlePickVideo();
+          } else if (buttonIndex === 3) {
+            handlePickDocument();
+          }
+        }
+      );
+    } else {
+      Alert.alert('Enviar arquivo', 'Escolha o tipo de arquivo:', [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Foto', onPress: handlePickImage },
+        { text: 'Vídeo', onPress: handlePickVideo },
+        { text: 'Documento', onPress: handlePickDocument },
+      ]);
+    }
   }
 
   function handleLongPress(message: Message) {
@@ -158,6 +266,40 @@ export default function Conversation() {
           isMe ? styles.myMessage : styles.theirMessage,
         ]}
       >
+        {item.mediaType === 'image' && item.mediaUrl && (
+          <Image
+            source={{ uri: item.mediaUrl }}
+            style={styles.mediaImage}
+            resizeMode="cover"
+          />
+        )}
+
+        {item.mediaType === 'video' && item.mediaUrl && (
+          <View style={styles.mediaVideo}>
+            <Ionicons name="play-circle" size={48} color="#fff" />
+            <Text style={styles.mediaVideoText}>Vídeo</Text>
+          </View>
+        )}
+
+        {item.mediaType === 'document' && item.mediaUrl && (
+          <View style={styles.documentContainer}>
+            <Ionicons
+              name="document-attach"
+              size={24}
+              color={isMe ? '#fff' : colors.text}
+            />
+            <Text
+              style={[
+                styles.documentName,
+                isMe ? styles.myMessageText : styles.theirMessageText,
+              ]}
+              numberOfLines={1}
+            >
+              {item.mediaName || 'Documento'}
+            </Text>
+          </View>
+        )}
+
         {item.text && (
           <Text
             style={[
@@ -283,6 +425,9 @@ export default function Conversation() {
         />
 
         <View style={styles.inputRow}>
+          <Pressable style={styles.attachBtn} onPress={handleAttachmentPress}>
+            <Ionicons name="add-circle" size={28} color={colors.primary} />
+          </Pressable>
           <TextInput
             style={styles.chatInput}
             placeholder="Mensagem..."
@@ -405,6 +550,42 @@ const styles = StyleSheet.create({
   reactionEmoji: {
     fontSize: 14,
   },
+  mediaImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 4,
+  },
+  mediaVideo: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  mediaVideoText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  documentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  documentName: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+  },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -414,6 +595,11 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
     backgroundColor: '#fff',
     gap: 8,
+  },
+  attachBtn: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 6,
   },
   chatInput: {
     flex: 1,

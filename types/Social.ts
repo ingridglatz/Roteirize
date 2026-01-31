@@ -94,7 +94,8 @@ export type Message = {
     username: string;
   };
   mediaUrl?: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'image' | 'video' | 'document';
+  mediaName?: string;
   read: boolean;
   readAt?: string;
   reaction?: string;
