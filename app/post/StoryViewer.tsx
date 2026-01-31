@@ -15,7 +15,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserAvatar from '../../components/social/UserAvatar';
 import { useChat } from '../../context/ChatContext';
 import { useSocial } from '../../context/SocialContext';
@@ -35,6 +35,7 @@ type Props = {
 const REACTIONS = ['❤️', '😂', '😮', '😢', '👏', '🔥'];
 
 export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
+  const insets = useSafeAreaInsets();
   const { currentUser } = useUser();
   const { addStoryReaction, getStoryReactions } = useSocial();
   const { conversations, sendMessage } = useChat();
@@ -148,7 +149,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
   if (!story) return null;
 
   return (
-    <Modal animationType="fade" transparent={false} statusBarTranslucent>
+    <Modal animationType="fade" transparent={false}>
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -161,7 +162,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
           <View style={styles.overlay} />
         </Pressable>
 
-        <SafeAreaView style={styles.topSection} edges={['top']}>
+        <View style={[styles.topSection, { paddingTop: insets.top + 12 }]}>
           <View style={styles.progressRow}>
             {story.images.map((_, idx) => {
               const progressWidth =
@@ -195,7 +196,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
               <Ionicons name="close" size={28} color="#fff" />
             </Pressable>
           </View>
-        </SafeAreaView>
+        </View>
 
         {sentReaction && (
           <Animated.View
@@ -220,7 +221,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
           </Pressable>
         )}
 
-        <SafeAreaView style={styles.bottomSection} edges={['bottom']}>
+        <View style={[styles.bottomSection, { paddingBottom: insets.bottom + 8 }]}>
           <View style={styles.reactionsRow}>
             {REACTIONS.map((emoji) => (
               <Pressable
@@ -261,7 +262,7 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
               </Pressable>
             </View>
           )}
-        </SafeAreaView>
+        </View>
       </KeyboardAvoidingView>
 
       <Modal
@@ -399,7 +400,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    paddingBottom: 8,
   },
   reactionsRow: {
     flexDirection: 'row',
