@@ -33,7 +33,7 @@ function UserSearchModal({
   const { currentUser } = useUser();
 
   const filteredUsers = searchUsers(searchQuery).filter(
-    (user) => user.id !== currentUser.id
+    (user) => user.id !== currentUser.id,
   );
 
   return (
@@ -113,7 +113,7 @@ export default function ChatScreen() {
     const existingConv = conversations.find(
       (c) =>
         c.participantIds.includes(userId) &&
-        c.participantIds.includes(currentUser.id)
+        c.participantIds.includes(currentUser.id),
     );
 
     if (existingConv) {
@@ -141,7 +141,7 @@ export default function ChatScreen() {
                 style: 'destructive',
                 onPress: () => deleteConversation(conversation.id),
               },
-            ]
+            ],
           );
         },
       },
@@ -150,7 +150,7 @@ export default function ChatScreen() {
 
   const getOtherParticipant = (conversation: Conversation) => {
     const otherParticipantId = conversation.participantIds.find(
-      (id) => id !== currentUser.id
+      (id) => id !== currentUser.id,
     );
     return otherParticipantId ? getUser(otherParticipantId) : undefined;
   };
@@ -425,7 +425,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
