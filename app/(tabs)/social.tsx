@@ -285,10 +285,10 @@ export default function Social() {
               size={36}
               verified={user.verified}
               hasStory={false}
-              onPress={() => setProfileModalUserId(item.userId)}
+              onPress={() => router.push(`/profile/${item.userId}` as any)}
             />
             <View style={styles.postHeaderInfo}>
-              <Pressable onPress={() => setProfileModalUserId(item.userId)}>
+              <Pressable onPress={() => router.push(`/profile/${item.userId}` as any)}>
                 <View style={styles.postUserRow}>
                   <Text style={styles.postUser}>{item.user}</Text>
                   {user.verified && (

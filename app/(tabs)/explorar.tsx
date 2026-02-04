@@ -568,8 +568,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginTop: 12,
     backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 28,
+    paddingVertical: 14,
+    borderRadius: 12,
   },
   ctaText: {
     color: '#fff',

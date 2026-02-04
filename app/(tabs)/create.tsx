@@ -732,8 +732,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     backgroundColor: colors.primary,
-    paddingVertical: 16,
-    borderRadius: 28,
+    paddingVertical: 14,
+    borderRadius: 12,
   },
   continueButtonDisabled: {
     backgroundColor: colors.disabled,

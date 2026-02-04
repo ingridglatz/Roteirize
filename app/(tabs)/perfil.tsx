@@ -10,285 +10,280 @@ import {
   Modal,
   TextInput,
   Alert,
-  ActivityIndicator,
+  Share,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
-import { useState, useEffect } from 'react';
+import Button from '../../components/Button';
+import { useState, useMemo } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  ProfileCountry,
-  createProfileCountry,
-  convertToProfileCountries,
-} from '../../utils/countryUtils';
+import { useSocial } from '../../context/SocialContext';
+import { useUser } from '../../context/UserContext';
+import { Post, Story } from '../../types/Social';
+import StoryViewer from '../post/StoryViewer';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_PADDING = 18;
-const CARD_GAP = 12;
-const CARD_WIDTH = (SCREEN_WIDTH - CARD_PADDING * 2 - CARD_GAP) / 2;
+const POST_SIZE = (SCREEN_WIDTH - 4) / 3;
 
-type Trip = {
+type TabType = 'posts' | 'albums';
+
+type TripAlbum = {
   id: string;
   title: string;
-  date: string;
-  image: any;
-  imageUri?: string;
+  description: string;
+  coverImage: string;
+  photos: string[];
+  location?: string;
+  createdAt: string;
 };
 
-const INITIAL_TRIPS: Trip[] = [
+type Highlight = {
+  id: string;
+  title: string;
+  cover: string;
+  stories: Story[];
+};
+
+const HIGHLIGHTS: Highlight[] = [
   {
     id: '1',
     title: 'Italia',
-    date: 'Outubro 2024',
-    image: require('../../assets/images/italia.jpg'),
+    cover: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=200',
+    stories: [
+      {
+        id: 'h1-1',
+        userId: 'current-user',
+        user: 'Juliana',
+        username: 'juliana_viaja',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        images: [{ uri: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800' }],
+        seen: false,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        reactions: [],
+        replies: [],
+      },
+    ],
   },
   {
     id: '2',
     title: 'Japao',
-    date: 'Marco 2025',
-    image: require('../../assets/images/japao.jpg'),
+    cover: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=200',
+    stories: [
+      {
+        id: 'h2-1',
+        userId: 'current-user',
+        user: 'Juliana',
+        username: 'juliana_viaja',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        images: [{ uri: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800' }],
+        seen: false,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        reactions: [],
+        replies: [],
+      },
+    ],
   },
   {
     id: '3',
-    title: 'Turquia',
-    date: 'Dezembro 2023',
-    image: require('../../assets/images/turquia.jpg'),
+    title: 'Praias',
+    cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200',
+    stories: [
+      {
+        id: 'h3-1',
+        userId: 'current-user',
+        user: 'Juliana',
+        username: 'juliana_viaja',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        images: [{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800' }],
+        seen: false,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        reactions: [],
+        replies: [],
+      },
+    ],
+  },
+  {
+    id: '4',
+    title: 'Comidas',
+    cover: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200',
+    stories: [
+      {
+        id: 'h4-1',
+        userId: 'current-user',
+        user: 'Juliana',
+        username: 'juliana_viaja',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        images: [{ uri: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800' }],
+        seen: false,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        reactions: [],
+        replies: [],
+      },
+    ],
+  },
+  {
+    id: '5',
+    title: 'Amigos',
+    cover: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=200',
+    stories: [
+      {
+        id: 'h5-1',
+        userId: 'current-user',
+        user: 'Juliana',
+        username: 'juliana_viaja',
+        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+        images: [{ uri: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800' }],
+        seen: false,
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        reactions: [],
+        replies: [],
+      },
+    ],
   },
 ];
 
-const INITIAL_STATS = {
-  countries: 12,
-  cities: 45,
-  days: 180,
+function HighlightItem({ highlight, onPress }: { highlight: Highlight; onPress: () => void }) {
+  return (
+    <Pressable style={styles.highlightItem} onPress={onPress}>
+      <View style={styles.highlightRing}>
+        <Image source={{ uri: highlight.cover }} style={styles.highlightImage} />
+      </View>
+      <Text style={styles.highlightTitle} numberOfLines={1}>{highlight.title}</Text>
+    </Pressable>
+  );
+}
+
+function AddHighlight({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable style={styles.highlightItem} onPress={onPress}>
+      <View style={styles.addHighlightCircle}>
+        <Ionicons name="add" size={28} color={colors.text} />
+      </View>
+      <Text style={styles.highlightTitle}>Novo</Text>
+    </Pressable>
+  );
+}
+
+function PostGridItem({ post, onPress }: { post: Post; onPress: () => void }) {
+  return (
+    <Pressable style={styles.postGridItem} onPress={onPress}>
+      <Image source={post.image} style={styles.postGridImage} />
+      {post.comments > 0 && (
+        <View style={styles.postMultipleIcon}>
+          <Ionicons name="copy" size={16} color="#FFFFFF" />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+type MenuOption = {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  destructive?: boolean;
 };
 
-const INITIAL_COUNTRIES_LIST: ProfileCountry[] = convertToProfileCountries([
-  'Brasil', 'Argentina', 'Chile', 'Peru', 'Italia', 'Franca',
-  'Espanha', 'Portugal', 'Japao', 'Tailandia', 'Mexico', 'Estados Unidos'
-]);
-
-const STORAGE_KEY_COUNTRIES = '@roteirize_countries';
-const STORAGE_KEY_STATS = '@roteirize_stats';
-
-const STATS_CONFIG = [
-  { id: 'countries', label: 'Paises visitados', icon: 'earth' },
-  { id: 'cities', label: 'Cidades exploradas', icon: 'location' },
-  { id: 'days', label: 'Dias viajando', icon: 'calendar' },
-];
-
-const MENU_OPTIONS = [
-  { id: 'favorites', icon: 'heart', label: 'Favoritos', badge: 12 },
-  { id: 'saved', icon: 'bookmark', label: 'Salvos', badge: 8 },
-  { id: 'settings', icon: 'settings', label: 'Configuracoes' },
-  { id: 'help', icon: 'help-circle', label: 'Ajuda e suporte' },
-];
-
-const FOLLOWERS = [
-  { id: '1', name: 'Maria Silva', username: 'maria.silva', avatar: 'https://i.pravatar.cc/150?img=1', isFollowing: false },
-  { id: '2', name: 'João Santos', username: 'joao.santos', avatar: 'https://i.pravatar.cc/150?img=3', isFollowing: true },
-  { id: '3', name: 'Ana Costa', username: 'ana.costa', avatar: 'https://i.pravatar.cc/150?img=5', isFollowing: false },
-  { id: '4', name: 'Pedro Lima', username: 'pedro.lima', avatar: 'https://i.pravatar.cc/150?img=8', isFollowing: true },
-  { id: '5', name: 'Carla Mendes', username: 'carla.mendes', avatar: 'https://i.pravatar.cc/150?img=9', isFollowing: false },
-  { id: '6', name: 'Lucas Oliveira', username: 'lucas.oliveira', avatar: 'https://i.pravatar.cc/150?img=11', isFollowing: false },
-];
-
-function StatCard({
-  stat,
-  value,
-  onPress,
+function MenuSheet({
+  visible,
+  onClose,
+  options,
 }: {
-  stat: (typeof STATS_CONFIG)[0];
-  value: number;
-  onPress: () => void;
+  visible: boolean;
+  onClose: () => void;
+  options: MenuOption[];
 }) {
   return (
-    <Pressable
-      style={styles.statCard}
-      onPress={onPress}
-      android_ripple={{ color: colors.border }}
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
     >
-      {({ pressed }) => (
-        <View style={[styles.statCardContent, { opacity: pressed ? 0.7 : 1 }]}>
-          <View style={styles.statIconContainer}>
-            <Ionicons name={stat.icon as any} size={18} color={colors.primary} />
-          </View>
-          <Text style={styles.statValue}>{value}</Text>
-          <Text style={styles.statLabel} numberOfLines={2}>
-            {stat.label}
-          </Text>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
-function TripCard({
-  trip,
-  onPress,
-  onEdit,
-}: {
-  trip: Trip;
-  onPress: () => void;
-  onEdit: () => void;
-}) {
-  return (
-    <Pressable
-      style={[styles.tripCard, { width: CARD_WIDTH }]}
-      onPress={onPress}
-      android_ripple={{ color: colors.border }}
-    >
-      {({ pressed }) => (
-        <View style={{ opacity: pressed ? 0.8 : 1 }}>
-          <Image
-            source={trip.imageUri ? { uri: trip.imageUri } : trip.image}
-            style={styles.tripImage}
-          />
-          <View style={styles.tripOverlay}>
-            <Text style={styles.tripTitle}>{trip.title}</Text>
-            <Text style={styles.tripDate}>{trip.date}</Text>
-          </View>
-          <Pressable
-            style={styles.tripEditButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            hitSlop={8}
-          >
-            <Ionicons name="pencil" size={14} color="#FFFFFF" />
+      <Pressable style={styles.menuOverlay} onPress={onClose}>
+        <Pressable style={styles.menuSheet} onPress={(e) => e.stopPropagation()}>
+          <View style={styles.menuDrag} />
+          {options.map((option, index) => (
+            <Pressable
+              key={index}
+              style={styles.menuOption}
+              onPress={() => {
+                onClose();
+                option.onPress();
+              }}
+            >
+              <Ionicons
+                name={option.icon}
+                size={24}
+                color={option.destructive ? '#ED4956' : colors.text}
+              />
+              <Text
+                style={[
+                  styles.menuOptionText,
+                  option.destructive && styles.menuOptionDestructive,
+                ]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+          <Pressable style={styles.menuCancelButton} onPress={onClose}>
+            <Text style={styles.menuCancelText}>Cancelar</Text>
           </Pressable>
-        </View>
-      )}
-    </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
-
-function MenuOption({
-  option,
-  onPress,
-}: {
-  option: (typeof MENU_OPTIONS)[0];
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      style={styles.menuOption}
-      onPress={onPress}
-      android_ripple={{ color: colors.border }}
-    >
-      {({ pressed }) => (
-        <View
-          style={[
-            styles.menuOptionInner,
-            { opacity: pressed ? 0.7 : 1 },
-          ]}
-        >
-          <View style={styles.menuLeft}>
-            <View style={styles.menuIconWrapper}>
-              <Ionicons name={option.icon as any} size={22} color={colors.text} />
-            </View>
-            <Text style={styles.menuLabel}>{option.label}</Text>
-          </View>
-          <View style={styles.menuRight}>
-            {option.badge !== undefined && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{option.badge}</Text>
-              </View>
-            )}
-            <Ionicons name="chevron-forward" size={20} color={colors.muted} />
-          </View>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
-// Simulação de usernames existentes (em produção, viria do backend)
-const EXISTING_USERNAMES = ['juliana.santos', 'maria.silva', 'joao.santos', 'ana.costa'];
 
 export default function Perfil() {
   const router = useRouter();
+  const { posts: allPosts } = useSocial();
+  const { currentUser } = useUser();
+
+  const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [followersModalVisible, setFollowersModalVisible] = useState(false);
-  const [name, setName] = useState('Juliana Santos');
-  const [username, setUsername] = useState('juliana.santos');
-  const [bio, setBio] = useState('Exploradora de mundo');
+  const [menuVisible, setMenuVisible] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [followerSearch, setFollowerSearch] = useState('');
-  const [followers, setFollowers] = useState(FOLLOWERS);
-  const [trips, setTrips] = useState<Trip[]>(INITIAL_TRIPS);
-  const [tripModalVisible, setTripModalVisible] = useState(false);
-  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
-  const [tripTitle, setTripTitle] = useState('');
-  const [tripDate, setTripDate] = useState('');
-  const [tripImageUri, setTripImageUri] = useState<string | null>(null);
+  const [storyViewerVisible, setStoryViewerVisible] = useState(false);
+  const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(null);
 
-  // Stats state
-  const [stats, setStats] = useState(INITIAL_STATS);
-  const [countriesList, setCountriesList] = useState<ProfileCountry[]>(INITIAL_COUNTRIES_LIST);
+  // Album states
+  const [albums, setAlbums] = useState<TripAlbum[]>([]);
+  const [createAlbumModalVisible, setCreateAlbumModalVisible] = useState(false);
+  const [selectedAlbum, setSelectedAlbum] = useState<TripAlbum | null>(null);
+  const [albumViewerVisible, setAlbumViewerVisible] = useState(false);
 
-  // Estados temporários para edição
-  const [tempName, setTempName] = useState(name);
-  const [tempUsername, setTempUsername] = useState(username);
-  const [tempBio, setTempBio] = useState(bio);
-  const [tempStats, setTempStats] = useState(INITIAL_STATS);
-  const [tempCountriesList, setTempCountriesList] = useState<ProfileCountry[]>(INITIAL_COUNTRIES_LIST);
-  const [newCountryName, setNewCountryName] = useState('');
+  // Create album form states
+  const [newAlbumTitle, setNewAlbumTitle] = useState('');
+  const [newAlbumDescription, setNewAlbumDescription] = useState('');
+  const [newAlbumLocation, setNewAlbumLocation] = useState('');
+  const [newAlbumPhotos, setNewAlbumPhotos] = useState<string[]>([]);
 
-  // Carregar dados salvos ao iniciar
-  useEffect(() => {
-    async function loadSavedData() {
-      try {
-        const savedCountries = await AsyncStorage.getItem(STORAGE_KEY_COUNTRIES);
-        if (savedCountries) {
-          const parsed = JSON.parse(savedCountries) as ProfileCountry[];
-          setCountriesList(parsed);
-        }
+  // Edit profile states
+  const [tempName, setTempName] = useState(currentUser.name);
+  const [tempUsername, setTempUsername] = useState(currentUser.username);
+  const [tempBio, setTempBio] = useState(currentUser.bio || '');
+  const [tempWebsite, setTempWebsite] = useState('roteirize.app/juliana');
 
-        const savedStats = await AsyncStorage.getItem(STORAGE_KEY_STATS);
-        if (savedStats) {
-          setStats(JSON.parse(savedStats));
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados:', error);
-      }
-    }
-    loadSavedData();
-  }, []);
-
-  // Salvar países quando a lista mudar
-  useEffect(() => {
-    async function saveCountries() {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY_COUNTRIES, JSON.stringify(countriesList));
-      } catch (error) {
-        console.error('Erro ao salvar paises:', error);
-      }
-    }
-    saveCountries();
-  }, [countriesList]);
-
-  // Salvar stats quando mudarem
-  useEffect(() => {
-    async function saveStats() {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(stats));
-      } catch (error) {
-        console.error('Erro ao salvar stats:', error);
-      }
-    }
-    saveStats();
-  }, [stats]);
+  // Filter posts to show only current user's posts
+  const myPosts = useMemo(
+    () => allPosts.filter((post) => post.userId === currentUser.id),
+    [allPosts, currentUser.id]
+  );
 
   async function handlePickImage() {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permissão necessária', 'Precisamos de acesso à sua galeria para alterar a foto.');
+      Alert.alert('Permissao necessaria', 'Precisamos de acesso a sua galeria para alterar a foto.');
       return;
     }
 
@@ -304,638 +299,661 @@ export default function Perfil() {
     }
   }
 
-  function validateUsername(value: string): string | null {
-    const trimmed = value.trim().toLowerCase();
-
-    if (trimmed.length < 3) {
-      return 'Username deve ter pelo menos 3 caracteres';
-    }
-
-    if (trimmed.length > 30) {
-      return 'Username deve ter no máximo 30 caracteres';
-    }
-
-    if (!/^[a-z0-9._]+$/.test(trimmed)) {
-      return 'Apenas letras, números, pontos e underlines';
-    }
-
-    if (/^[._]|[._]$/.test(trimmed)) {
-      return 'Não pode começar ou terminar com ponto ou underline';
-    }
-
-    if (/[._]{2}/.test(trimmed)) {
-      return 'Não pode ter pontos ou underlines consecutivos';
-    }
-
-    // Verifica se já existe (exceto o próprio usuário)
-    if (trimmed !== username && EXISTING_USERNAMES.includes(trimmed)) {
-      return 'Este username já está em uso';
-    }
-
-    return null;
+  function handleEditProfile() {
+    setTempName(currentUser.name);
+    setTempUsername(currentUser.username);
+    setTempBio(currentUser.bio || '');
+    setEditModalVisible(true);
   }
 
-  function handleUsernameChange(value: string) {
-    const formatted = value.toLowerCase().replace(/\s/g, '');
-    setTempUsername(formatted);
-
-    setIsCheckingUsername(true);
-    // Simula delay de verificação (em produção seria uma chamada API)
-    setTimeout(() => {
-      const error = validateUsername(formatted);
-      setUsernameError(error);
-      setIsCheckingUsername(false);
-    }, 300);
+  function handleSaveProfile() {
+    setEditModalVisible(false);
+    Alert.alert('Sucesso', 'Perfil atualizado!');
   }
 
-  function handleTripPress(tripId: string) {
-    router.push(`/trip/${tripId}`);
+  function handlePostPress(postId: string, index: number) {
+    router.push({
+      pathname: '/post/[id]',
+      params: { id: postId, userId: currentUser.id, startIndex: index.toString() },
+    } as any);
   }
 
-  function handleEditTrip(trip: Trip) {
-    setEditingTrip(trip);
-    setTripTitle(trip.title);
-    setTripDate(trip.date);
-    setTripImageUri(trip.imageUri || null);
-    setTripModalVisible(true);
+  function handleHighlightPress(highlight: Highlight) {
+    setSelectedHighlight(highlight);
+    setStoryViewerVisible(true);
   }
 
-  async function handlePickTripImage() {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      Alert.alert('Permissao necessaria', 'Precisamos de acesso a sua galeria para selecionar a foto.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      setTripImageUri(result.assets[0].uri);
-    }
-  }
-
-  function handleSaveTrip() {
-    if (!tripTitle.trim()) {
-      Alert.alert('Erro', 'Digite um titulo para a viagem');
-      return;
-    }
-    if (!tripDate.trim()) {
-      Alert.alert('Erro', 'Digite a data da viagem');
-      return;
-    }
-
-    if (editingTrip) {
-      setTrips(prev =>
-        prev.map(t =>
-          t.id === editingTrip.id
-            ? { ...t, title: tripTitle, date: tripDate, imageUri: tripImageUri || t.imageUri }
-            : t
-        )
-      );
-    } else {
-      const newTrip: Trip = {
-        id: Date.now().toString(),
-        title: tripTitle,
-        date: tripDate,
-        image: require('../../assets/images/italia.jpg'),
-        imageUri: tripImageUri || undefined,
-      };
-      setTrips(prev => [newTrip, ...prev]);
-    }
-
-    setTripModalVisible(false);
-    setEditingTrip(null);
-    setTripTitle('');
-    setTripDate('');
-    setTripImageUri(null);
-    Alert.alert('Sucesso', editingTrip ? 'Viagem atualizada!' : 'Viagem adicionada!');
-  }
-
-  function handleDeleteTrip() {
-    if (!editingTrip) return;
-
+  function handleAddHighlight() {
     Alert.alert(
-      'Excluir viagem',
-      `Tem certeza que deseja excluir "${editingTrip.title}"?`,
+      'Novo destaque',
+      'Selecione stories para adicionar ao destaque',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Excluir',
-          style: 'destructive',
+          text: 'Selecionar',
           onPress: () => {
-            setTrips(prev => prev.filter(t => t.id !== editingTrip.id));
-            setTripModalVisible(false);
-            setEditingTrip(null);
-            setTripTitle('');
-            setTripDate('');
-            setTripImageUri(null);
+            Alert.alert('Em breve', 'Esta funcionalidade estara disponivel em breve!');
           },
         },
       ]
     );
   }
 
-  function handleMenuPress(id: string) {
-    switch (id) {
-      case 'settings':
-        Alert.alert('Configurações', 'Funcionalidade de configurações em desenvolvimento');
-        break;
-      case 'favorites':
-        Alert.alert('Favoritos', 'Você tem 12 lugares favoritos salvos');
-        break;
-      case 'saved':
-        Alert.alert('Salvos', 'Você tem 8 roteiros salvos');
-        break;
-      case 'help':
-        Alert.alert(
-          'Ajuda e Suporte',
-          'Entre em contato conosco:\nEmail: suporte@roteirize.com\nTelefone: (11) 99999-9999'
-        );
-        break;
+  function handleSettingsPress() {
+    router.push('/settings' as any);
+  }
+
+  function handleMenuPress() {
+    setMenuVisible(true);
+  }
+
+  async function handleShareProfile() {
+    try {
+      await Share.share({
+        message: `Confira o perfil de @${currentUser.username} no Roteirize!\nhttps://roteirize.app/${currentUser.username}`,
+      });
+    } catch (error) {
+      console.log('Error sharing:', error);
     }
   }
 
-  function handleEditProfile() {
-    setTempName(name);
-    setTempUsername(username);
-    setTempBio(bio);
-    setTempStats({ ...stats });
-    setTempCountriesList([...countriesList]);
-    setNewCountryName('');
-    setUsernameError(null);
-    setEditModalVisible(true);
-  }
-
-  function handleAddCountry() {
-    const trimmed = newCountryName.trim();
-    if (!trimmed) {
-      Alert.alert('Erro', 'Digite o nome do pais');
-      return;
-    }
-    if (tempCountriesList.some(c => c.name.toLowerCase() === trimmed.toLowerCase())) {
-      Alert.alert('Erro', 'Este pais ja foi adicionado');
-      return;
-    }
-    const newCountry = createProfileCountry(trimmed);
-    setTempCountriesList(prev => [...prev, newCountry]);
-    setNewCountryName('');
-  }
-
-  function handleRemoveCountry(index: number) {
-    setTempCountriesList(prev => prev.filter((_, i) => i !== index));
-  }
-
-  function handleSaveProfile() {
-    const error = validateUsername(tempUsername);
-    if (error) {
-      setUsernameError(error);
-      return;
-    }
-
-    setName(tempName);
-    setUsername(tempUsername);
-    setBio(tempBio);
-    setStats(tempStats);
-    setCountriesList(tempCountriesList);
-    setEditModalVisible(false);
-    Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
-  }
-
-  function handleAddTrip() {
-    setEditingTrip(null);
-    setTripTitle('');
-    setTripDate('');
-    setTripImageUri(null);
-    setTripModalVisible(true);
-  }
-
-  function handleStatPress(statId: string) {
-    if (statId === 'countries') {
-      router.push('/countries');
-    }
+  function handleDiscoverPeople() {
+    router.push('/search' as any);
   }
 
   function handleFollowersPress() {
-    setFollowersModalVisible(true);
+    router.push(`/profile/followers/${currentUser.id}` as any);
+  }
+
+  function handleFollowingPress() {
+    router.push(`/profile/following/${currentUser.id}` as any);
+  }
+
+  function handleWebsitePress() {
+    Linking.openURL(`https://${tempWebsite}`).catch(() => {
+      Alert.alert('Erro', 'Nao foi possivel abrir o link');
+    });
+  }
+
+  function handleCreateAlbum() {
+    setNewAlbumTitle('');
+    setNewAlbumDescription('');
+    setNewAlbumLocation('');
+    setNewAlbumPhotos([]);
+    setCreateAlbumModalVisible(true);
+  }
+
+  async function handlePickAlbumPhotos() {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permissao necessaria', 'Precisamos de acesso a sua galeria para adicionar fotos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      const uris = result.assets.map((asset) => asset.uri);
+      setNewAlbumPhotos((prev) => [...prev, ...uris]);
+    }
+  }
+
+  function handleRemoveAlbumPhoto(index: number) {
+    setNewAlbumPhotos((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function handleSaveAlbum() {
+    if (!newAlbumTitle.trim()) {
+      Alert.alert('Erro', 'Digite um titulo para o album');
+      return;
+    }
+
+    if (newAlbumPhotos.length === 0) {
+      Alert.alert('Erro', 'Adicione pelo menos uma foto ao album');
+      return;
+    }
+
+    const newAlbum: TripAlbum = {
+      id: Date.now().toString(),
+      title: newAlbumTitle.trim(),
+      description: newAlbumDescription.trim(),
+      location: newAlbumLocation.trim() || undefined,
+      coverImage: newAlbumPhotos[0],
+      photos: newAlbumPhotos,
+      createdAt: new Date().toISOString(),
+    };
+
+    setAlbums((prev) => [newAlbum, ...prev]);
+    setCreateAlbumModalVisible(false);
+    Alert.alert('Sucesso', 'Album criado com sucesso!');
+  }
+
+  function handleAlbumPress(album: TripAlbum) {
+    setSelectedAlbum(album);
+    setAlbumViewerVisible(true);
+  }
+
+  function handleDeleteAlbum(albumId: string) {
+    Alert.alert(
+      'Excluir album',
+      'Tem certeza que deseja excluir este album?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Excluir',
+          style: 'destructive',
+          onPress: () => {
+            setAlbums((prev) => prev.filter((a) => a.id !== albumId));
+            setAlbumViewerVisible(false);
+            setSelectedAlbum(null);
+          },
+        },
+      ]
+    );
+  }
+
+  const menuOptions: MenuOption[] = [
+    {
+      icon: 'settings-outline',
+      label: 'Configuracoes',
+      onPress: handleSettingsPress,
+    },
+    {
+      icon: 'time-outline',
+      label: 'Seu historico',
+      onPress: () => Alert.alert('Historico', 'Seu historico de atividades'),
+    },
+    {
+      icon: 'bookmark-outline',
+      label: 'Salvos',
+      onPress: () => router.push('/saved' as any),
+    },
+    {
+      icon: 'qr-code-outline',
+      label: 'Codigo QR',
+      onPress: () => Alert.alert('QR Code', 'Seu codigo QR pessoal'),
+    },
+    {
+      icon: 'star-outline',
+      label: 'Favoritos',
+      onPress: () => Alert.alert('Favoritos', 'Lista de amigos favoritos'),
+    },
+    {
+      icon: 'people-outline',
+      label: 'Melhores amigos',
+      onPress: () => Alert.alert('Melhores amigos', 'Gerenciar lista de melhores amigos'),
+    },
+  ];
+
+  function renderHeader() {
+    return (
+      <View>
+        {/* Top Bar */}
+        <View style={styles.topBar}>
+          <View style={styles.topBarLeft}>
+            <Ionicons name="lock-closed-outline" size={16} color={colors.text} />
+            <Text style={styles.topBarUsername}>{currentUser.username}</Text>
+          </View>
+          <View style={styles.topBarRight}>
+            <Pressable onPress={handleMenuPress} style={styles.topBarIcon}>
+              <Ionicons name="menu-outline" size={28} color={colors.text} />
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Profile Header */}
+        <View style={styles.profileHeader}>
+          <Pressable onPress={handlePickImage} style={styles.avatarContainer}>
+            <Image
+              source={profileImage ? { uri: profileImage } : { uri: currentUser.avatar }}
+              style={styles.avatar}
+            />
+          </Pressable>
+
+          <View style={styles.statsContainer}>
+            <Pressable style={styles.statItem}>
+              <Text style={styles.statNumber}>{myPosts.length}</Text>
+              <Text style={styles.statLabel}>publicacoes</Text>
+            </Pressable>
+            <Pressable style={styles.statItem} onPress={handleFollowersPress}>
+              <Text style={styles.statNumber}>{currentUser.followersCount}</Text>
+              <Text style={styles.statLabel}>seguidores</Text>
+            </Pressable>
+            <Pressable style={styles.statItem} onPress={handleFollowingPress}>
+              <Text style={styles.statNumber}>{currentUser.followingCount}</Text>
+              <Text style={styles.statLabel}>seguindo</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Bio Section */}
+        <View style={styles.bioSection}>
+          <Text style={styles.displayName}>{currentUser.name}</Text>
+          <Text style={styles.bioText}>{currentUser.bio}</Text>
+          <Pressable onPress={handleWebsitePress}>
+            <Text style={styles.websiteLink}>{tempWebsite}</Text>
+          </Pressable>
+        </View>
+
+        {/* Action Buttons */}
+        <View style={styles.actionButtons}>
+          <View style={styles.actionButtonWrapper}>
+            <Button
+              title="Editar perfil"
+              variant="secondary"
+              size="small"
+              onPress={handleEditProfile}
+            />
+          </View>
+          <View style={styles.actionButtonWrapper}>
+            <Button
+              title="Compartilhar perfil"
+              variant="secondary"
+              size="small"
+              onPress={handleShareProfile}
+            />
+          </View>
+          <Pressable style={styles.discoverButton} onPress={handleDiscoverPeople}>
+            <Ionicons name="person-add-outline" size={16} color={colors.text} />
+          </Pressable>
+        </View>
+
+        {/* Story Highlights */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.highlightsContainer}
+        >
+          <AddHighlight onPress={handleAddHighlight} />
+          {HIGHLIGHTS.map((highlight) => (
+            <HighlightItem
+              key={highlight.id}
+              highlight={highlight}
+              onPress={() => handleHighlightPress(highlight)}
+            />
+          ))}
+        </ScrollView>
+
+        {/* Tab Bar */}
+        <View style={styles.tabBar}>
+          <Pressable
+            style={[styles.tabItem, activeTab === 'posts' && styles.tabItemActive]}
+            onPress={() => setActiveTab('posts')}
+          >
+            <Ionicons
+              name="grid-outline"
+              size={24}
+              color={activeTab === 'posts' ? colors.text : colors.muted}
+            />
+          </Pressable>
+          <Pressable
+            style={[styles.tabItem, activeTab === 'albums' && styles.tabItemActive]}
+            onPress={() => setActiveTab('albums')}
+          >
+            <Ionicons
+              name="albums-outline"
+              size={24}
+              color={activeTab === 'albums' ? colors.text : colors.muted}
+            />
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  function renderEmptyPosts() {
+    return (
+      <View style={styles.emptyContainer}>
+        <View style={styles.emptyIconContainer}>
+          <Ionicons name="camera-outline" size={48} color={colors.text} />
+        </View>
+        <Text style={styles.emptyTitle}>Compartilhe fotos</Text>
+        <Text style={styles.emptySubtitle}>
+          Quando voce compartilhar fotos, elas aparecerao no seu perfil.
+        </Text>
+        <Pressable onPress={() => router.push('/post/create' as any)}>
+          <Text style={styles.emptyLink}>Compartilhe sua primeira foto</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  function renderContent() {
+    if (activeTab === 'posts') {
+      if (myPosts.length === 0) {
+        return renderEmptyPosts();
+      }
+      return (
+        <View style={styles.postsGrid}>
+          {myPosts.map((post, index) => (
+            <PostGridItem
+              key={post.id}
+              post={post}
+              onPress={() => handlePostPress(post.id, index)}
+            />
+          ))}
+        </View>
+      );
+    }
+
+    if (albums.length === 0) {
+      return (
+        <View style={styles.emptyContainer}>
+          <View style={styles.emptyIconContainer}>
+            <Ionicons name="albums-outline" size={48} color={colors.text} />
+          </View>
+          <Text style={styles.emptyTitle}>Nenhum album ainda</Text>
+          <Text style={styles.emptySubtitle}>
+            Crie albuns para organizar e compartilhar suas viagens.
+          </Text>
+          <Pressable onPress={handleCreateAlbum}>
+            <Text style={styles.emptyLink}>Criar primeiro album</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    return (
+      <View>
+        <Pressable style={styles.addAlbumButton} onPress={handleCreateAlbum}>
+          <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
+          <Text style={styles.addAlbumButtonText}>Criar novo album</Text>
+        </Pressable>
+        <View style={styles.albumsGrid}>
+          {albums.map((album) => (
+            <Pressable
+              key={album.id}
+              style={styles.albumGridItem}
+              onPress={() => handleAlbumPress(album)}
+            >
+              <Image source={{ uri: album.coverImage }} style={styles.albumCoverImage} />
+              <View style={styles.albumOverlay}>
+                <Text style={styles.albumTitle} numberOfLines={1}>{album.title}</Text>
+                <Text style={styles.albumPhotoCount}>{album.photos.length} fotos</Text>
+              </View>
+              {album.location && (
+                <View style={styles.albumLocationBadge}>
+                  <Ionicons name="location" size={12} color="#FFFFFF" />
+                </View>
+              )}
+            </Pressable>
+          ))}
+        </View>
+      </View>
+    );
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
-        contentContainerStyle={styles.container}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Profile */}
-        <View style={styles.profileHeader}>
-          <Pressable onPress={handlePickImage} style={styles.avatarContainer}>
-            <Image
-              source={profileImage ? { uri: profileImage } : require('../../assets/images/profile.jpg')}
-              style={styles.avatar}
-            />
-            <View style={styles.avatarOverlay}>
-              <Ionicons name="camera" size={20} color="#FFFFFF" />
-            </View>
-          </Pressable>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.username}>@{username}</Text>
-          <Text style={styles.subtitle}>{bio}</Text>
-
-          <Pressable
-            style={styles.editButton}
-            onPress={handleEditProfile}
-            android_ripple={{ color: colors.border }}
-          >
-            {({ pressed }) => (
-              <View
-                style={[
-                  styles.editButtonInner,
-                  { opacity: pressed ? 0.7 : 1 },
-                ]}
-              >
-                <Ionicons name="create-outline" size={18} color={colors.text} />
-                <Text style={styles.editButtonText}>Editar perfil</Text>
-              </View>
-            )}
-          </Pressable>
-        </View>
-
-        {/* Stats Section */}
-        <View style={styles.statsSection}>
-          {STATS_CONFIG.map((stat) => (
-            <StatCard
-              key={stat.id}
-              stat={stat}
-              value={stats[stat.id as keyof typeof stats]}
-              onPress={() => handleStatPress(stat.id)}
-            />
-          ))}
-        </View>
-
-        {/* Followers Section */}
-        <Pressable
-          style={styles.followersButton}
-          onPress={handleFollowersPress}
-          android_ripple={{ color: colors.border }}
-        >
-          {({ pressed }) => (
-            <View style={{ opacity: pressed ? 0.7 : 1 }}>
-              <Text style={styles.followersText}>
-                <Text style={styles.followersCount}>700</Text> seguidores
-              </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={colors.muted}
-                style={styles.followersIcon}
-              />
-            </View>
-          )}
-        </Pressable>
-
-        {/* Trips Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Minhas viagens</Text>
-            <Pressable
-              style={styles.addButton}
-              onPress={handleAddTrip}
-              android_ripple={{ color: colors.border, radius: 20 }}
-            >
-              {({ pressed }) => (
-                <Ionicons
-                  name="add-circle"
-                  size={24}
-                  color={colors.primary}
-                  style={{ opacity: pressed ? 0.7 : 1 }}
-                />
-              )}
-            </Pressable>
-          </View>
-
-          <View style={styles.tripsGrid}>
-            {trips.map((trip) => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                onPress={() => handleTripPress(trip.id)}
-                onEdit={() => handleEditTrip(trip)}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* Menu Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Opcoes</Text>
-          <View style={styles.menuContainer}>
-            {MENU_OPTIONS.map((option, index) => (
-              <View key={option.id}>
-                <MenuOption
-                  option={option}
-                  onPress={() => handleMenuPress(option.id)}
-                />
-                {index < MENU_OPTIONS.length - 1 && (
-                  <View style={styles.menuDivider} />
-                )}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={{ height: 100 }} />
+        {renderHeader()}
+        {renderContent()}
       </ScrollView>
 
       {/* Edit Profile Modal */}
       <Modal
         visible={editModalVisible}
         animationType="slide"
-        transparent={true}
+        presentationStyle="pageSheet"
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editar Perfil</Text>
-              <Pressable onPress={() => setEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
-              </Pressable>
-            </View>
+        <SafeAreaView style={styles.modalSafe}>
+          <View style={styles.modalHeader}>
+            <Pressable onPress={() => setEditModalVisible(false)}>
+              <Text style={styles.modalCancel}>Cancelar</Text>
+            </Pressable>
+            <Text style={styles.modalTitle}>Editar perfil</Text>
+            <Pressable onPress={handleSaveProfile}>
+              <Text style={styles.modalDone}>Concluir</Text>
+            </Pressable>
+          </View>
 
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.inputLabel}>Nome</Text>
-              <TextInput
-                style={styles.input}
-                value={tempName}
-                onChangeText={setTempName}
-                placeholder="Digite seu nome"
-                placeholderTextColor={colors.muted}
+          <ScrollView style={styles.modalBody}>
+            {/* Profile Photo */}
+            <Pressable style={styles.editPhotoContainer} onPress={handlePickImage}>
+              <Image
+                source={profileImage ? { uri: profileImage } : { uri: currentUser.avatar }}
+                style={styles.editAvatar}
               />
+              <Text style={styles.editPhotoText}>Editar foto</Text>
+            </Pressable>
 
-              <Text style={styles.inputLabel}>Username</Text>
-              <View style={styles.usernameInputContainer}>
-                <Text style={styles.usernamePrefix}>@</Text>
+            {/* Edit Fields */}
+            <View style={styles.editFieldsContainer}>
+              <View style={styles.editField}>
+                <Text style={styles.editFieldLabel}>Nome</Text>
                 <TextInput
-                  style={styles.usernameInput}
+                  style={styles.editFieldInput}
+                  value={tempName}
+                  onChangeText={setTempName}
+                  placeholder="Nome"
+                  placeholderTextColor={colors.muted}
+                />
+              </View>
+
+              <View style={styles.editField}>
+                <Text style={styles.editFieldLabel}>Nome de usuario</Text>
+                <TextInput
+                  style={styles.editFieldInput}
                   value={tempUsername}
-                  onChangeText={handleUsernameChange}
-                  placeholder="seu.username"
+                  onChangeText={setTempUsername}
+                  placeholder="Nome de usuario"
                   placeholderTextColor={colors.muted}
                   autoCapitalize="none"
-                  autoCorrect={false}
                 />
-                {isCheckingUsername && (
-                  <ActivityIndicator size="small" color={colors.primary} style={styles.usernameLoader} />
-                )}
-                {!isCheckingUsername && tempUsername && !usernameError && (
-                  <Ionicons name="checkmark-circle" size={20} color="#22C55E" style={styles.usernameIcon} />
-                )}
               </View>
-              {usernameError && (
-                <Text style={styles.usernameError}>{usernameError}</Text>
-              )}
-              <Text style={styles.usernameHint}>
-                Apenas letras, números, pontos e underlines
-              </Text>
 
-              <Text style={styles.inputLabel}>Bio</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={tempBio}
-                onChangeText={setTempBio}
-                placeholder="Conte um pouco sobre você"
-                placeholderTextColor={colors.muted}
-                multiline
-                numberOfLines={3}
-              />
-
-              {/* Stats Section */}
-              <View style={styles.statsSectionDivider} />
-              <Text style={styles.statsEditTitle}>Estatisticas de Viagem</Text>
-
-              {/* Countries */}
-              <Text style={styles.inputLabel}>Paises visitados</Text>
-              <TextInput
-                style={styles.input}
-                value={String(tempStats.countries)}
-                onChangeText={(text) => {
-                  const num = parseInt(text) || 0;
-                  setTempStats(prev => ({ ...prev, countries: num }));
-                }}
-                placeholder="Numero de paises"
-                placeholderTextColor={colors.muted}
-                keyboardType="number-pad"
-              />
-
-              {/* Cities */}
-              <Text style={styles.inputLabel}>Cidades exploradas</Text>
-              <TextInput
-                style={styles.input}
-                value={String(tempStats.cities)}
-                onChangeText={(text) => {
-                  const num = parseInt(text) || 0;
-                  setTempStats(prev => ({ ...prev, cities: num }));
-                }}
-                placeholder="Numero de cidades"
-                placeholderTextColor={colors.muted}
-                keyboardType="number-pad"
-              />
-
-              {/* Days */}
-              <Text style={styles.inputLabel}>Dias viajando</Text>
-              <TextInput
-                style={styles.input}
-                value={String(tempStats.days)}
-                onChangeText={(text) => {
-                  const num = parseInt(text) || 0;
-                  setTempStats(prev => ({ ...prev, days: num }));
-                }}
-                placeholder="Numero de dias"
-                placeholderTextColor={colors.muted}
-                keyboardType="number-pad"
-              />
-
-              <Pressable
-                style={[styles.saveButton, usernameError && styles.saveButtonDisabled]}
-                onPress={handleSaveProfile}
-                android_ripple={{ color: '#fff' }}
-                disabled={!!usernameError}
-              >
-                {({ pressed }) => (
-                  <Text
-                    style={[
-                      styles.saveButtonText,
-                      { opacity: pressed ? 0.8 : 1 },
-                    ]}
-                  >
-                    Salvar
-                  </Text>
-                )}
-              </Pressable>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Followers Modal */}
-      <Modal
-        visible={followersModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setFollowersModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.followersModalContent}>
-            <View style={styles.followersModalHeader}>
-              <View style={styles.followersModalHeaderTop}>
-                <View style={{ width: 24 }} />
-                <Text style={styles.followersModalTitle}>Seguidores</Text>
-                <Pressable onPress={() => setFollowersModalVisible(false)}>
-                  <Ionicons name="close" size={24} color={colors.text} />
-                </Pressable>
-              </View>
-              <View style={styles.followersSearchContainer}>
-                <Ionicons name="search" size={18} color={colors.muted} style={styles.followersSearchIcon} />
+              <View style={styles.editField}>
+                <Text style={styles.editFieldLabel}>Bio</Text>
                 <TextInput
-                  style={styles.followersSearchInput}
-                  placeholder="Pesquisar"
+                  style={styles.editFieldInput}
+                  value={tempBio}
+                  onChangeText={setTempBio}
+                  placeholder="Bio"
                   placeholderTextColor={colors.muted}
-                  value={followerSearch}
-                  onChangeText={setFollowerSearch}
+                  multiline
+                />
+              </View>
+
+              <View style={styles.editField}>
+                <Text style={styles.editFieldLabel}>Link</Text>
+                <TextInput
+                  style={styles.editFieldInput}
+                  value={tempWebsite}
+                  onChangeText={setTempWebsite}
+                  placeholder="Adicionar link"
+                  placeholderTextColor={colors.muted}
+                  autoCapitalize="none"
                 />
               </View>
             </View>
 
-            <ScrollView style={styles.followersListContainer} showsVerticalScrollIndicator={false}>
-              {followers
-                .filter(f =>
-                  f.name.toLowerCase().includes(followerSearch.toLowerCase()) ||
-                  f.username.toLowerCase().includes(followerSearch.toLowerCase())
-                )
-                .map((follower) => (
-                <View key={follower.id} style={styles.followerItemNew}>
-                  <Image source={{ uri: follower.avatar }} style={styles.followerAvatarImage} />
-                  <View style={styles.followerInfo}>
-                    <Text style={styles.followerUsername}>{follower.username}</Text>
-                    <Text style={styles.followerFullName}>{follower.name}</Text>
-                  </View>
-                  <Pressable
-                    style={[
-                      styles.followButtonNew,
-                      follower.isFollowing && styles.followingButton,
-                    ]}
-                    onPress={() => {
-                      setFollowers(prev =>
-                        prev.map(f =>
-                          f.id === follower.id ? { ...f, isFollowing: !f.isFollowing } : f
-                        )
-                      );
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.followButtonTextNew,
-                        follower.isFollowing && styles.followingButtonText,
-                      ]}
-                    >
-                      {follower.isFollowing ? 'Seguindo' : 'Seguir'}
-                    </Text>
-                  </Pressable>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
+            <View style={styles.editSectionDivider} />
+
+            <Pressable
+              style={styles.editOption}
+              onPress={() => Alert.alert('Conta profissional', 'Mude para conta profissional')}
+            >
+              <Text style={styles.editOptionText}>Mudar para conta profissional</Text>
+            </Pressable>
+
+            <Pressable
+              style={styles.editOption}
+              onPress={() => {
+                setEditModalVisible(false);
+                router.push('/settings' as any);
+              }}
+            >
+              <Text style={styles.editOptionText}>Configuracoes de privacidade</Text>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
 
-      {/* Trip Modal */}
+      {/* Menu Bottom Sheet */}
+      <MenuSheet
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        options={menuOptions}
+      />
+
+      {/* Story Viewer for Highlights */}
+      {storyViewerVisible && selectedHighlight && (
+        <StoryViewer
+          stories={selectedHighlight.stories}
+          initialIndex={0}
+          onClose={() => {
+            setStoryViewerVisible(false);
+            setSelectedHighlight(null);
+          }}
+        />
+      )}
+
+      {/* Create Album Modal */}
       <Modal
-        visible={tripModalVisible}
+        visible={createAlbumModalVisible}
         animationType="slide"
-        transparent={true}
-        onRequestClose={() => setTripModalVisible(false)}
+        presentationStyle="pageSheet"
+        onRequestClose={() => setCreateAlbumModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {editingTrip ? 'Editar Viagem' : 'Nova Viagem'}
-              </Text>
-              <Pressable onPress={() => setTripModalVisible(false)}>
-                <Ionicons name="close" size={24} color={colors.text} />
+        <SafeAreaView style={styles.modalSafe}>
+          <View style={styles.createAlbumHeader}>
+            <Pressable onPress={() => setCreateAlbumModalVisible(false)}>
+              <Text style={styles.modalCancel}>Cancelar</Text>
+            </Pressable>
+            <Text style={styles.modalTitle}>Novo Album</Text>
+            <Pressable onPress={handleSaveAlbum}>
+              <Text style={styles.modalDone}>Criar</Text>
+            </Pressable>
+          </View>
+
+          <ScrollView style={styles.createAlbumBody}>
+            {/* Photo Picker */}
+            <View style={styles.photoPickerSection}>
+              <Pressable style={styles.photoPickerButton} onPress={handlePickAlbumPhotos}>
+                <Ionicons name="images-outline" size={32} color={colors.muted} />
+                <Text style={styles.photoPickerText}>Adicionar fotos</Text>
               </Pressable>
+
+              {newAlbumPhotos.length > 0 && (
+                <View style={styles.selectedPhotosContainer}>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectedPhotosScroll}>
+                    {newAlbumPhotos.map((photo, index) => (
+                      <View key={index} style={styles.selectedPhotoWrapper}>
+                        <Image source={{ uri: photo }} style={styles.selectedPhoto} />
+                        <Pressable
+                          style={styles.removePhotoButton}
+                          onPress={() => handleRemoveAlbumPhoto(index)}
+                        >
+                          <Ionicons name="close" size={16} color="#FFFFFF" />
+                        </Pressable>
+                      </View>
+                    ))}
+                  </ScrollView>
+                  <Text style={styles.photosCount}>{newAlbumPhotos.length} foto(s) selecionada(s)</Text>
+                </View>
+              )}
             </View>
 
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Pressable style={styles.tripImagePicker} onPress={handlePickTripImage}>
-                {tripImageUri ? (
-                  <Image source={{ uri: tripImageUri }} style={styles.tripImagePreview} />
-                ) : editingTrip?.imageUri ? (
-                  <Image source={{ uri: editingTrip.imageUri }} style={styles.tripImagePreview} />
-                ) : editingTrip?.image ? (
-                  <Image source={editingTrip.image} style={styles.tripImagePreview} />
-                ) : (
-                  <View style={styles.tripImagePlaceholder}>
-                    <Ionicons name="image-outline" size={40} color={colors.muted} />
-                    <Text style={styles.tripImagePlaceholderText}>Adicionar foto de capa</Text>
+            {/* Album Form */}
+            <View style={styles.albumFormSection}>
+              <View style={styles.albumFormField}>
+                <Text style={styles.albumFormLabel}>Titulo do album *</Text>
+                <TextInput
+                  style={styles.albumFormInput}
+                  value={newAlbumTitle}
+                  onChangeText={setNewAlbumTitle}
+                  placeholder="Ex: Viagem a Paris"
+                  placeholderTextColor={colors.muted}
+                />
+              </View>
+
+              <View style={styles.albumFormField}>
+                <Text style={styles.albumFormLabel}>Descricao</Text>
+                <TextInput
+                  style={styles.albumFormTextArea}
+                  value={newAlbumDescription}
+                  onChangeText={setNewAlbumDescription}
+                  placeholder="Conte um pouco sobre essa viagem..."
+                  placeholderTextColor={colors.muted}
+                  multiline
+                  numberOfLines={3}
+                />
+              </View>
+
+              <View style={styles.albumFormField}>
+                <Text style={styles.albumFormLabel}>Localizacao</Text>
+                <TextInput
+                  style={styles.albumFormInput}
+                  value={newAlbumLocation}
+                  onChangeText={setNewAlbumLocation}
+                  placeholder="Ex: Paris, Franca"
+                  placeholderTextColor={colors.muted}
+                />
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
+
+      {/* Album Viewer Modal */}
+      <Modal
+        visible={albumViewerVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => {
+          setAlbumViewerVisible(false);
+          setSelectedAlbum(null);
+        }}
+      >
+        <SafeAreaView style={styles.modalSafe}>
+          <View style={styles.albumViewerHeader}>
+            <Pressable onPress={() => {
+              setAlbumViewerVisible(false);
+              setSelectedAlbum(null);
+            }}>
+              <Ionicons name="close" size={28} color={colors.text} />
+            </Pressable>
+            <Text style={styles.albumViewerTitle}>{selectedAlbum?.title}</Text>
+            <View style={{ width: 28 }} />
+          </View>
+
+          <ScrollView>
+            {selectedAlbum?.description && (
+              <View style={styles.albumViewerInfo}>
+                <Text style={styles.albumViewerDescription}>{selectedAlbum.description}</Text>
+                {selectedAlbum.location && (
+                  <View style={styles.albumViewerLocation}>
+                    <Ionicons name="location-outline" size={16} color={colors.muted} />
+                    <Text style={styles.albumViewerLocationText}>{selectedAlbum.location}</Text>
                   </View>
                 )}
-                <View style={styles.tripImageOverlay}>
-                  <Ionicons name="camera" size={24} color="#FFFFFF" />
-                </View>
-              </Pressable>
+              </View>
+            )}
 
-              <Text style={styles.inputLabel}>Titulo</Text>
-              <TextInput
-                style={styles.input}
-                value={tripTitle}
-                onChangeText={setTripTitle}
-                placeholder="Ex: Italia, Japao, Turquia..."
-                placeholderTextColor={colors.muted}
-              />
+            <View style={styles.albumViewerPhotosGrid}>
+              {selectedAlbum?.photos.map((photo, index) => (
+                <Image key={index} source={{ uri: photo }} style={styles.albumViewerPhoto} />
+              ))}
+            </View>
 
-              <Text style={styles.inputLabel}>Data</Text>
-              <TextInput
-                style={styles.input}
-                value={tripDate}
-                onChangeText={setTripDate}
-                placeholder="Ex: Outubro 2024"
-                placeholderTextColor={colors.muted}
-              />
-
-              <Pressable
-                style={styles.saveButton}
-                onPress={handleSaveTrip}
-                android_ripple={{ color: '#fff' }}
-              >
-                {({ pressed }) => (
-                  <Text style={[styles.saveButtonText, { opacity: pressed ? 0.8 : 1 }]}>
-                    {editingTrip ? 'Salvar Alteracoes' : 'Adicionar Viagem'}
-                  </Text>
-                )}
-              </Pressable>
-
-              {editingTrip && (
-                <Pressable
-                  style={styles.deleteButton}
-                  onPress={handleDeleteTrip}
-                  android_ripple={{ color: colors.border }}
-                >
-                  {({ pressed }) => (
-                    <Text style={[styles.deleteButtonText, { opacity: pressed ? 0.8 : 1 }]}>
-                      Excluir Viagem
-                    </Text>
-                  )}
-                </Pressable>
-              )}
-            </ScrollView>
-          </View>
-        </View>
+            <Pressable
+              style={styles.deleteAlbumButton}
+              onPress={() => selectedAlbum && handleDeleteAlbum(selectedAlbum.id)}
+            >
+              <Ionicons name="trash-outline" size={20} color="#ED4956" />
+              <Text style={styles.deleteAlbumText}>Excluir album</Text>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
@@ -946,594 +964,554 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  container: {
-    paddingBottom: 20,
+  scrollContent: {
+    paddingBottom: 100,
   },
-  profileHeader: {
-    alignItems: 'center',
-    paddingTop: 32,
-    paddingBottom: 24,
-    paddingHorizontal: 24,
-  },
-  avatarContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
-    borderWidth: 3,
-    borderColor: colors.primary,
-  },
-  avatarOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.background,
-  },
-  name: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  username: {
-    fontSize: 15,
-    color: colors.muted,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.muted,
-    marginBottom: 20,
-  },
-  editButton: {
-    borderRadius: 24,
-    overflow: 'hidden',
-  },
-  editButtonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: 24,
-    backgroundColor: colors.background,
-  },
-  editButtonText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  statsSection: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#F8FAFB',
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  statCardContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  statIconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  statValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-    marginTop: 2,
-  },
-  statLabel: {
-    fontSize: 9.5,
-    color: colors.muted,
-    textAlign: 'center',
-    lineHeight: 12,
-    paddingHorizontal: 2,
-  },
-  followersButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    marginHorizontal: 24,
-    marginBottom: 32,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFB',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  followersText: {
-    fontSize: 15,
-    color: colors.muted,
-  },
-  followersCount: {
-    fontWeight: '700',
-    color: colors.text,
-  },
-  followersIcon: {
-    position: 'absolute',
-    right: -20,
-    top: 2,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionHeader: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  sectionTitle: {
-    fontSize: 20,
+  topBarLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  topBarUsername: {
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
-    paddingHorizontal: 24,
   },
-  addButton: {
-    padding: 4,
-    borderRadius: 20,
+  topBarRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  tripsGrid: {
+  topBarIcon: {
+    padding: 8,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  avatarAddButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.background,
+  },
+  statsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginLeft: 24,
+  },
+  statItem: {
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: colors.text,
+    marginTop: 2,
+  },
+  bioSection: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  displayName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  bioText: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  websiteLink: {
+    fontSize: 14,
+    color: '#00376B',
+    fontWeight: '500',
+    marginTop: 2,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    gap: 8,
+    marginBottom: 16,
+  },
+  actionButtonWrapper: {
+    flex: 1,
+  },
+  discoverButton: {
+    backgroundColor: '#EFEFEF',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  highlightsContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 16,
+  },
+  highlightItem: {
+    alignItems: 'center',
+    width: 70,
+  },
+  highlightRing: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  highlightImage: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+  },
+  highlightTitle: {
+    fontSize: 12,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  addHighlightCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 1,
+    borderColor: colors.text,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  tabItem: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+  },
+  tabItemActive: {
+    borderBottomColor: colors.text,
+  },
+  postsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: CARD_PADDING,
-    gap: CARD_GAP,
   },
-  tripCard: {
-    height: 180,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: colors.border,
+  postGridItem: {
+    width: POST_SIZE,
+    height: POST_SIZE,
+    margin: 1,
   },
-  tripImage: {
+  postGridImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  tripOverlay: {
+  postMultipleIcon: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    top: 8,
+    right: 8,
   },
-  tripTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  tripDate: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    opacity: 0.9,
-  },
-  menuContainer: {
-    backgroundColor: colors.background,
-    borderRadius: 20,
-    marginHorizontal: 24,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-  },
-  menuOption: {
-    overflow: 'hidden',
-  },
-  menuOptionInner: {
-    flexDirection: 'row',
+  emptyContainer: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
   },
-  menuDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginHorizontal: 16,
-  },
-  menuLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  menuIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFB',
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: colors.text,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
   },
-  menuLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text,
-  },
-  menuRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  badge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    minWidth: 28,
-    alignItems: 'center',
-  },
-  badgeText: {
-    fontSize: 12,
+  emptyTitle: {
+    fontSize: 22,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: colors.text,
+    marginBottom: 8,
   },
-  modalOverlay: {
+  emptySubtitle: {
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  emptyLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  // Modal styles
+  modalSafe: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
     backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
-    paddingBottom: 40,
-    maxHeight: '80%',
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  modalCancel: {
+    fontSize: 16,
+    color: colors.text,
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.text,
+  },
+  modalDone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
   modalBody: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-  },
-  inputLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-    marginTop: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: '#F8FAFB',
-  },
-  usernameInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    backgroundColor: '#F8FAFB',
-    paddingHorizontal: 16,
-  },
-  usernamePrefix: {
-    fontSize: 16,
-    color: colors.muted,
-    marginRight: 2,
-  },
-  usernameInput: {
     flex: 1,
-    fontSize: 16,
-    color: colors.text,
-    paddingVertical: 12,
   },
-  usernameLoader: {
-    marginLeft: 8,
-  },
-  usernameIcon: {
-    marginLeft: 8,
-  },
-  usernameError: {
-    fontSize: 13,
-    color: '#EF4444',
-    marginTop: 6,
-  },
-  usernameHint: {
-    fontSize: 12,
-    color: colors.muted,
-    marginTop: 4,
-  },
-  textArea: {
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
+  editPhotoContainer: {
     alignItems: 'center',
-    marginTop: 24,
+    paddingVertical: 20,
   },
-  saveButtonDisabled: {
-    backgroundColor: colors.muted,
-    opacity: 0.6,
+  editAvatar: {
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    marginBottom: 12,
   },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
+  editPhotoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
   },
-  followersModalContent: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 40,
-    height: '85%',
+  editFieldsContainer: {
+    paddingHorizontal: 16,
   },
-  followersModalHeader: {
-    paddingTop: 12,
+  editField: {
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    paddingVertical: 12,
   },
-  followersModalHeaderTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  followersModalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  followersSearchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-  },
-  followersSearchIcon: {
-    marginRight: 8,
-  },
-  followersSearchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: colors.text,
-    paddingVertical: 10,
-  },
-  followersListContainer: {
-    flex: 1,
-    paddingTop: 8,
-  },
-  followerItemNew: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-  },
-  followerAvatarImage: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    marginRight: 12,
-  },
-  followerInfo: {
-    flex: 1,
-  },
-  followerUsername: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  followerFullName: {
+  editFieldLabel: {
     fontSize: 14,
     color: colors.muted,
-    marginTop: 2,
+    marginBottom: 4,
   },
-  followButtonNew: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
-    minWidth: 90,
+  editFieldInput: {
+    fontSize: 16,
+    color: colors.text,
+    padding: 0,
+  },
+  editSectionDivider: {
+    height: 8,
+    backgroundColor: '#FAFAFA',
+    marginVertical: 16,
+  },
+  editOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  editOptionText: {
+    fontSize: 16,
+    color: colors.primary,
+  },
+  // Menu styles
+  menuOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  menuSheet: {
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
+  },
+  menuDrag: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#E0E0E0',
+    alignSelf: 'center',
+    marginTop: 10,
+    marginBottom: 16,
+  },
+  menuOption: {
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 16,
   },
-  followingButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  followButtonTextNew: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  followingButtonText: {
+  menuOptionText: {
+    fontSize: 16,
     color: colors.text,
   },
-  tripEditButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  menuOptionDestructive: {
+    color: '#ED4956',
   },
-  tripImagePicker: {
-    width: '100%',
-    height: 180,
+  menuCancelButton: {
+    marginTop: 8,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  menuCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  // Album styles
+  addAlbumButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
     borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#F0F0F0',
-    marginBottom: 8,
+    borderStyle: 'dashed',
+  },
+  addAlbumButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  albumsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 1,
+  },
+  albumGridItem: {
+    width: (SCREEN_WIDTH - 4) / 2,
+    height: (SCREEN_WIDTH - 4) / 2,
+    margin: 1,
     position: 'relative',
   },
-  tripImagePreview: {
+  albumCoverImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-  tripImagePlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
+  albumOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 10,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  albumTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  albumPhotoCount: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 2,
+  },
+  albumLocationBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  // Create album modal styles
+  createAlbumHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  createAlbumBody: {
+    flex: 1,
+  },
+  photoPickerSection: {
+    padding: 16,
+  },
+  photoPickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 40,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderStyle: 'dashed',
+    backgroundColor: '#FAFAFA',
+  },
+  photoPickerText: {
+    fontSize: 16,
+    color: colors.muted,
+  },
+  selectedPhotosContainer: {
+    marginTop: 16,
+  },
+  selectedPhotosScroll: {
     gap: 8,
   },
-  tripImagePlaceholderText: {
+  selectedPhotoWrapper: {
+    position: 'relative',
+  },
+  selectedPhoto: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#ED4956',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photosCount: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 8,
+  },
+  albumFormSection: {
+    paddingHorizontal: 16,
+  },
+  albumFormField: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingVertical: 12,
+  },
+  albumFormLabel: {
+    fontSize: 14,
+    color: colors.muted,
+    marginBottom: 4,
+  },
+  albumFormInput: {
+    fontSize: 16,
+    color: colors.text,
+    padding: 0,
+  },
+  albumFormTextArea: {
+    fontSize: 16,
+    color: colors.text,
+    padding: 0,
+    minHeight: 60,
+  },
+  // Album viewer modal styles
+  albumViewerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  albumViewerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  albumViewerInfo: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  albumViewerDescription: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  albumViewerLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
+  albumViewerLocationText: {
     fontSize: 14,
     color: colors.muted,
   },
-  tripImageOverlay: {
-    position: 'absolute',
-    bottom: 12,
-    right: 12,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deleteButton: {
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#EF4444',
-  },
-  deleteButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#EF4444',
-  },
-  statsSectionDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  statsEditTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  countriesContainer: {
+  albumViewerPhotosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 12,
   },
-  countryTag: {
+  albumViewerPhoto: {
+    width: POST_SIZE,
+    height: POST_SIZE,
+    margin: 1,
+  },
+  deleteAlbumButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    paddingVertical: 6,
-    paddingLeft: 12,
-    paddingRight: 8,
-    borderRadius: 20,
-    gap: 4,
-  },
-  countryTagText: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  countryRemoveButton: {
-    padding: 2,
-  },
-  addCountryContainer: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  addCountryInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: '#F8FAFB',
-  },
-  addCountryButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: colors.primary,
     justifyContent: 'center',
-    alignItems: 'center',
+    gap: 8,
+    marginHorizontal: 16,
+    marginVertical: 20,
+    paddingVertical: 12,
+    backgroundColor: '#FFEBEE',
+    borderRadius: 12,
   },
-  countryTagWithImage: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    paddingVertical: 4,
-    paddingLeft: 4,
-    paddingRight: 10,
-    borderRadius: 24,
-    gap: 6,
-    overflow: 'hidden',
-  },
-  countryTagImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-  },
-  countryTagFlag: {
+  deleteAlbumText: {
     fontSize: 14,
+    fontWeight: '600',
+    color: '#ED4956',
   },
 });

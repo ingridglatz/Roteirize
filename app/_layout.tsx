@@ -24,6 +24,7 @@ export default function RootLayout() {
                   <Stack.Screen name="chat" />
                   <Stack.Screen name="profile" />
                   <Stack.Screen name="post" />
+                  <Stack.Screen name="settings" />
                 </Stack>
               </RoteirosProvider>
             </OnboardingProvider>
