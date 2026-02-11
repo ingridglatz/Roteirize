@@ -14,8 +14,9 @@ import {
 import CommentItem from '../../components/social/CommentItem';
 import CommentReplies from '../../components/social/CommentReplies';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { Comment, Post } from '../../types/Social';
 
 type Props = {
@@ -28,6 +29,9 @@ type SortType = 'recent' | 'top';
 export default function CommentsSheet({ post, onClose }: Props) {
   const { currentUser } = useUser();
   const { getComments, addComment } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [text, setText] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
@@ -230,121 +234,123 @@ export default function CommentsSheet({ post, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  sheet: {
-    height: '80%',
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    overflow: 'hidden',
-  },
-  header: {
-    paddingTop: 10,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  drag: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#ccc',
-    marginBottom: 12,
-    alignSelf: 'center',
-  },
-  headerContent: {
-    paddingHorizontal: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 12,
-  },
-  closeButton: {
-    position: 'absolute',
-    right: 16,
-    top: 16,
-  },
-  sortButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  sortButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#F0F0F0',
-  },
-  sortButtonActive: {
-    backgroundColor: colors.text,
-  },
-  sortButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  sortButtonTextActive: {
-    color: '#fff',
-  },
-  list: {
-    flexGrow: 1,
-    paddingBottom: 12,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: 12,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 4,
-  },
-  inputContainer: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: '#fff',
-  },
-  replyingToBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: '#F5F5F5',
-  },
-  replyingToText: {
-    fontSize: 13,
-    color: colors.text,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
-    gap: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 15,
-    paddingVertical: 8,
-    maxHeight: 100,
-    color: colors.text,
-  },
-  sendButton: {
-    paddingBottom: 8,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    sheet: {
+      height: '80%',
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      overflow: 'hidden',
+    },
+    header: {
+      paddingTop: 10,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    drag: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.border,
+      marginBottom: 12,
+      alignSelf: 'center',
+    },
+    headerContent: {
+      paddingHorizontal: 16,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 12,
+    },
+    closeButton: {
+      position: 'absolute',
+      right: 16,
+      top: 16,
+    },
+    sortButtons: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    sortButton: {
+      paddingHorizontal: 16,
+      paddingVertical: 6,
+      borderRadius: 16,
+      backgroundColor: colors.card,
+    },
+    sortButtonActive: {
+      backgroundColor: colors.primary,
+    },
+    sortButtonText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    sortButtonTextActive: {
+      color: '#fff',
+    },
+    list: {
+      flexGrow: 1,
+      paddingBottom: 12,
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+    },
+    emptyText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: 12,
+    },
+    emptySubtext: {
+      fontSize: 14,
+      color: colors.muted,
+      marginTop: 4,
+    },
+    inputContainer: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    replyingToBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      backgroundColor: colors.card,
+    },
+    replyingToText: {
+      fontSize: 13,
+      color: colors.text,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      paddingHorizontal: 16,
+      paddingTop: 10,
+      paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+      gap: 12,
+    },
+    input: {
+      flex: 1,
+      fontSize: 15,
+      paddingVertical: 8,
+      maxHeight: 100,
+      color: colors.text,
+    },
+    sendButton: {
+      paddingBottom: 8,
+    },
+  });
+}

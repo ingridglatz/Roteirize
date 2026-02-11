@@ -1,6 +1,7 @@
 import { Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { useState } from 'react';
-import { colors } from '../../theme/colors';
+import { useState, useMemo } from 'react';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { useSocial } from '../../context/SocialContext';
 
 type Props = {
@@ -11,6 +12,9 @@ type Props = {
 
 export default function FollowButton({ userId, size = 'medium', fullWidth = false }: Props) {
   const { isFollowing, followUser, unfollowUser } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [loading, setLoading] = useState(false);
 
   const following = isFollowing(userId);
@@ -82,31 +86,33 @@ export default function FollowButton({ userId, size = 'medium', fullWidth = fals
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 80,
-  },
-  notFollowing: {
-    backgroundColor: colors.primary,
-  },
-  following: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  fullWidth: {
-    width: '100%',
-  },
-  buttonText: {
-    fontWeight: '600',
-  },
-  notFollowingText: {
-    color: '#fff',
-  },
-  followingText: {
-    color: colors.text,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    button: {
+      borderRadius: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 80,
+    },
+    notFollowing: {
+      backgroundColor: colors.primary,
+    },
+    following: {
+      backgroundColor: 'transparent',
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    fullWidth: {
+      width: '100%',
+    },
+    buttonText: {
+      fontWeight: '600',
+    },
+    notFollowingText: {
+      color: '#fff',
+    },
+    followingText: {
+      color: colors.text,
+    },
+  });
+}

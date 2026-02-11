@@ -1,10 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
+import { getColors } from '../../theme/colors';
 
 type SettingItemProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -13,6 +22,8 @@ type SettingItemProps = {
   showArrow?: boolean;
   destructive?: boolean;
   value?: string;
+  colors: ReturnType<typeof getColors>;
+  styles: any;
 };
 
 function SettingItem({
@@ -22,6 +33,8 @@ function SettingItem({
   showArrow = true,
   destructive = false,
   value,
+  colors,
+  styles,
 }: SettingItemProps) {
   return (
     <Pressable style={styles.settingItem} onPress={onPress}>
@@ -31,7 +44,12 @@ function SettingItem({
           size={24}
           color={destructive ? '#ED4956' : colors.text}
         />
-        <Text style={[styles.settingItemLabel, destructive && styles.destructiveText]}>
+        <Text
+          style={[
+            styles.settingItemLabel,
+            destructive && styles.destructiveText,
+          ]}
+        >
           {label}
         </Text>
       </View>
@@ -50,9 +68,18 @@ type SettingToggleProps = {
   label: string;
   value: boolean;
   onValueChange: (value: boolean) => void;
+  colors: ReturnType<typeof getColors>;
+  styles: any;
 };
 
-function SettingToggle({ icon, label, value, onValueChange }: SettingToggleProps) {
+function SettingToggle({
+  icon,
+  label,
+  value,
+  onValueChange,
+  colors,
+  styles,
+}: SettingToggleProps) {
   return (
     <View style={styles.settingItem}>
       <View style={styles.settingItemLeft}>
@@ -62,8 +89,8 @@ function SettingToggle({ icon, label, value, onValueChange }: SettingToggleProps
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: '#E0E0E0', true: colors.primary }}
-        thumbColor="#FFFFFF"
+        trackColor={{ false: colors.disabled, true: colors.primary }}
+        thumbColor={colors.card}
       />
     </View>
   );
@@ -72,10 +99,13 @@ function SettingToggle({ icon, label, value, onValueChange }: SettingToggleProps
 export default function Settings() {
   const router = useRouter();
   const { currentUser } = useUser();
+  const { theme, toggleTheme } = useTheme();
+  const colors = getColors(theme);
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [privateAccount, setPrivateAccount] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   function handleBack() {
     router.back();
@@ -135,11 +165,14 @@ export default function Settings() {
           text: 'Excluir',
           style: 'destructive',
           onPress: () => {
-            Alert.alert('Conta excluida', 'Sua conta foi excluida com sucesso.');
+            Alert.alert(
+              'Conta excluida',
+              'Sua conta foi excluida com sucesso.',
+            );
             router.replace('/(auth)');
           },
         },
-      ]
+      ],
     );
   }
 
@@ -160,22 +193,30 @@ export default function Settings() {
             icon="person-outline"
             label="Editar perfil"
             onPress={handleEditProfile}
+            colors={colors}
+            styles={styles}
           />
           <SettingItem
             icon="shield-outline"
             label="Seguranca"
             onPress={handleSecurity}
+            colors={colors}
+            styles={styles}
           />
           <SettingItem
             icon="lock-closed-outline"
             label="Privacidade"
             onPress={handlePrivacy}
+            colors={colors}
+            styles={styles}
           />
           <SettingItem
             icon="card-outline"
             label="Conta"
             onPress={handleAccount}
             value={'@' + currentUser.username}
+            colors={colors}
+            styles={styles}
           />
         </View>
 
@@ -186,18 +227,24 @@ export default function Settings() {
             label="Notificacoes"
             value={notificationsEnabled}
             onValueChange={setNotificationsEnabled}
+            colors={colors}
+            styles={styles}
           />
           <SettingToggle
             icon="eye-off-outline"
             label="Conta privada"
             value={privateAccount}
             onValueChange={setPrivateAccount}
+            colors={colors}
+            styles={styles}
           />
           <SettingToggle
             icon="moon-outline"
             label="Modo escuro"
-            value={darkMode}
-            onValueChange={setDarkMode}
+            value={theme === 'dark'}
+            onValueChange={toggleTheme}
+            colors={colors}
+            styles={styles}
           />
         </View>
 
@@ -207,11 +254,15 @@ export default function Settings() {
             icon="help-circle-outline"
             label="Ajuda"
             onPress={handleHelp}
+            colors={colors}
+            styles={styles}
           />
           <SettingItem
             icon="information-circle-outline"
             label="Sobre"
             onPress={handleAbout}
+            colors={colors}
+            styles={styles}
           />
         </View>
 
@@ -223,6 +274,8 @@ export default function Settings() {
             onPress={handleLogout}
             showArrow={false}
             destructive
+            colors={colors}
+            styles={styles}
           />
           <SettingItem
             icon="trash-outline"
@@ -230,6 +283,8 @@ export default function Settings() {
             onPress={handleDeleteAccount}
             showArrow={false}
             destructive
+            colors={colors}
+            styles={styles}
           />
         </View>
 
@@ -242,81 +297,83 @@ export default function Settings() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  container: {
-    flex: 1,
-  },
-  section: {
-    paddingTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.muted,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  settingItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  settingItemLabel: {
-    fontSize: 16,
-    color: colors.text,
-  },
-  settingItemRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  settingItemValue: {
-    fontSize: 14,
-    color: colors.muted,
-  },
-  destructiveText: {
-    color: '#ED4956',
-  },
-  footer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  footerText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.muted,
-  },
-  footerVersion: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 4,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    container: {
+      flex: 1,
+    },
+    section: {
+      paddingTop: 24,
+      paddingHorizontal: 16,
+    },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.muted,
+      marginBottom: 8,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    settingItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    settingItemLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 14,
+    },
+    settingItemLabel: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    settingItemRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    settingItemValue: {
+      fontSize: 14,
+      color: colors.muted,
+    },
+    destructiveText: {
+      color: '#ED4956',
+    },
+    footer: {
+      alignItems: 'center',
+      paddingVertical: 40,
+    },
+    footerText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.muted,
+    },
+    footerVersion: {
+      fontSize: 14,
+      color: colors.muted,
+      marginTop: 4,
+    },
+  });
+}

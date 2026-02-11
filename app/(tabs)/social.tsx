@@ -22,8 +22,9 @@ import UserAvatar from '../../components/social/UserAvatar';
 import UserProfileModal from '../../components/social/UserProfileModal';
 import { useNotifications } from '../../context/NotificationContext';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { Post, Story } from '../../types/Social';
 import CommentsSheet from '../post/CommentsSheet';
 import CreateContentSheet from '../post/CreateContentSheet';
@@ -35,9 +36,11 @@ const { width } = Dimensions.get('window');
 function StoryBubble({
   story,
   onPress,
+  styles,
 }: {
   story: Story;
   onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
 }) {
   return (
     <Pressable style={styles.storyBubble} onPress={onPress}>
@@ -67,6 +70,9 @@ export default function Social() {
     isFollowing,
   } = useSocial();
   const { unreadCount } = useNotifications();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const posts = useMemo(
     () => allPosts.filter((p) => !isBlocked(p.userId)),
@@ -446,6 +452,7 @@ export default function Social() {
                 key={story.id}
                 story={story}
                 onPress={() => handleStoryPress(idx)}
+                styles={styles}
               />
             ))}
           </ScrollView>
@@ -500,11 +507,12 @@ export default function Social() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -560,7 +568,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   storyRingSeen: {
-    borderColor: '#ccc',
+    borderColor: colors.border,
   },
   storyAvatar: {
     width: 56,
@@ -663,4 +671,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.muted,
   },
-});
+  });
+}

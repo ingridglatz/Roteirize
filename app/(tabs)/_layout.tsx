@@ -2,11 +2,42 @@ import { Tabs, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
+import { useColors } from '../../context/ThemeContext';
+import type { ColorScheme } from '../../theme/colors';
+
+const createStyles = (colors: ColorScheme) => StyleSheet.create({
+  tabBar: {
+    backgroundColor: colors.background,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  tabItem: {
+    paddingVertical: 8,
+  },
+  createIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: colors.muted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  createIconActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+});
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const colors = useColors();
+
+  const styles = createStyles(colors);
 
   return (
     <Tabs
@@ -60,7 +91,7 @@ export default function TabLayout() {
                 focused && styles.createIconActive,
               ]}
             >
-              <Ionicons name="add" size={24} color={focused ? '#fff' : colors.muted} />
+              <Ionicons name="add" size={24} color={focused ? colors.card : colors.muted} />
             </View>
           ),
         }}
@@ -106,30 +137,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    elevation: 0,
-    shadowOpacity: 0,
-  },
-  tabItem: {
-    paddingVertical: 8,
-  },
-  createIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: colors.muted,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-  },
-  createIconActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-});

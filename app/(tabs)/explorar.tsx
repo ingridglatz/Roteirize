@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import {
   Dimensions,
   Image,
@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PLACES_DATA, type Place } from '../../data/places';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
@@ -100,9 +101,11 @@ const NOTIFICATIONS = [
 function HighlightCard({
   item,
   onPress,
+  styles,
 }: {
   item: Place;
   onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
 }) {
   return (
     <Pressable style={styles.card} onPress={onPress}>
@@ -125,6 +128,9 @@ function HighlightCard({
 
 export default function Explorar() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
 
   const handleHighlightPress = useCallback(
@@ -257,6 +263,7 @@ export default function Explorar() {
               key={item.slug}
               item={item}
               onPress={() => handleHighlightPress(item.slug)}
+              styles={styles}
             />
           ))}
         </ScrollView>
@@ -323,11 +330,12 @@ export default function Explorar() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
   container: {
     paddingBottom: 24,
   },
@@ -348,7 +356,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
     marginHorizontal: 24,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -424,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     marginRight: 14,
     overflow: 'hidden',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -501,7 +509,7 @@ const styles = StyleSheet.create({
   activityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: colors.border,
@@ -540,7 +548,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#F0FDFB',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 2,
@@ -641,7 +649,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   notificationUnread: {
-    backgroundColor: '#F0FDFB',
+    backgroundColor: colors.surface,
     marginHorizontal: -24,
     paddingHorizontal: 24,
   },
@@ -649,12 +657,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   notificationIconUnread: {
-    backgroundColor: '#E0F9F5',
+    backgroundColor: colors.surface,
   },
   notificationContent: {
     flex: 1,
@@ -683,3 +691,4 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+}

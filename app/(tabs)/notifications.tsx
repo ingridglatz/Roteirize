@@ -1,11 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationItem from '../../components/social/NotificationItem';
 import { useNotifications } from '../../context/NotificationContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { Notification } from '../../types/Social';
 
 type FilterType = 'all' | 'likes' | 'comments' | 'follows';
@@ -13,6 +14,9 @@ type FilterType = 'all' | 'likes' | 'comments' | 'follows';
 export default function Notifications() {
   const router = useRouter();
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   const filteredNotifications = useMemo(() => {
@@ -32,29 +36,37 @@ export default function Notifications() {
     markAsRead(notification.id);
 
     if (notification.postId) {
-      console.log('Navigate to post:', notification.postId);
+      router.push(`/post/${notification.postId}` as any);
     } else if (notification.type === 'follow') {
       router.push(`/profile/${notification.fromUserId}` as any);
     } else if (notification.storyId) {
-      console.log('Navigate to story:', notification.storyId);
+      // Navega para o perfil do usuário que criou o story
+      router.push(`/profile/${notification.fromUserId}` as any);
     }
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.push('/(tabs)/social')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Notificações</Text>
+        <View style={styles.headerLeft}>
+          <Pressable onPress={() => router.push('/(tabs)/social')} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Notificações</Text>
+        </View>
         {notifications.some((n) => !n.read) && (
-          <Pressable onPress={markAllAsRead}>
-            <Text style={styles.markAllRead}>Marcar todas como lidas</Text>
+          <Pressable onPress={markAllAsRead} style={styles.markAllButton}>
+            <Ionicons name="checkmark-done" size={22} color={colors.primary} />
           </Pressable>
         )}
       </View>
 
-      <View style={styles.filters}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.filtersContainer}
+        style={styles.filtersScrollView}
+      >
         <Pressable
           style={[styles.filter, activeFilter === 'all' && styles.filterActive]}
           onPress={() => setActiveFilter('all')}
@@ -116,7 +128,7 @@ export default function Notifications() {
             Seguindo
           </Text>
         </Pressable>
-      </View>
+      </ScrollView>
 
       <FlatList
         data={filteredNotifications}
@@ -130,78 +142,97 @@ export default function Notifications() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <View style={styles.empty}>
+            <Ionicons name="notifications-off-outline" size={64} color={colors.muted} />
             <Text style={styles.emptyText}>Nenhuma notificação</Text>
           </View>
         }
+        contentContainerStyle={styles.listContent}
       />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backButton: {
-    marginRight: 12,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text,
-    flex: 1,
-  },
-  markAllRead: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  filters: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  filter: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#F0F0F0',
-  },
-  filterActive: {
-    backgroundColor: colors.text,
-  },
-  filterText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  filterTextActive: {
-    color: '#fff',
-  },
-  separator: {
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  empty: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: colors.muted,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
+    backButton: {
+      marginRight: 12,
+      padding: 4,
+    },
+    headerTitle: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    markAllButton: {
+      padding: 6,
+      marginLeft: 8,
+    },
+    filtersScrollView: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      flexGrow: 0,
+    },
+    filtersContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      gap: 10,
+    },
+    filter: {
+      paddingHorizontal: 18,
+      paddingVertical: 8,
+      borderRadius: 20,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+    filterActive: {
+      backgroundColor: colors.primary + '20',
+      borderColor: colors.primary,
+    },
+    filterText: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    filterTextActive: {
+      color: colors.primary,
+    },
+    listContent: {
+      flexGrow: 1,
+    },
+    separator: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginLeft: 70,
+    },
+    empty: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 80,
+      gap: 16,
+    },
+    emptyText: {
+      fontSize: 16,
+      color: colors.muted,
+      fontWeight: '500',
+    },
+  });
+}

@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useChat } from '../../context/ChatContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { Conversation, Post } from '../../types/Social';
 import UserAvatar from './UserAvatar';
 
@@ -25,6 +26,9 @@ type Props = {
 export default function SharePostSheet({ post, onClose, onShare }: Props) {
   const { conversations, sharePost } = useChat();
   const { currentUser } = useUser();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [searchQuery, setSearchQuery] = useState('');
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -143,131 +147,133 @@ export default function SharePostSheet({ post, onClose, onShare }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-    maxHeight: '80%',
-  },
-  header: {
-    paddingTop: 10,
-    paddingBottom: 12,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    position: 'relative',
-  },
-  drag: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#ccc',
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  closeButton: {
-    position: 'absolute',
-    right: 16,
-    top: 16,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginTop: 16,
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.text,
-  },
-  storyOption: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  storyAvatarContainer: {
-    position: 'relative',
-    marginBottom: 8,
-  },
-  storyIconBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#fff',
-  },
-  storyText: {
-    fontSize: 12,
-    color: colors.text,
-    fontWeight: '600',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginHorizontal: 16,
-    marginVertical: 8,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  conversationsList: {
-    maxHeight: 300,
-  },
-  conversationItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  conversationInfo: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  conversationName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  conversationUsername: {
-    fontSize: 13,
-    color: colors.muted,
-  },
-  emptyState: {
-    paddingVertical: 32,
-    alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 14,
-    color: colors.muted,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    sheet: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+      maxHeight: '80%',
+    },
+    header: {
+      paddingTop: 10,
+      paddingBottom: 12,
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      position: 'relative',
+    },
+    drag: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.muted,
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    closeButton: {
+      position: 'absolute',
+      right: 16,
+      top: 16,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      marginHorizontal: 16,
+      marginTop: 16,
+      paddingHorizontal: 12,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: colors.text,
+    },
+    storyOption: {
+      alignItems: 'center',
+      paddingVertical: 16,
+      paddingHorizontal: 16,
+    },
+    storyAvatarContainer: {
+      position: 'relative',
+      marginBottom: 8,
+    },
+    storyIconBadge: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      width: 24,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+    storyText: {
+      fontSize: 12,
+      color: colors.text,
+      fontWeight: '600',
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginHorizontal: 16,
+      marginVertical: 8,
+    },
+    sectionTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    conversationsList: {
+      maxHeight: 300,
+    },
+    conversationItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    conversationInfo: {
+      marginLeft: 12,
+      flex: 1,
+    },
+    conversationName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 2,
+    },
+    conversationUsername: {
+      fontSize: 13,
+      color: colors.muted,
+    },
+    emptyState: {
+      paddingVertical: 32,
+      alignItems: 'center',
+    },
+    emptyStateText: {
+      fontSize: 14,
+      color: colors.muted,
+    },
+  });
+}

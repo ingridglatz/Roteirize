@@ -1,6 +1,6 @@
 import { View, TextInput, StyleSheet, TextInputProps } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { colors } from "../theme/colors";
+import { useColors } from "../context/ThemeContext";
 
 type InputProps = {
   placeholder: string;
@@ -22,6 +22,19 @@ export default function Input({
   iconColor,
   ...rest
 }: InputProps) {
+  const colors = useColors();
+
+  const dynamicStyles = {
+    input: {
+      borderColor: colors.border,
+      color: colors.text,
+    },
+    inputError: {
+      borderColor: colors.error,
+      borderWidth: 1.5,
+    },
+  };
+
   return (
     <View style={styles.container}>
       {icon && (
@@ -40,8 +53,9 @@ export default function Input({
         secureTextEntry={secureTextEntry}
         style={[
           styles.input,
+          dynamicStyles.input,
           icon && styles.inputWithIcon,
-          error && styles.inputError,
+          error && dynamicStyles.inputError,
         ]}
         {...rest}
       />
@@ -62,17 +76,11 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
-    color: colors.text,
   },
   inputWithIcon: {
     paddingLeft: 44,
-  },
-  inputError: {
-    borderColor: colors.error,
-    borderWidth: 1.5,
   },
 });

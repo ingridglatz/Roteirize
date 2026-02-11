@@ -1,7 +1,9 @@
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSocial } from '../../context/SocialContext';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
+import { getColors } from '../../theme/colors';
 import { Notification } from '../../types/Social';
 import { formatTimeAgo } from '../../utils/socialHelpers';
 import FollowButton from './FollowButton';
@@ -12,9 +14,70 @@ type Props = {
   onPress: () => void;
 };
 
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      gap: 12,
+      backgroundColor: colors.background,
+    },
+    unread: {
+      backgroundColor: colors.primary + '08',
+    },
+    avatarWrapper: {
+      position: 'relative',
+    },
+    content: {
+      flex: 1,
+      gap: 4,
+    },
+    text: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.text,
+    },
+    username: {
+      fontWeight: '700',
+      color: colors.text,
+    },
+    action: {
+      color: colors.muted,
+      fontWeight: '400',
+    },
+    time: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    thumbnail: {
+      width: 48,
+      height: 48,
+      borderRadius: 6,
+      backgroundColor: colors.surface,
+    },
+    unreadDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: colors.primary,
+      position: 'absolute',
+      right: -2,
+      top: -2,
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+  });
+}
+
 export default function NotificationItem({ notification, onPress }: Props) {
   const router = useRouter();
   const { getUser, isFollowing } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const user = getUser(notification.fromUserId);
 
   function getNotificationText() {
@@ -52,12 +115,15 @@ export default function NotificationItem({ notification, onPress }: Props) {
       style={[styles.container, !notification.read && styles.unread]}
       onPress={onPress}
     >
-      <UserAvatar
-        uri={notification.fromAvatar}
-        size={44}
-        verified={user?.verified}
-        onPress={handleUserPress}
-      />
+      <View style={styles.avatarWrapper}>
+        <UserAvatar
+          uri={notification.fromAvatar}
+          size={48}
+          verified={user?.verified}
+          onPress={handleUserPress}
+        />
+        {!notification.read && <View style={styles.unreadDot} />}
+      </View>
 
       <View style={styles.content}>
         <Text style={styles.text}>
@@ -72,57 +138,6 @@ export default function NotificationItem({ notification, onPress }: Props) {
       ) : showFollowButton ? (
         <FollowButton userId={notification.fromUserId} size="small" />
       ) : null}
-
-      {!notification.read && <View style={styles.unreadDot} />}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  unread: {
-    backgroundColor: '#F0F8FF',
-  },
-  content: {
-    flex: 1,
-  },
-  text: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: colors.text,
-  },
-  username: {
-    fontWeight: '600',
-    color: colors.text,
-  },
-  action: {
-    color: colors.text,
-  },
-  time: {
-    fontSize: 12,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  thumbnail: {
-    width: 44,
-    height: 44,
-    borderRadius: 4,
-    backgroundColor: '#f0f0f0',
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
-    position: 'absolute',
-    left: 8,
-    top: '50%',
-    marginTop: -4,
-  },
-});

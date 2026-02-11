@@ -10,16 +10,20 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../../theme/colors';
+import { getColors } from '../../../theme/colors';
+import { useTheme } from '../../../context/ThemeContext';
 import { useSocial } from '../../../context/SocialContext';
 
 export default function EditPost() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { posts, updatePost } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const post = posts.find((p) => p.id === id);
 
@@ -111,7 +115,7 @@ export default function EditPost() {
             <Switch
               value={!allowComments}
               onValueChange={(value) => setAllowComments(!value)}
-              trackColor={{ false: '#E0E0E0', true: colors.primary }}
+              trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor="#fff"
             />
           </View>
@@ -126,7 +130,7 @@ export default function EditPost() {
             <Switch
               value={hideLikes}
               onValueChange={setHideLikes}
-              trackColor={{ false: '#E0E0E0', true: colors.primary }}
+              trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor="#fff"
             />
           </View>
@@ -148,112 +152,114 @@ export default function EditPost() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  saveButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  container: {
-    flex: 1,
-  },
-  imageContainer: {
-    width: '100%',
-    aspectRatio: 1,
-    backgroundColor: '#f0f0f0',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  section: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  input: {
-    fontSize: 15,
-    color: colors.text,
-    paddingVertical: 8,
-  },
-  captionInput: {
-    fontSize: 15,
-    color: colors.text,
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  charCount: {
-    fontSize: 12,
-    color: colors.muted,
-    textAlign: 'right',
-    marginTop: 4,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 12,
-  },
-  settingInfo: {
-    flex: 1,
-    marginRight: 16,
-  },
-  settingTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  settingDescription: {
-    fontSize: 13,
-    color: colors.muted,
-    lineHeight: 18,
-  },
-  infoSection: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.muted,
-    lineHeight: 18,
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.muted,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    saveButton: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    container: {
+      flex: 1,
+    },
+    imageContainer: {
+      width: '100%',
+      aspectRatio: 1,
+      backgroundColor: colors.surface,
+    },
+    image: {
+      width: '100%',
+      height: '100%',
+    },
+    section: {
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 8,
+    },
+    input: {
+      fontSize: 15,
+      color: colors.text,
+      paddingVertical: 8,
+    },
+    captionInput: {
+      fontSize: 15,
+      color: colors.text,
+      minHeight: 100,
+      textAlignVertical: 'top',
+    },
+    charCount: {
+      fontSize: 12,
+      color: colors.muted,
+      textAlign: 'right',
+      marginTop: 4,
+    },
+    settingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+    },
+    settingInfo: {
+      flex: 1,
+      marginRight: 16,
+    },
+    settingTitle: {
+      fontSize: 15,
+      fontWeight: '500',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    settingDescription: {
+      fontSize: 13,
+      color: colors.muted,
+      lineHeight: 18,
+    },
+    infoSection: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+    },
+    infoText: {
+      flex: 1,
+      fontSize: 13,
+      color: colors.muted,
+      lineHeight: 18,
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.muted,
+    },
+  });
+}

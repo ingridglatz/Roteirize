@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -15,9 +15,223 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChat } from '../../context/ChatContext';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { Conversation } from '../../types/Social';
+
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    conversationList: {
+      paddingVertical: 8,
+    },
+    conversationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    conversationAvatar: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+    },
+    typingIndicator: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+    typingDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: '#fff',
+    },
+    conversationBody: {
+      flex: 1,
+    },
+    conversationTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    conversationName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    conversationTime: {
+      fontSize: 12,
+      color: colors.muted,
+    },
+    conversationBottom: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 3,
+    },
+    conversationMsg: {
+      fontSize: 14,
+      color: colors.muted,
+      flex: 1,
+      marginRight: 8,
+    },
+    conversationMsgUnread: {
+      color: colors.text,
+      fontWeight: '500',
+    },
+    unreadBadge: {
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 6,
+    },
+    unreadText: {
+      color: '#fff',
+      fontSize: 11,
+      fontWeight: '700',
+    },
+
+    emptyContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+      paddingHorizontal: 32,
+    },
+    emptyTitle: {
+      fontSize: 18,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    emptyTextDesc: {
+      fontSize: 14,
+      color: colors.muted,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: '80%',
+      paddingBottom: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
+
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      marginHorizontal: 16,
+      marginTop: 12,
+      backgroundColor: colors.card,
+      borderRadius: 12,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      color: colors.text,
+    },
+
+    userList: {
+      paddingVertical: 8,
+    },
+    userRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 20,
+      paddingVertical: 12,
+    },
+    userAvatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    userName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    userUsername: {
+      fontSize: 13,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.muted,
+      textAlign: 'center',
+      paddingVertical: 32,
+    },
+  });
+}
 
 function UserSearchModal({
   visible,
@@ -31,6 +245,9 @@ function UserSearchModal({
   const [searchQuery, setSearchQuery] = useState('');
   const { searchUsers } = useSocial();
   const { currentUser } = useUser();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const filteredUsers = searchUsers(searchQuery).filter(
     (user) => user.id !== currentUser.id,
@@ -108,6 +325,9 @@ export default function ChatScreen() {
   const { conversations, deleteConversation, createConversation } = useChat();
   const { currentUser } = useUser();
   const { getUser } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const handleSelectUser = (userId: string) => {
     const existingConv = conversations.find(
@@ -297,214 +517,3 @@ export default function ChatScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-
-  conversationList: {
-    paddingVertical: 8,
-  },
-  conversationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  conversationAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-  },
-  typingIndicator: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.background,
-  },
-  typingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#fff',
-  },
-  conversationBody: {
-    flex: 1,
-  },
-  conversationTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  conversationName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  conversationTime: {
-    fontSize: 12,
-    color: colors.muted,
-  },
-  conversationBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 3,
-  },
-  conversationMsg: {
-    fontSize: 14,
-    color: colors.muted,
-    flex: 1,
-    marginRight: 8,
-  },
-  conversationMsgUnread: {
-    color: colors.text,
-    fontWeight: '500',
-  },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
-  unreadText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptyTextDesc: {
-    fontSize: 14,
-    color: colors.muted,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-    paddingBottom: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 16,
-    marginTop: 12,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: colors.text,
-  },
-
-  userList: {
-    paddingVertical: 8,
-  },
-  userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  userAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  userName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  userUsername: {
-    fontSize: 13,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.muted,
-    textAlign: 'center',
-    paddingVertical: 32,
-  },
-});

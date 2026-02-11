@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -9,16 +10,20 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
+import ShareItinerarySheet from '../../components/itinerary/ShareItinerarySheet';
+import { useTheme } from '../../context/ThemeContext';
+import { getColors } from '../../theme/colors';
+import { Itinerary } from '../../types/Itinerary';
 
-const MOCK_ITINERARY = {
+const MOCK_ITINERARY: Itinerary = {
   id: '1',
   title: 'Fim de semana em Ubatuba',
-  destination: 'Ubatuba, SP',
+  destinationId: 'ubatuba',
+  destinationName: 'Ubatuba, SP',
   days: 3,
   budget: 'Moderado',
+  interests: ['praia', 'natureza'],
   createdAt: '15 de Janeiro, 2024',
-  image: require('../../assets/images/ubatuba.jpg'),
   dailyPlan: [
     {
       day: 1,
@@ -27,6 +32,12 @@ const MOCK_ITINERARY = {
         'Check-in no hotel',
         'Almoco no restaurante local',
         'Praia do Felix - banho de mar',
+        'Jantar na orla',
+      ],
+      places: [
+        'Check-in no hotel',
+        'Almoco no restaurante local',
+        'Praia do Felix',
         'Jantar na orla',
       ],
     },
@@ -40,6 +51,12 @@ const MOCK_ITINERARY = {
         'Trilha do presidio',
         'Retorno e jantar',
       ],
+      places: [
+        'Ilha Anchieta',
+        'Mergulho',
+        'Almoco na ilha',
+        'Trilha do presidio',
+      ],
     },
     {
       day: 3,
@@ -50,33 +67,64 @@ const MOCK_ITINERARY = {
         'Almoco pe-na-areia',
         'Check-out e retorno',
       ],
+      places: ['Praia da Almada', 'Almoco pe-na-areia', 'Check-out'],
     },
   ],
   restaurants: [
-    { name: 'Peixe na Telha', category: 'Frutos do mar', price: '$$' },
-    { name: 'Restaurante do Celo', category: 'Brasileira', price: '$' },
-    { name: 'Vila Picinguaba', category: 'Contemporaneo', price: '$$$' },
+    {
+      id: '1',
+      name: 'Peixe na Telha',
+      category: 'Frutos do mar',
+      priceLevel: '$$',
+      location: 'Centro',
+    },
+    {
+      id: '2',
+      name: 'Restaurante do Celo',
+      category: 'Brasileira',
+      priceLevel: '$',
+      location: 'Praia Grande',
+    },
+    {
+      id: '3',
+      name: 'Vila Picinguaba',
+      category: 'Contemporaneo',
+      priceLevel: '$$$',
+      location: 'Picinguaba',
+    },
   ],
   checklist: [
-    { text: 'Protetor solar', done: true },
-    { text: 'Roupa de banho', done: true },
-    { text: 'Camera fotografica', done: false },
-    { text: 'Remedios pessoais', done: false },
-    { text: 'Dinheiro em especie', done: false },
+    { id: '1', text: 'Protetor solar', done: true },
+    { id: '2', text: 'Roupa de banho', done: true },
+    { id: '3', text: 'Camera fotografica', done: false },
+    { id: '4', text: 'Remedios pessoais', done: false },
+    { id: '5', text: 'Dinheiro em especie', done: false },
   ],
 };
+
+const MOCK_IMAGE = require('../../assets/images/ubatuba.jpg');
 
 export default function ItineraryDetail() {
   const router = useRouter();
   useLocalSearchParams();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const [showShareSheet, setShowShareSheet] = useState(false);
 
   return (
     <SafeAreaView style={styles.safe}>
       <View>
-        <Image source={MOCK_ITINERARY.image} style={styles.hero} />
+        <Image source={MOCK_IMAGE} style={styles.hero} />
         <View style={styles.heroOverlay} />
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color="#fff" />
+        </Pressable>
+        <Pressable
+          style={styles.shareButton}
+          onPress={() => setShowShareSheet(true)}
+        >
+          <Ionicons name="share-outline" size={22} color="#fff" />
         </Pressable>
         <View style={styles.heroContent}>
           <View style={styles.daysBadge}>
@@ -90,7 +138,7 @@ export default function ItineraryDetail() {
               color="rgba(255,255,255,0.8)"
             />
             <Text style={styles.heroMetaText}>
-              {MOCK_ITINERARY.destination}
+              {MOCK_ITINERARY.destinationName}
             </Text>
           </View>
         </View>
@@ -148,7 +196,7 @@ export default function ItineraryDetail() {
                 <Text style={styles.restaurantName}>{r.name}</Text>
                 <Text style={styles.restaurantCategory}>{r.category}</Text>
               </View>
-              <Text style={styles.restaurantPrice}>{r.price}</Text>
+              <Text style={styles.restaurantPrice}>{r.priceLevel}</Text>
             </View>
           ))}
         </View>
@@ -176,15 +224,25 @@ export default function ItineraryDetail() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <ShareItinerarySheet
+        itinerary={showShareSheet ? MOCK_ITINERARY : null}
+        onClose={() => setShowShareSheet(false)}
+        onShareToChat={() => {
+          // TODO: Implementar navegação para chat interno
+          console.log('Compartilhar no chat');
+        }}
+      />
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
   hero: {
     width: '100%',
     height: 220,
@@ -199,6 +257,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shareButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -265,7 +334,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   dayCard: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
@@ -317,7 +386,7 @@ const styles = StyleSheet.create({
   restaurantCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 14,
     padding: 14,
     borderWidth: 1,
@@ -328,7 +397,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F0FDFB',
+    backgroundColor: colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -351,7 +420,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   checklistContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
@@ -384,4 +453,5 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
     color: colors.muted,
   },
-});
+  });
+}

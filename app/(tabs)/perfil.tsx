@@ -15,7 +15,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import Button from '../../components/Button';
 import { useState, useMemo } from 'react';
 import * as ImagePicker from 'expo-image-picker';
@@ -149,7 +150,17 @@ const HIGHLIGHTS: Highlight[] = [
   },
 ];
 
-function HighlightItem({ highlight, onPress }: { highlight: Highlight; onPress: () => void }) {
+function HighlightItem({
+  highlight,
+  onPress,
+  styles,
+  colors
+}: {
+  highlight: Highlight;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: ReturnType<typeof getColors>;
+}) {
   return (
     <Pressable style={styles.highlightItem} onPress={onPress}>
       <View style={styles.highlightRing}>
@@ -160,7 +171,15 @@ function HighlightItem({ highlight, onPress }: { highlight: Highlight; onPress: 
   );
 }
 
-function AddHighlight({ onPress }: { onPress: () => void }) {
+function AddHighlight({
+  onPress,
+  styles,
+  colors
+}: {
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: ReturnType<typeof getColors>;
+}) {
   return (
     <Pressable style={styles.highlightItem} onPress={onPress}>
       <View style={styles.addHighlightCircle}>
@@ -171,7 +190,15 @@ function AddHighlight({ onPress }: { onPress: () => void }) {
   );
 }
 
-function PostGridItem({ post, onPress }: { post: Post; onPress: () => void }) {
+function PostGridItem({
+  post,
+  onPress,
+  styles
+}: {
+  post: Post;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+}) {
   return (
     <Pressable style={styles.postGridItem} onPress={onPress}>
       <Image source={post.image} style={styles.postGridImage} />
@@ -195,10 +222,14 @@ function MenuSheet({
   visible,
   onClose,
   options,
+  styles,
+  colors
 }: {
   visible: boolean;
   onClose: () => void;
   options: MenuOption[];
+  styles: ReturnType<typeof createStyles>;
+  colors: ReturnType<typeof getColors>;
 }) {
   return (
     <Modal
@@ -247,6 +278,8 @@ export default function Perfil() {
   const router = useRouter();
   const { posts: allPosts } = useSocial();
   const { currentUser } = useUser();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
 
   const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -254,6 +287,9 @@ export default function Perfil() {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [storyViewerVisible, setStoryViewerVisible] = useState(false);
   const [selectedHighlight, setSelectedHighlight] = useState<Highlight | null>(null);
+
+  // Create styles with dynamic colors
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   // Album states
   const [albums, setAlbums] = useState<TripAlbum[]>([]);
@@ -569,12 +605,14 @@ export default function Perfil() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.highlightsContainer}
         >
-          <AddHighlight onPress={handleAddHighlight} />
+          <AddHighlight onPress={handleAddHighlight} styles={styles} colors={colors} />
           {HIGHLIGHTS.map((highlight) => (
             <HighlightItem
               key={highlight.id}
               highlight={highlight}
               onPress={() => handleHighlightPress(highlight)}
+              styles={styles}
+              colors={colors}
             />
           ))}
         </ScrollView>
@@ -635,6 +673,7 @@ export default function Perfil() {
               key={post.id}
               post={post}
               onPress={() => handlePostPress(post.id, index)}
+              styles={styles}
             />
           ))}
         </View>
@@ -803,6 +842,8 @@ export default function Perfil() {
         visible={menuVisible}
         onClose={() => setMenuVisible(false)}
         options={menuOptions}
+        styles={styles}
+        colors={colors}
       />
 
       {/* Story Viewer for Highlights */}
@@ -959,11 +1000,12 @@ export default function Perfil() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
   scrollContent: {
     paddingBottom: 100,
   },
@@ -1056,7 +1098,7 @@ const styles = StyleSheet.create({
   },
   websiteLink: {
     fontSize: 14,
-    color: '#00376B',
+    color: colors.link,
     fontWeight: '500',
     marginTop: 2,
   },
@@ -1070,7 +1112,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   discoverButton: {
-    backgroundColor: '#EFEFEF',
+    backgroundColor: colors.surface,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 12,
@@ -1249,7 +1291,7 @@ const styles = StyleSheet.create({
   },
   editSectionDivider: {
     height: 8,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.surface,
     marginVertical: 16,
   },
   editOption: {
@@ -1276,7 +1318,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.disabled,
     alignSelf: 'center',
     marginTop: 10,
     marginBottom: 16,
@@ -1395,7 +1437,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 12,
     borderStyle: 'dashed',
-    backgroundColor: '#FAFAFA',
+    backgroundColor: colors.surface,
   },
   photoPickerText: {
     fontSize: 16,
@@ -1514,4 +1556,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#ED4956',
   },
-});
+  });
+}

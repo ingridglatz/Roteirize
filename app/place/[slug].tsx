@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import {
   Dimensions,
   Image,
@@ -11,13 +12,17 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getPlaceBySlug } from '../../data/places';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function PlaceDetails() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const place = slug ? getPlaceBySlug(slug) : null;
 
@@ -149,235 +154,237 @@ export default function PlaceDetails() {
 
 const CARD_WIDTH = (width - 52) / 2;
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  notFound: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  notFoundText: {
-    fontSize: 16,
-    color: colors.muted,
-    marginTop: 12,
-  },
-  notFoundBtn: {
-    marginTop: 20,
-    backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  notFoundBtnText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  hero: {
-    width: '100%',
-    height: 300,
-    resizeMode: 'cover',
-  },
-  heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    height: 300,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  heroTop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  heroBackBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  heroBottom: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-  },
-  heroBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  heroBadgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#fff',
-  },
-  heroMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 6,
-  },
-  heroLocation: {
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 13,
-    marginRight: 12,
-  },
-  heroRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  heroRatingText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F0FDFB',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  pillText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginTop: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 14,
-  },
-  descriptionText: {
-    fontSize: 15,
-    color: colors.muted,
-    lineHeight: 23,
-  },
-  curiosityCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 14,
-    marginBottom: 10,
-    gap: 12,
-  },
-  curiosityEmoji: {
-    fontSize: 22,
-    marginTop: 1,
-  },
-  curiosityText: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-    flex: 1,
-  },
-  activitiesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  activityCard: {
-    width: CARD_WIDTH,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: 16,
-  },
-  activityIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#F0FDFB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  activityTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  activityDesc: {
-    fontSize: 12,
-    color: colors.muted,
-    lineHeight: 17,
-  },
-  tipRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-    marginBottom: 14,
-  },
-  tipIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#FFF7ED',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 1,
-  },
-  tipText: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-    flex: 1,
-  },
-  ctaSection: {
-    paddingHorizontal: 20,
-    marginTop: 32,
-  },
-  ctaButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.primary,
-    paddingVertical: 14,
-    borderRadius: 12,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  ctaText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    notFound: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 40,
+    },
+    notFoundText: {
+      fontSize: 16,
+      color: colors.muted,
+      marginTop: 12,
+    },
+    notFoundBtn: {
+      marginTop: 20,
+      backgroundColor: colors.primary,
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      borderRadius: 12,
+    },
+    notFoundBtnText: {
+      color: '#fff',
+      fontWeight: '600',
+    },
+    hero: {
+      width: '100%',
+      height: 300,
+      resizeMode: 'cover',
+    },
+    heroOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      height: 300,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+    },
+    heroTop: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: 16,
+      paddingTop: 8,
+    },
+    heroBackBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    heroBottom: {
+      position: 'absolute',
+      bottom: 20,
+      left: 20,
+      right: 20,
+    },
+    heroBadge: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.primary,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      borderRadius: 12,
+      marginBottom: 8,
+    },
+    heroBadgeText: {
+      color: '#fff',
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    heroTitle: {
+      fontSize: 28,
+      fontWeight: '800',
+      color: '#fff',
+    },
+    heroMeta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: 6,
+    },
+    heroLocation: {
+      color: 'rgba(255,255,255,0.85)',
+      fontSize: 13,
+      marginRight: 12,
+    },
+    heroRating: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    heroRatingText: {
+      color: '#fff',
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    pillsRow: {
+      flexDirection: 'row',
+      gap: 10,
+      paddingHorizontal: 20,
+      paddingTop: 20,
+    },
+    pill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: colors.surface,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 20,
+    },
+    pillText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    section: {
+      paddingHorizontal: 20,
+      marginTop: 24,
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 14,
+    },
+    descriptionText: {
+      fontSize: 15,
+      color: colors.muted,
+      lineHeight: 23,
+    },
+    curiosityCard: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 14,
+      marginBottom: 10,
+      gap: 12,
+    },
+    curiosityEmoji: {
+      fontSize: 22,
+      marginTop: 1,
+    },
+    curiosityText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+      flex: 1,
+    },
+    activitiesGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+    },
+    activityCard: {
+      width: CARD_WIDTH,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+    },
+    activityIconCircle: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      backgroundColor: colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    activityTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    activityDesc: {
+      fontSize: 12,
+      color: colors.muted,
+      lineHeight: 17,
+    },
+    tipRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+      marginBottom: 14,
+    },
+    tipIconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.surface,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 1,
+    },
+    tipText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+      flex: 1,
+    },
+    ctaSection: {
+      paddingHorizontal: 20,
+      marginTop: 32,
+    },
+    ctaButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: colors.primary,
+      paddingVertical: 14,
+      borderRadius: 12,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    ctaText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });
+}

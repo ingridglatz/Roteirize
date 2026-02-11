@@ -15,8 +15,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import UserAvatar from '../../components/social/UserAvatar';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { Post } from '../../types/Social';
 import { formatTimeAgo } from '../../utils/socialHelpers';
 import CommentsSheet from './CommentsSheet';
@@ -32,6 +33,9 @@ export default function PostDetailScreen() {
   }>();
   const { currentUser } = useUser();
   const { posts: allPosts, toggleLikePost, toggleSavePost, deletePost, getPost } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -311,106 +315,108 @@ export default function PostDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.muted,
-  },
-  postContainer: {
-    backgroundColor: colors.background,
-    marginBottom: 8,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  postHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  postUsername: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  postLocation: {
-    fontSize: 12,
-    color: colors.muted,
-    marginTop: 1,
-  },
-  postImage: {
-    width: width,
-    height: width,
-    resizeMode: 'cover',
-  },
-  postActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  postActionsLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  postLikes: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    paddingHorizontal: 12,
-    marginBottom: 6,
-  },
-  captionContainer: {
-    paddingHorizontal: 12,
-    marginBottom: 6,
-  },
-  captionText: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-  },
-  captionUsername: {
-    fontWeight: '600',
-  },
-  viewComments: {
-    fontSize: 14,
-    color: colors.muted,
-    paddingHorizontal: 12,
-    marginBottom: 4,
-  },
-  postTime: {
-    fontSize: 12,
-    color: colors.muted,
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.muted,
+    },
+    postContainer: {
+      backgroundColor: colors.background,
+      marginBottom: 8,
+    },
+    postHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    postHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    postUsername: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    postLocation: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 1,
+    },
+    postImage: {
+      width: width,
+      height: width,
+      resizeMode: 'cover',
+    },
+    postActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+    },
+    postActionsLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 16,
+    },
+    postLikes: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      paddingHorizontal: 12,
+      marginBottom: 6,
+    },
+    captionContainer: {
+      paddingHorizontal: 12,
+      marginBottom: 6,
+    },
+    captionText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+    },
+    captionUsername: {
+      fontWeight: '600',
+    },
+    viewComments: {
+      fontSize: 14,
+      color: colors.muted,
+      paddingHorizontal: 12,
+      marginBottom: 4,
+    },
+    postTime: {
+      fontSize: 12,
+      color: colors.muted,
+      paddingHorizontal: 12,
+      paddingBottom: 12,
+    },
+  });
+}

@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoteiros } from '../../context/RoteirosContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 
 type Step = 'destination' | 'days' | 'preferences' | 'generating';
 
@@ -62,6 +63,9 @@ export default function Create() {
   const { addRoteiro } = useRoteiros();
   const params = useLocalSearchParams();
   const preselectedDestination = params.destination as string | undefined;
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [step, setStep] = useState<Step>(
     preselectedDestination ? 'days' : 'destination',
@@ -470,11 +474,12 @@ export default function Create() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -583,7 +588,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.border,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
   },
   dayCardSelected: {
     borderColor: colors.primary,
@@ -614,7 +619,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   input: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -632,7 +637,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.card,
   },
   budgetCardSelected: {
     borderColor: colors.primary,
@@ -658,7 +663,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.surface,
   },
   interestCardSelected: {
     backgroundColor: colors.primary,
@@ -743,4 +748,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
   },
-});
+  });
+}

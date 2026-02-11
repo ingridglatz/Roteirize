@@ -13,8 +13,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import FollowButton from '../../../components/social/FollowButton';
 import UserAvatar from '../../../components/social/UserAvatar';
 import { useSocial } from '../../../context/SocialContext';
+import { useTheme } from '../../../context/ThemeContext';
 import { useUser } from '../../../context/UserContext';
-import { colors } from '../../../theme/colors';
+import { getColors } from '../../../theme/colors';
 import { SocialUser } from '../../../types/Social';
 
 export default function FollowingScreen() {
@@ -22,6 +23,9 @@ export default function FollowingScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const { currentUser } = useUser();
   const { getUser } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [searchQuery, setSearchQuery] = useState('');
 
   const user = getUser(userId as string);
@@ -145,110 +149,112 @@ export default function FollowingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerInfo: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  headerSubtitle: {
-    fontSize: 13,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    paddingHorizontal: 12,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: colors.text,
-  },
-  list: {
-    paddingVertical: 8,
-  },
-  userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  userNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  userName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  userUsername: {
-    fontSize: 13,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  userBio: {
-    fontSize: 13,
-    color: colors.text,
-    marginTop: 4,
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: 16,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.muted,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerInfo: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    headerTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    headerSubtitle: {
+      fontSize: 13,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      marginHorizontal: 16,
+      marginTop: 12,
+      marginBottom: 8,
+      paddingHorizontal: 12,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: colors.text,
+    },
+    list: {
+      paddingVertical: 8,
+    },
+    userRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    userInfo: {
+      flex: 1,
+    },
+    userNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    userName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    userUsername: {
+      fontSize: 13,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    userBio: {
+      fontSize: 13,
+      color: colors.text,
+      marginTop: 4,
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 80,
+      paddingHorizontal: 40,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: colors.text,
+      marginTop: 16,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.muted,
+      marginTop: 8,
+      textAlign: 'center',
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.muted,
+    },
+  });
+}

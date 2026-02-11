@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import {
   Alert,
   Modal,
@@ -11,8 +12,9 @@ import {
   View,
 } from 'react-native';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 
 type Post = {
   id: string;
@@ -48,11 +50,15 @@ function ActionButton({
   label,
   onPress,
   destructive = false,
+  colors,
+  styles,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
   destructive?: boolean;
+  colors: ReturnType<typeof getColors>;
+  styles: ReturnType<typeof createStyles>;
 }) {
   return (
     <Pressable style={styles.actionButton} onPress={onPress}>
@@ -79,6 +85,9 @@ export default function PostActionsSheet({
   useUser();
   const router = useRouter();
   const { isFollowing, unfollowUser, blockUser, updatePost } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (!post) return null;
 
@@ -203,12 +212,12 @@ export default function PostActionsSheet({
           <View style={styles.actions}>
             {isOwnPost ? (
               <>
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="create-outline"
                   label="Editar publicação"
                   onPress={onEdit}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon={
                     post.allowComments
                       ? 'chatbubble-outline'
@@ -221,7 +230,7 @@ export default function PostActionsSheet({
                   }
                   onPress={handleToggleComments}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon={post.hideLikes ? 'eye-outline' : 'eye-off-outline'}
                   label={
                     post.hideLikes
@@ -230,17 +239,17 @@ export default function PostActionsSheet({
                   }
                   onPress={handleToggleLikesVisibility}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="share-outline"
                   label="Compartilhar para..."
                   onPress={handleShareLink}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="link-outline"
                   label="Copiar link"
                   onPress={handleCopyLink}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="trash-outline"
                   label="Excluir publicação"
                   onPress={onDelete}
@@ -249,17 +258,17 @@ export default function PostActionsSheet({
               </>
             ) : (
               <>
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="share-outline"
                   label="Compartilhar para..."
                   onPress={handleShareLink}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="link-outline"
                   label="Copiar link"
                   onPress={handleCopyLink}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="qr-code-outline"
                   label="Código QR"
                   onPress={() => {
@@ -270,36 +279,36 @@ export default function PostActionsSheet({
                     onClose();
                   }}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="person-outline"
                   label="Sobre esta conta"
                   onPress={handleViewProfile}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="information-circle-outline"
                   label="Por que estou vendo isto?"
                   onPress={handleWhySeeing}
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="eye-off-outline"
                   label="Não tenho interesse"
                   onPress={handleNotInterested}
                 />
                 {following && (
-                  <ActionButton
+                  <ActionButton colors={colors} styles={styles}
                     icon="person-remove-outline"
                     label="Deixar de seguir"
                     onPress={handleUnfollow}
                     destructive
                   />
                 )}
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="ban-outline"
                   label="Bloquear"
                   onPress={handleBlock}
                   destructive
                 />
-                <ActionButton
+                <ActionButton colors={colors} styles={styles}
                   icon="flag-outline"
                   label="Denunciar"
                   onPress={onReport}
@@ -308,7 +317,7 @@ export default function PostActionsSheet({
               </>
             )}
 
-            <ActionButton icon="close" label="Cancelar" onPress={onClose} />
+            <ActionButton icon="close" label="Cancelar" onPress={onClose} colors={colors} styles={styles} />
           </View>
         </Pressable>
       </Pressable>
@@ -316,43 +325,45 @@ export default function PostActionsSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-    maxHeight: '80%',
-  },
-  header: {
-    paddingTop: 10,
-    paddingBottom: 12,
-    alignItems: 'center',
-  },
-  drag: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#ccc',
-  },
-  actions: {
-    paddingHorizontal: 16,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    gap: 14,
-  },
-  actionLabel: {
-    fontSize: 16,
-    color: colors.text,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    sheet: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+      maxHeight: '80%',
+    },
+    header: {
+      paddingTop: 10,
+      paddingBottom: 12,
+      alignItems: 'center',
+    },
+    drag: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.muted,
+    },
+    actions: {
+      paddingHorizontal: 16,
+    },
+    actionButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      gap: 14,
+    },
+    actionLabel: {
+      fontSize: 16,
+      color: colors.text,
+    },
+  });
+}

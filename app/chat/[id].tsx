@@ -21,10 +21,215 @@ import SharedPostPreview from '../../components/chat/SharedPostPreview';
 import UserAvatar from '../../components/social/UserAvatar';
 import { useChat } from '../../context/ChatContext';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { Message } from '../../types/Social';
 import { formatTimeAgo } from '../../utils/socialHelpers';
+
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: {
+      flex: 1,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    headerInfo: {
+      flex: 1,
+    },
+    headerNameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    headerName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    headerStatus: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    messagesList: {
+      padding: 16,
+      paddingBottom: 8,
+    },
+    messageBubble: {
+      maxWidth: '78%',
+      borderRadius: 18,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginBottom: 8,
+      position: 'relative',
+    },
+    myMessage: {
+      alignSelf: 'flex-end',
+      backgroundColor: colors.primary,
+      borderBottomRightRadius: 4,
+    },
+    theirMessage: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.card,
+      borderBottomLeftRadius: 4,
+    },
+    messageText: {
+      fontSize: 15,
+      lineHeight: 21,
+    },
+    myMessageText: {
+      color: '#fff',
+    },
+    theirMessageText: {
+      color: colors.text,
+    },
+    messageFooter: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 4,
+    },
+    messageTime: {
+      fontSize: 10,
+    },
+    myMessageTime: {
+      color: 'rgba(255,255,255,0.6)',
+    },
+    theirMessageTime: {
+      color: colors.muted,
+    },
+    reactionBadge: {
+      position: 'absolute',
+      bottom: -8,
+      right: 8,
+      backgroundColor: colors.background,
+      borderRadius: 12,
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    reactionEmoji: {
+      fontSize: 14,
+    },
+    mediaImage: {
+      width: 200,
+      height: 200,
+      borderRadius: 12,
+      marginBottom: 4,
+    },
+    mediaVideo: {
+      width: 200,
+      height: 200,
+      borderRadius: 12,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    mediaVideoText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '600',
+      marginTop: 8,
+    },
+    documentContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderRadius: 8,
+      marginBottom: 4,
+    },
+    documentName: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '500',
+    },
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+      gap: 8,
+    },
+    attachBtn: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingBottom: 6,
+    },
+    chatInput: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 22,
+      paddingHorizontal: 16,
+      paddingTop: Platform.OS === 'ios' ? 10 : 8,
+      paddingBottom: Platform.OS === 'ios' ? 10 : 8,
+      fontSize: 15,
+      maxHeight: 100,
+      color: colors.text,
+    },
+    sendBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    sendBtnDisabled: {
+      backgroundColor: colors.border,
+    },
+    emptyState: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 60,
+    },
+    emptyName: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginTop: 16,
+    },
+    emptyUsername: {
+      fontSize: 14,
+      color: colors.muted,
+      marginTop: 4,
+    },
+    emptyText: {
+      fontSize: 14,
+      color: colors.muted,
+      marginTop: 12,
+      textAlign: 'center',
+      paddingHorizontal: 40,
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.muted,
+    },
+  });
+}
 
 export default function Conversation() {
   const router = useRouter();
@@ -40,6 +245,9 @@ export default function Conversation() {
     deleteMessage,
   } = useChat();
   const { getUser } = useSocial();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const conversation = getConversation(id as string);
   const messages = getMessages(id as string);
@@ -455,203 +663,3 @@ export default function Conversation() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerInfo: {
-    flex: 1,
-  },
-  headerNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  headerStatus: {
-    fontSize: 12,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  messagesList: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  messageBubble: {
-    maxWidth: '78%',
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 8,
-    position: 'relative',
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: 4,
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  myMessageText: {
-    color: '#fff',
-  },
-  theirMessageText: {
-    color: colors.text,
-  },
-  messageFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  messageTime: {
-    fontSize: 10,
-  },
-  myMessageTime: {
-    color: 'rgba(255,255,255,0.6)',
-  },
-  theirMessageTime: {
-    color: colors.muted,
-  },
-  reactionBadge: {
-    position: 'absolute',
-    bottom: -8,
-    right: 8,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  reactionEmoji: {
-    fontSize: 14,
-  },
-  mediaImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 4,
-  },
-  mediaVideo: {
-    width: 200,
-    height: 200,
-    borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  mediaVideoText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-    marginTop: 8,
-  },
-  documentContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 8,
-    marginBottom: 4,
-  },
-  documentName: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: '#fff',
-    gap: 8,
-  },
-  attachBtn: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: 6,
-  },
-  chatInput: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 10 : 8,
-    paddingBottom: Platform.OS === 'ios' ? 10 : 8,
-    fontSize: 15,
-    maxHeight: 100,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendBtnDisabled: {
-    backgroundColor: '#E0E0E0',
-  },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: 16,
-  },
-  emptyUsername: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 4,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: colors.muted,
-    marginTop: 12,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: colors.muted,
-  },
-});

@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Alert,
   Image,
@@ -13,8 +13,9 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 
 type Props = {
   visible: boolean;
@@ -33,6 +34,9 @@ export default function CreateContentSheet({
   const [caption, setCaption] = useState('');
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const { currentUser } = useUser();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   function handleImagePick() {
     const demoImage = require('../../assets/images/praia1.jpg');
@@ -169,124 +173,126 @@ export default function CreateContentSheet({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  sheet: {
-    flex: 1,
-    marginTop: 50,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  cancelButton: {
-    fontSize: 16,
-    color: colors.text,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  postButton: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  tabs: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  tabActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
-  },
-  tabText: {
-    fontSize: 15,
-    color: colors.muted,
-    fontWeight: '500',
-  },
-  tabTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  userInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    gap: 10,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  userName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  imagePicker: {
-    height: 300,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 12,
-  },
-  imagePickerText: {
-    fontSize: 15,
-    color: colors.muted,
-  },
-  imageContainer: {
-    position: 'relative',
-    marginBottom: 16,
-  },
-  selectedImage: {
-    width: '100%',
-    height: 300,
-    borderRadius: 12,
-    resizeMode: 'cover',
-  },
-  removeImageButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    borderRadius: 14,
-  },
-  captionInput: {
-    fontSize: 15,
-    color: colors.text,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    padding: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    sheet: {
+      flex: 1,
+      marginTop: 50,
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    cancelButton: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    postButton: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    tabs: {
+      flexDirection: 'row',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    tabActive: {
+      borderBottomWidth: 2,
+      borderBottomColor: colors.primary,
+    },
+    tabText: {
+      fontSize: 15,
+      color: colors.muted,
+      fontWeight: '500',
+    },
+    tabTextActive: {
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    content: {
+      flex: 1,
+      padding: 16,
+    },
+    userInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 20,
+      gap: 10,
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+    },
+    userName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    imagePicker: {
+      height: 300,
+      borderRadius: 12,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: colors.border,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+      gap: 12,
+    },
+    imagePickerText: {
+      fontSize: 15,
+      color: colors.muted,
+    },
+    imageContainer: {
+      position: 'relative',
+      marginBottom: 16,
+    },
+    selectedImage: {
+      width: '100%',
+      height: 300,
+      borderRadius: 12,
+      resizeMode: 'cover',
+    },
+    removeImageButton: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      borderRadius: 14,
+    },
+    captionInput: {
+      fontSize: 15,
+      color: colors.text,
+      minHeight: 100,
+      textAlignVertical: 'top',
+      padding: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 12,
+    },
+  });
+}

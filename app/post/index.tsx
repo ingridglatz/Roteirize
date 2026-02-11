@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -13,7 +13,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
 import { Post, Story } from '../../types/Social';
 import CommentsSheet from './CommentsSheet';
 import StoryViewer from './StoryViewer';
@@ -204,9 +205,11 @@ const POSTS: Post[] = [
 function StoryBubble({
   story,
   onPress,
+  styles,
 }: {
   story: Story;
   onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
 }) {
   return (
     <Pressable style={styles.storyBubble} onPress={onPress}>
@@ -222,6 +225,10 @@ function StoryBubble({
 
 export default function Posts() {
   const router = useRouter();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [posts, setPosts] = useState<Post[]>(POSTS);
   const [stories, setStories] = useState<Story[]>(STORIES);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -421,6 +428,7 @@ export default function Posts() {
                 key={story.id}
                 story={story}
                 onPress={() => handleStoryPress(idx)}
+                styles={styles}
               />
             ))}
           </ScrollView>
@@ -443,141 +451,143 @@ export default function Posts() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  topBarTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text,
-  },
-  topBarActions: {
-    flexDirection: 'row',
-    gap: 18,
-  },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    topBarTitle: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text,
+    },
+    topBarActions: {
+      flexDirection: 'row',
+      gap: 18,
+    },
 
-  storiesRow: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    gap: 14,
-  },
-  storyBubble: {
-    alignItems: 'center',
-    width: 68,
-  },
-  storyRing: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2.5,
-    borderColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  storyRingSeen: {
-    borderColor: '#ccc',
-  },
-  storyAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
-  storyName: {
-    fontSize: 11,
-    color: colors.text,
-    textAlign: 'center',
-  },
+    storiesRow: {
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      gap: 14,
+    },
+    storyBubble: {
+      alignItems: 'center',
+      width: 68,
+    },
+    storyRing: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      borderWidth: 2.5,
+      borderColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 4,
+    },
+    storyRingSeen: {
+      borderColor: colors.muted,
+    },
+    storyAvatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+    },
+    storyName: {
+      fontSize: 11,
+      color: colors.text,
+      textAlign: 'center',
+    },
 
-  post: {
-    marginBottom: 20,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  postHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  postAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-  },
-  postUser: {
-    fontWeight: '600',
-    fontSize: 14,
-    color: colors.text,
-  },
-  postLocation: {
-    fontSize: 12,
-    color: colors.muted,
-  },
-  postImage: {
-    width: width,
-    height: width,
-    resizeMode: 'cover',
-  },
-  doubleTapHeart: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -40,
-    marginLeft: -40,
-  },
-  postActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  postActionsLeft: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  postLikes: {
-    fontWeight: '700',
-    fontSize: 14,
-    paddingHorizontal: 14,
-    marginBottom: 4,
-    color: colors.text,
-  },
-  postCaption: {
-    paddingHorizontal: 14,
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-  },
-  postCaptionUser: {
-    fontWeight: '700',
-  },
-  postCommentsLink: {
-    paddingHorizontal: 14,
-    marginTop: 4,
-    fontSize: 13,
-    color: colors.muted,
-  },
-  postTime: {
-    paddingHorizontal: 14,
-    marginTop: 4,
-    fontSize: 11,
-    color: colors.muted,
-  },
-});
+    post: {
+      marginBottom: 20,
+    },
+    postHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    postHeaderLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    postAvatar: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+    },
+    postUser: {
+      fontWeight: '600',
+      fontSize: 14,
+      color: colors.text,
+    },
+    postLocation: {
+      fontSize: 12,
+      color: colors.muted,
+    },
+    postImage: {
+      width: width,
+      height: width,
+      resizeMode: 'cover',
+    },
+    doubleTapHeart: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginTop: -40,
+      marginLeft: -40,
+    },
+    postActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+    },
+    postActionsLeft: {
+      flexDirection: 'row',
+      gap: 16,
+    },
+    postLikes: {
+      fontWeight: '700',
+      fontSize: 14,
+      paddingHorizontal: 14,
+      marginBottom: 4,
+      color: colors.text,
+    },
+    postCaption: {
+      paddingHorizontal: 14,
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+    },
+    postCaptionUser: {
+      fontWeight: '700',
+    },
+    postCommentsLink: {
+      paddingHorizontal: 14,
+      marginTop: 4,
+      fontSize: 13,
+      color: colors.muted,
+    },
+    postTime: {
+      paddingHorizontal: 14,
+      marginTop: 4,
+      fontSize: 11,
+      color: colors.muted,
+    },
+  });
+}

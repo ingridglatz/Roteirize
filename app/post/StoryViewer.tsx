@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -19,8 +19,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import UserAvatar from '../../components/social/UserAvatar';
 import { useChat } from '../../context/ChatContext';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { Story } from '../../types/Social';
 import { formatTimeAgo } from '../../utils/socialHelpers';
 
@@ -39,6 +40,9 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
   const { currentUser } = useUser();
   const { addStoryReaction, getStoryReactions } = useSocial();
   const { conversations, sendMessage } = useChat();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [storyIndex, setStoryIndex] = useState(initialIndex);
   const [imageIndex, setImageIndex] = useState(0);
@@ -305,196 +309,198 @@ export default function StoryViewer({ stories, initialIndex, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  storyImage: {
-    width,
-    height,
-    resizeMode: 'cover',
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-  },
-  topSection: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 12,
-  },
-  progressRow: {
-    flexDirection: 'row',
-    gap: 4,
-    marginBottom: 14,
-  },
-  progressTrack: {
-    flex: 1,
-    height: 2,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#fff',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerUser: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  headerTime: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  closeButton: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  reactionPop: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    marginTop: -40,
-    marginLeft: -40,
-  },
-  reactionPopEmoji: {
-    fontSize: 80,
-  },
-  reactionsCount: {
-    position: 'absolute',
-    right: 16,
-    top: height * 0.5,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  reactionsCountText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  bottomSection: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-  },
-  reactionsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginBottom: 12,
-  },
-  reactionButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 22,
-  },
-  reactionEmoji: {
-    fontSize: 24,
-  },
-  replyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  replyInput: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#fff',
-  },
-  sendButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonDisabled: {
-    opacity: 0.5,
-  },
-  reactionsModalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  reactionsModalSheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-    maxHeight: height * 0.6,
-  },
-  reactionsModalHeader: {
-    paddingTop: 10,
-    paddingBottom: 16,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  drag: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#ccc',
-    marginBottom: 12,
-  },
-  reactionsModalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  reactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  reactionItemInfo: {
-    flex: 1,
-  },
-  reactionItemName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  reactionItemTime: {
-    fontSize: 12,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  reactionItemEmoji: {
-    fontSize: 24,
-  },
-});
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: '#000',
+    },
+    storyImage: {
+      width,
+      height,
+      resizeMode: 'cover',
+    },
+    overlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.2)',
+    },
+    topSection: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: 12,
+    },
+    progressRow: {
+      flexDirection: 'row',
+      gap: 4,
+      marginBottom: 14,
+    },
+    progressTrack: {
+      flex: 1,
+      height: 2,
+      backgroundColor: 'rgba(255,255,255,0.3)',
+      borderRadius: 1,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: '#fff',
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    headerUser: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#fff',
+    },
+    headerTime: {
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.7)',
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    reactionPop: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      marginTop: -40,
+      marginLeft: -40,
+    },
+    reactionPopEmoji: {
+      fontSize: 80,
+    },
+    reactionsCount: {
+      position: 'absolute',
+      right: 16,
+      top: height * 0.5,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 20,
+    },
+    reactionsCountText: {
+      color: '#fff',
+      fontSize: 14,
+      fontWeight: '600',
+    },
+    bottomSection: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: 16,
+    },
+    reactionsRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: 16,
+      marginBottom: 12,
+    },
+    reactionButton: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      borderRadius: 22,
+    },
+    reactionEmoji: {
+      fontSize: 24,
+    },
+    replyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    replyInput: {
+      flex: 1,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.3)',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      fontSize: 15,
+      color: '#fff',
+    },
+    sendButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendButtonDisabled: {
+      opacity: 0.5,
+    },
+    reactionsModalOverlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    reactionsModalSheet: {
+      backgroundColor: colors.background,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+      maxHeight: height * 0.6,
+    },
+    reactionsModalHeader: {
+      paddingTop: 10,
+      paddingBottom: 16,
+      alignItems: 'center',
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    drag: {
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: '#ccc',
+      marginBottom: 12,
+    },
+    reactionsModalTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    reactionItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    reactionItemInfo: {
+      flex: 1,
+    },
+    reactionItemName: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    reactionItemTime: {
+      fontSize: 12,
+      color: colors.muted,
+      marginTop: 2,
+    },
+    reactionItemEmoji: {
+      fontSize: 24,
+    },
+  });
+}

@@ -1,6 +1,6 @@
 import { Text, Pressable, StyleSheet, ViewStyle, TextStyle } from "react-native";
 import { Link, Href } from "expo-router";
-import { colors } from "../theme/colors";
+import { useColors } from "../context/ThemeContext";
 
 type ButtonVariant = "primary" | "secondary" | "outline";
 type ButtonSize = "small" | "medium" | "large";
@@ -13,18 +13,6 @@ type ButtonProps = {
   size?: ButtonSize;
   fullWidth?: boolean;
   disabled?: boolean;
-};
-
-const variantButtonStyles = {
-  primary: { backgroundColor: colors.primary },
-  secondary: { backgroundColor: "#EFEFEF" },
-  outline: { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.border },
-};
-
-const variantTextStyles = {
-  primary: { color: "#fff" },
-  secondary: { color: colors.text },
-  outline: { color: colors.text },
 };
 
 const sizeButtonStyles = {
@@ -48,19 +36,41 @@ export default function Button({
   fullWidth = true,
   disabled = false,
 }: ButtonProps) {
+  const colors = useColors();
+
+  const variantButtonStyles = {
+    primary: { backgroundColor: colors.primary },
+    secondary: { backgroundColor: colors.surface },
+    outline: { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.border },
+  };
+
+  const variantTextStyles = {
+    primary: { color: "#fff" },
+    secondary: { color: colors.text },
+    outline: { color: colors.text },
+  };
+  const disabledButtonStyle = {
+    backgroundColor: colors.disabled,
+    borderColor: "transparent",
+  };
+
+  const disabledTextStyle = {
+    color: colors.muted,
+  };
+
   const buttonStyle: ViewStyle[] = [
     styles.button,
     variantButtonStyles[variant],
     sizeButtonStyles[size],
     fullWidth && styles.fullWidth,
-    disabled && styles.disabledButton,
+    disabled && disabledButtonStyle,
   ].filter(Boolean) as ViewStyle[];
 
   const textStyle: TextStyle[] = [
     styles.text,
     variantTextStyles[variant],
     sizeTextStyles[size],
-    disabled && styles.disabledText,
+    disabled && disabledTextStyle,
   ].filter(Boolean) as TextStyle[];
 
   if (href) {
@@ -107,12 +117,5 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: "600",
-  },
-  disabledButton: {
-    backgroundColor: colors.disabled,
-    borderColor: "transparent",
-  },
-  disabledText: {
-    color: colors.muted,
   },
 });

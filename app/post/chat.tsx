@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Image,
@@ -13,7 +13,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
+import { getColors } from '../../theme/colors';
 
 type Contact = {
   id: string;
@@ -151,6 +152,10 @@ const MOCK_MESSAGES: Record<string, Message[]> = {
 };
 
 function ContactList({ onSelect }: { onSelect: (contact: Contact) => void }) {
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <FlatList
       data={CONTACTS}
@@ -202,6 +207,9 @@ function Conversation({
   );
   const [text, setText] = useState('');
   const flatListRef = useRef<FlatList>(null);
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   function handleSend() {
     if (!text.trim()) return;
@@ -321,6 +329,9 @@ function Conversation({
 export default function ChatScreen() {
   const router = useRouter();
   const [activeContact, setActiveContact] = useState<Contact | null>(null);
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   if (activeContact) {
     return (
@@ -348,201 +359,205 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
 
-  listHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  listTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
+    listHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    listTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+    },
 
-  contactList: {
-    paddingVertical: 8,
-  },
-  contactRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  contactAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-  },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#4CAF50',
-    borderWidth: 2,
-    borderColor: colors.background,
-  },
-  contactBody: {
-    flex: 1,
-  },
-  contactTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  contactName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  contactTime: {
-    fontSize: 12,
-    color: colors.muted,
-  },
-  contactBottom: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 3,
-  },
-  contactMsg: {
-    fontSize: 14,
-    color: colors.muted,
-    flex: 1,
-    marginRight: 8,
-  },
-  contactMsgUnread: {
-    color: colors.text,
-    fontWeight: '500',
-  },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 6,
-  },
-  unreadText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
+    contactList: {
+      paddingVertical: 8,
+    },
+    contactRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    contactAvatar: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+    },
+    onlineDot: {
+      position: 'absolute',
+      bottom: 2,
+      right: 2,
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: '#4CAF50',
+      borderWidth: 2,
+      borderColor: colors.background,
+    },
+    contactBody: {
+      flex: 1,
+    },
+    contactTop: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    contactName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    contactTime: {
+      fontSize: 12,
+      color: colors.muted,
+    },
+    contactBottom: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: 3,
+    },
+    contactMsg: {
+      fontSize: 14,
+      color: colors.muted,
+      flex: 1,
+      marginRight: 8,
+    },
+    contactMsgUnread: {
+      color: colors.text,
+      fontWeight: '500',
+    },
+    unreadBadge: {
+      backgroundColor: colors.primary,
+      borderRadius: 10,
+      minWidth: 20,
+      height: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 6,
+    },
+    unreadText: {
+      color: '#fff',
+      fontSize: 11,
+      fontWeight: '700',
+    },
 
-  conversationContainer: {
-    flex: 1,
-  },
-  convHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  convAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  convHeaderInfo: {
-    flex: 1,
-  },
-  convHeaderName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  convHeaderStatus: {
-    fontSize: 12,
-    color: colors.muted,
-  },
+    conversationContainer: {
+      flex: 1,
+    },
+    convHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    convAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+    },
+    convHeaderInfo: {
+      flex: 1,
+    },
+    convHeaderName: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    convHeaderStatus: {
+      fontSize: 12,
+      color: colors.muted,
+    },
 
-  messagesList: {
-    padding: 16,
-    paddingBottom: 8,
-  },
-  messageBubble: {
-    maxWidth: '78%',
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 8,
-  },
-  myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: 4,
-  },
-  theirMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#F0F0F0',
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  myMessageText: {
-    color: '#fff',
-  },
-  theirMessageText: {
-    color: colors.text,
-  },
-  messageTime: {
-    fontSize: 10,
-    marginTop: 4,
-  },
-  myMessageTime: {
-    color: 'rgba(255,255,255,0.6)',
-    textAlign: 'right',
-  },
-  theirMessageTime: {
-    color: colors.muted,
-  },
+    messagesList: {
+      padding: 16,
+      paddingBottom: 8,
+    },
+    messageBubble: {
+      maxWidth: '78%',
+      borderRadius: 18,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      marginBottom: 8,
+    },
+    myMessage: {
+      alignSelf: 'flex-end',
+      backgroundColor: colors.primary,
+      borderBottomRightRadius: 4,
+    },
+    theirMessage: {
+      alignSelf: 'flex-start',
+      backgroundColor: colors.card,
+      borderBottomLeftRadius: 4,
+    },
+    messageText: {
+      fontSize: 15,
+      lineHeight: 21,
+    },
+    myMessageText: {
+      color: '#fff',
+    },
+    theirMessageText: {
+      color: colors.text,
+    },
+    messageTime: {
+      fontSize: 10,
+      marginTop: 4,
+    },
+    myMessageTime: {
+      color: 'rgba(255,255,255,0.6)',
+      textAlign: 'right',
+    },
+    theirMessageTime: {
+      color: colors.muted,
+    },
 
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: '#fff',
-    gap: 8,
-  },
-  chatInput: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
-    fontSize: 15,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sendBtnDisabled: {
-    backgroundColor: '#E0E0E0',
-  },
-});
+    inputRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+      gap: 8,
+    },
+    chatInput: {
+      flex: 1,
+      backgroundColor: colors.card,
+      borderRadius: 22,
+      paddingHorizontal: 16,
+      paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+      fontSize: 15,
+      color: colors.text,
+    },
+    sendBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    sendBtnDisabled: {
+      backgroundColor: colors.border,
+    },
+  });
+}

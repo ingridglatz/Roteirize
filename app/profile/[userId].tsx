@@ -13,11 +13,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Button from '../../components/Button';
 import FollowButton from '../../components/social/FollowButton';
 import { useChat } from '../../context/ChatContext';
 import { useSocial } from '../../context/SocialContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
-import { colors } from '../../theme/colors';
+import { getColors } from '../../theme/colors';
 import { formatCount } from '../../utils/socialHelpers';
 import { Story } from '../../types/Social';
 import StoryViewer from '../post/StoryViewer';
@@ -44,7 +46,7 @@ type TripAlbum = {
   createdAt: string;
 };
 
-function HighlightItem({ highlight, onPress }: { highlight: Highlight; onPress: () => void }) {
+function HighlightItem({ highlight, onPress, styles }: { highlight: Highlight; onPress: () => void; styles: ReturnType<typeof createStyles> }) {
   return (
     <Pressable style={styles.highlightItem} onPress={onPress}>
       <View style={styles.highlightRing}>
@@ -62,6 +64,9 @@ export default function UserProfile() {
   const { getUser, posts, isFollowing, isBlocked, blockUser, unblockUser } =
     useSocial();
   const { createConversation } = useChat();
+  const { theme } = useTheme();
+  const colors = getColors(theme);
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [storyViewerVisible, setStoryViewerVisible] = useState(false);
@@ -326,13 +331,18 @@ export default function UserProfile() {
         {/* Action Buttons */}
         {!blocked ? (
           <View style={styles.actionButtons}>
-            <View style={styles.followButtonWrapper}>
-              <FollowButton userId={userId} size="medium" fullWidth />
+            <View style={styles.actionButtonWrapper}>
+              <FollowButton userId={userId} size="small" fullWidth />
             </View>
-            <Pressable style={styles.messageButton} onPress={handleMessage}>
-              <Text style={styles.messageButtonText}>Mensagem</Text>
-            </Pressable>
-            <Pressable style={styles.suggestButton} onPress={handleSuggestUsers}>
+            <View style={styles.actionButtonWrapper}>
+              <Button
+                title="Mensagem"
+                variant="secondary"
+                size="small"
+                onPress={handleMessage}
+              />
+            </View>
+            <Pressable style={styles.discoverButton} onPress={handleSuggestUsers}>
               <Ionicons name="person-add-outline" size={16} color={colors.text} />
             </Pressable>
           </View>
@@ -357,6 +367,7 @@ export default function UserProfile() {
                 key={highlight.id}
                 highlight={highlight}
                 onPress={() => handleHighlightPress(highlight)}
+                styles={styles}
               />
             ))}
           </ScrollView>
@@ -549,7 +560,8 @@ export default function UserProfile() {
   );
 }
 
-const styles = StyleSheet.create({
+function createStyles(colors: ReturnType<typeof getColors>) {
+  return StyleSheet.create({
   safe: {
     flex: 1,
     backgroundColor: colors.background,
@@ -634,6 +646,9 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 16,
   },
+  actionButtonWrapper: {
+    flex: 1,
+  },
   followButtonWrapper: {
     flex: 1,
   },
@@ -650,6 +665,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: colors.text,
+  },
+  discoverButton: {
+    backgroundColor: colors.surface,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   suggestButton: {
     backgroundColor: '#EFEFEF',
@@ -928,4 +951,5 @@ const styles = StyleSheet.create({
     height: POST_SIZE,
     margin: 1,
   },
-});
+  });
+}
