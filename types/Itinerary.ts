@@ -4,7 +4,7 @@ export type Itinerary = {
   destinationId: string;
   destinationName: string;
   days: number;
-  budget: 'Econômico' | 'Moderado' | 'Luxo';
+  budget: 'economic' | 'moderate' | 'luxury';
   interests: string[];
 
   dailyPlan: DailyPlan[];

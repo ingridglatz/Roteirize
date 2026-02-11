@@ -1,6 +1,7 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Image,
@@ -22,25 +23,25 @@ const DESTINATIONS = [
   {
     id: 'ubatuba',
     name: 'Ubatuba',
-    subtitle: 'Litoral Norte, SP',
+    subtitleKey: 'tabs.create.destSubtitleUbatuba',
     image: require('../../assets/images/ubatuba.jpg'),
   },
   {
     id: 'paraty',
     name: 'Paraty',
-    subtitle: 'Costa Verde, RJ',
+    subtitleKey: 'tabs.create.destSubtitleParaty',
     image: require('../../assets/images/praia2.jpg'),
   },
   {
     id: 'floripa',
-    name: 'Florianopolis',
-    subtitle: 'Santa Catarina',
+    name: 'Florianópolis',
+    subtitleKey: 'tabs.create.destSubtitleFloripa',
     image: require('../../assets/images/praia1.jpg'),
   },
   {
     id: 'buzios',
-    name: 'Buzios',
-    subtitle: 'Regiao dos Lagos, RJ',
+    name: 'Búzios',
+    subtitleKey: 'tabs.create.destSubtitleBuzios',
     image: require('../../assets/images/praia3.jpg'),
   },
 ];
@@ -48,18 +49,19 @@ const DESTINATIONS = [
 const DAY_OPTIONS = [2, 3, 5, 7];
 
 const INTERESTS = [
-  { id: 'praia', label: 'Praia', icon: 'beach' },
-  { id: 'natureza', label: 'Natureza', icon: 'leaf' },
-  { id: 'gastronomia', label: 'Gastronomia', icon: 'silverware-fork-knife' },
-  { id: 'cultura', label: 'Cultura', icon: 'bank' },
-  { id: 'aventura', label: 'Aventura', icon: 'compass' },
-  { id: 'compras', label: 'Compras', icon: 'shopping' },
+  { id: 'praia', key: 'beach', icon: 'beach' },
+  { id: 'natureza', key: 'nature', icon: 'leaf' },
+  { id: 'gastronomia', key: 'gastronomy', icon: 'silverware-fork-knife' },
+  { id: 'cultura', key: 'culture', icon: 'bank' },
+  { id: 'aventura', key: 'adventure', icon: 'compass' },
+  { id: 'compras', key: 'shopping', icon: 'shopping' },
 ];
 
-const BUDGETS = ['Econômico', 'Moderado', 'Luxo'];
+const BUDGETS = ['economic', 'moderate', 'luxury'];
 
 export default function Create() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { addRoteiro } = useRoteiros();
   const params = useLocalSearchParams();
   const preselectedDestination = params.destination as string | undefined;
@@ -156,23 +158,23 @@ export default function Create() {
         if (selectedDest && days && budget) {
           const newRoteiro = {
             id: Date.now().toString(),
-            title: tripName || `Viagem para ${selectedDest.name}`,
+            title: tripName || t('tabs.create.defaultTripName', { destination: selectedDest.name }),
             destinationId: selectedDest.id,
             destinationName: selectedDest.name,
             days: days,
-            budget: budget as 'Econômico' | 'Moderado' | 'Luxo',
+            budget: budget as 'economic' | 'moderate' | 'luxury',
             interests: interests,
             dailyPlan: Array.from({ length: days }, (_, i) => ({
               day: i + 1,
-              title: `Dia ${i + 1} em ${selectedDest.name}`,
-              activities: ['Atividade será gerada pela IA'],
+              title: t('tabs.create.dayLabel', { number: i + 1, destination: selectedDest.name }),
+              activities: [t('tabs.create.activityPlaceholder')],
               places: [],
             })),
             restaurants: [],
             checklist: [
-              { id: '1', text: 'Reservar hospedagem', done: false },
-              { id: '2', text: 'Planejar transporte', done: false },
-              { id: '3', text: 'Fazer mala', done: false },
+              { id: '1', text: t('tabs.create.checklistBooking'), done: false },
+              { id: '2', text: t('tabs.create.checklistTransport'), done: false },
+              { id: '3', text: t('tabs.create.checklistPacking'), done: false },
             ],
             createdAt: new Date().toISOString(),
           };
@@ -200,9 +202,9 @@ export default function Create() {
   function renderDestinationStep() {
     return (
       <>
-        <Text style={styles.stepTitle}>Para onde você quer ir?</Text>
+        <Text style={styles.stepTitle}>{t('tabs.create.destinationTitle')}</Text>
         <Text style={styles.stepSubtitle}>
-          Selecione o destino da sua viagem
+          {t('tabs.create.destinationSubtitle')}
         </Text>
 
         <View style={styles.destinationsGrid}>
@@ -218,7 +220,7 @@ export default function Create() {
                 <View style={styles.destOverlay} />
                 <View style={styles.destContent}>
                   <Text style={styles.destName}>{dest.name}</Text>
-                  <Text style={styles.destSubtitle}>{dest.subtitle}</Text>
+                  <Text style={styles.destSubtitle}>{t(dest.subtitleKey)}</Text>
                 </View>
                 {isSelected && (
                   <View style={styles.destCheck}>
@@ -236,8 +238,8 @@ export default function Create() {
   function renderDaysStep() {
     return (
       <>
-        <Text style={styles.stepTitle}>Quantos dias você vai ficar?</Text>
-        <Text style={styles.stepSubtitle}>Escolha a duração da sua viagem</Text>
+        <Text style={styles.stepTitle}>{t('tabs.create.daysTitle')}</Text>
+        <Text style={styles.stepSubtitle}>{t('tabs.create.daysSubtitle')}</Text>
 
         <View style={styles.daysRow}>
           {DAY_OPTIONS.map((d) => {
@@ -262,7 +264,7 @@ export default function Create() {
                     isSelected && styles.dayLabelSelected,
                   ]}
                 >
-                  dias
+                  {t('common.days')}
                 </Text>
               </Pressable>
             );
@@ -275,17 +277,17 @@ export default function Create() {
   function renderPreferencesStep() {
     const selectedDest = DESTINATIONS.find((d) => d.id === destination);
     const defaultName = selectedDest
-      ? `Viagem para ${selectedDest.name}`
-      : 'Minha viagem';
+      ? t('tabs.create.defaultTripName', { destination: selectedDest.name })
+      : t('tabs.create.myTrip');
 
     return (
       <>
-        <Text style={styles.stepTitle}>Personalize sua viagem</Text>
+        <Text style={styles.stepTitle}>{t('tabs.create.preferencesTitle')}</Text>
         <Text style={styles.stepSubtitle}>
-          Conte-nos sobre suas preferências
+          {t('tabs.create.preferencesSubtitle')}
         </Text>
 
-        <Text style={styles.label}>Nome do roteiro</Text>
+        <Text style={styles.label}>{t('tabs.create.tripNameLabel')}</Text>
         <TextInput
           style={styles.input}
           placeholder={defaultName}
@@ -294,7 +296,7 @@ export default function Create() {
           onChangeText={setTripName}
         />
 
-        <Text style={styles.label}>Orçamento</Text>
+        <Text style={styles.label}>{t('tabs.create.budgetLabel')}</Text>
         <View style={styles.budgetRow}>
           {BUDGETS.map((b) => {
             const isSelected = budget === b;
@@ -313,14 +315,14 @@ export default function Create() {
                     isSelected && styles.budgetTextSelected,
                   ]}
                 >
-                  {b}
+                  {t(`onboarding.travelStyle.${b}`)}
                 </Text>
               </Pressable>
             );
           })}
         </View>
 
-        <Text style={styles.label}>Interesses</Text>
+        <Text style={styles.label}>{t('tabs.create.interestsLabel')}</Text>
         <View style={styles.interestsGrid}>
           {INTERESTS.map((item) => {
             const isSelected = interests.includes(item.id);
@@ -344,7 +346,7 @@ export default function Create() {
                     isSelected && styles.interestTextSelected,
                   ]}
                 >
-                  {item.label}
+                  {t(`onboarding.interests.${item.key}`)}
                 </Text>
               </Pressable>
             );
@@ -362,9 +364,9 @@ export default function Create() {
         <View style={styles.generatingIcon}>
           <Ionicons name="sparkles" size={40} color={colors.primary} />
         </View>
-        <Text style={styles.generatingTitle}>Criando seu roteiro...</Text>
+        <Text style={styles.generatingTitle}>{t('tabs.create.generatingTitle')}</Text>
         <Text style={styles.generatingSubtitle}>
-          Estamos montando a viagem perfeita para {selectedDest?.name}
+          {t('tabs.create.generatingSubtitle', { destination: selectedDest?.name })}
         </Text>
 
         <View style={styles.generatingSummary}>
@@ -382,11 +384,11 @@ export default function Create() {
               size={18}
               color={colors.primary}
             />
-            <Text style={styles.summaryText}>{days} dias</Text>
+            <Text style={styles.summaryText}>{days} {t('common.days')}</Text>
           </View>
           <View style={styles.summaryItem}>
             <Ionicons name="wallet-outline" size={18} color={colors.primary} />
-            <Text style={styles.summaryText}>{budget}</Text>
+            <Text style={styles.summaryText}>{budget ? t(`onboarding.travelStyle.${budget}`) : ''}</Text>
           </View>
         </View>
 
@@ -422,7 +424,7 @@ export default function Create() {
           <Pressable onPress={handleBack} hitSlop={12}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>Criar roteiro</Text>
+          <Text style={styles.headerTitle}>{t('tabs.create.headerTitle')}</Text>
           <View style={{ width: 24 }} />
         </View>
       )}
@@ -462,7 +464,7 @@ export default function Create() {
             disabled={!canContinue()}
           >
             <Text style={styles.continueButtonText}>
-              {step === 'preferences' ? 'Gerar roteiro com IA' : 'Continuar'}
+              {step === 'preferences' ? t('tabs.create.generateWithAI') : t('common.continue')}
             </Text>
             {step === 'preferences' && (
               <Ionicons name="sparkles" size={18} color="#fff" />

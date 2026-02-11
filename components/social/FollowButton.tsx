@@ -1,5 +1,6 @@
 import { Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { getColors } from '../../theme/colors';
 import { useTheme } from '../../context/ThemeContext';
 import { useSocial } from '../../context/SocialContext';
@@ -15,6 +16,7 @@ export default function FollowButton({ userId, size = 'medium', fullWidth = fals
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   const following = isFollowing(userId);
@@ -79,7 +81,7 @@ export default function FollowButton({ userId, size = 'medium', fullWidth = fals
             { fontSize: currentSize.fontSize },
           ]}
         >
-          {following ? 'Seguindo' : 'Seguir'}
+          {following ? t('follow.following') : t('follow.follow')}
         </Text>
       )}
     </Pressable>

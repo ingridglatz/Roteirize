@@ -1,3 +1,4 @@
+import '../i18n';
 import { Stack } from 'expo-router';
 import { OnboardingProvider } from '../context/OnboardingContext';
 import { RoteirosProvider } from '../context/RoteirosContext';
@@ -6,10 +7,12 @@ import { SocialProvider } from '../context/SocialContext';
 import { ChatProvider } from '../context/ChatContext';
 import { NotificationProvider } from '../context/NotificationContext';
 import { ThemeProvider } from '../context/ThemeContext';
+import { LanguageProvider } from '../context/LanguageContext';
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
+      <LanguageProvider>
       <UserProvider>
         <SocialProvider>
           <ChatProvider>
@@ -33,6 +36,7 @@ export default function RootLayout() {
           </ChatProvider>
         </SocialProvider>
       </UserProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

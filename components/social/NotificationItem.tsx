@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSocial } from '../../context/SocialContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -78,28 +79,29 @@ export default function NotificationItem({ notification, onPress }: Props) {
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
   const user = getUser(notification.fromUserId);
 
   function getNotificationText() {
     switch (notification.type) {
       case 'like':
-        return 'curtiu sua publicação';
+        return t('notificationText.likedPost');
       case 'comment':
         return notification.text
-          ? `comentou: ${notification.text}`
-          : 'comentou em sua publicação';
+          ? t('notificationText.commentedWith', { text: notification.text })
+          : t('notificationText.commented');
       case 'follow':
-        return 'começou a seguir você';
+        return t('notificationText.startedFollowing');
       case 'mention':
-        return 'mencionou você em um comentário';
+        return t('notificationText.mentioned');
       case 'story_reaction':
-        return 'reagiu ao seu story';
+        return t('notificationText.storyReaction');
       case 'story_reply':
         return notification.text
-          ? `respondeu ao seu story: ${notification.text}`
-          : 'respondeu ao seu story';
+          ? t('notificationText.storyReplyWith', { text: notification.text })
+          : t('notificationText.storyReply');
       default:
-        return 'interagiu com você';
+        return t('notificationText.interacted');
     }
   }
 

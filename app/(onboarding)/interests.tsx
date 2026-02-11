@@ -10,28 +10,30 @@ import {
 import { useRouter } from 'expo-router';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import Button from '../../components/Button';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const INTERESTS = [
-  { label: 'Praia', icon: 'beach' },
-  { label: 'Natureza', icon: 'leaf' },
-  { label: 'Cultura', icon: 'bank' },
-  { label: 'Vida noturna', icon: 'glass-cocktail' },
-  { label: 'Aventura', icon: 'compass' },
-  { label: 'Gastronomia', icon: 'silverware-fork-knife' },
-  { label: 'História', icon: 'castle' },
-  { label: 'Esportes', icon: 'run' },
-  { label: 'Compras', icon: 'shopping' },
-  { label: 'Relaxamento', icon: 'spa' },
-  { label: 'Fotografia', icon: 'camera' },
-  { label: 'Música', icon: 'music' },
+  { id: 'beach', icon: 'beach' },
+  { id: 'nature', icon: 'leaf' },
+  { id: 'culture', icon: 'bank' },
+  { id: 'nightlife', icon: 'glass-cocktail' },
+  { id: 'adventure', icon: 'compass' },
+  { id: 'gastronomy', icon: 'silverware-fork-knife' },
+  { id: 'history', icon: 'castle' },
+  { id: 'sports', icon: 'run' },
+  { id: 'shopping', icon: 'shopping' },
+  { id: 'relaxation', icon: 'spa' },
+  { id: 'photography', icon: 'camera' },
+  { id: 'music', icon: 'music' },
 ];
 
 const MIN_SELECTIONS = 3;
 
 export default function Interests() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { setInterests } = useOnboarding();
   const [selected, setSelected] = useState<string[]>([]);
@@ -86,10 +88,9 @@ export default function Interests() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Quais são seus interesses?</Text>
+          <Text style={styles.title}>{t('onboarding.interests.title')}</Text>
           <Text style={styles.subtitle}>
-            Selecione pelo menos {MIN_SELECTIONS} opções para personalizarmos
-            sua experiência
+            {t('onboarding.interests.subtitle', { count: MIN_SELECTIONS })}
           </Text>
 
           <Animated.View
@@ -101,7 +102,7 @@ export default function Interests() {
             <Text
               style={[styles.counterText, isValid && styles.counterTextValid]}
             >
-              {selected.length} de {MIN_SELECTIONS} selecionados
+              {t('onboarding.interests.counter', { selected: selected.length, required: MIN_SELECTIONS })}
             </Text>
             {isValid && (
               <MaterialCommunityIcons
@@ -120,7 +121,7 @@ export default function Interests() {
                 color="#ef4444"
               />
               <Text style={styles.errorText}>
-                Selecione pelo menos {MIN_SELECTIONS} interesses para continuar
+                {t('onboarding.interests.errorMinimum', { count: MIN_SELECTIONS })}
               </Text>
             </View>
           )}
@@ -128,12 +129,12 @@ export default function Interests() {
 
         <View style={styles.grid}>
           {INTERESTS.map((item) => {
-            const isActive = selected.includes(item.label);
+            const isActive = selected.includes(item.id);
 
             return (
               <Pressable
-                key={item.label}
-                onPress={() => toggleInterest(item.label)}
+                key={item.id}
+                onPress={() => toggleInterest(item.id)}
                 style={({ pressed }) => [
                   styles.card,
                   isActive && styles.cardActive,
@@ -155,7 +156,7 @@ export default function Interests() {
                 <Text
                   style={[styles.cardText, isActive && styles.cardTextActive]}
                 >
-                  {item.label}
+                  {t('onboarding.interests.' + item.id)}
                 </Text>
 
                 {isActive && (
@@ -173,7 +174,7 @@ export default function Interests() {
         </View>
 
         <View style={styles.actions}>
-          <Button title="Continuar" onPress={handleContinue} />
+          <Button title={t('common.continue')} onPress={handleContinue} />
         </View>
       </ScrollView>
     </SafeAreaView>

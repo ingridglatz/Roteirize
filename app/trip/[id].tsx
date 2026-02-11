@@ -13,12 +13,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../../theme/colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PHOTO_GAP = 2;
 const PHOTO_SIZE = (SCREEN_WIDTH - PHOTO_GAP * 2) / 3;
 
-const TRIP_DATA: Record<string, {
+type TripData = {
   title: string;
   date: string;
   location: string;
@@ -26,69 +28,75 @@ const TRIP_DATA: Record<string, {
   coverImage: any;
   photos: { id: string; uri: string }[];
   stats: { days: number; cities: number; photos: number };
-}> = {
-  '1': {
-    title: 'Italia',
-    date: 'Outubro 2024',
-    location: 'Roma, Florenca, Veneza',
-    description: 'Uma viagem incrivel pela terra da pizza e do vinho. Visitamos o Coliseu, o Vaticano e navegamos pelos canais de Veneza.',
-    coverImage: require('../../assets/images/italia.jpg'),
-    photos: [
-      { id: '1', uri: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400' },
-      { id: '2', uri: 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=400' },
-      { id: '3', uri: 'https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=400' },
-      { id: '4', uri: 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=400' },
-      { id: '5', uri: 'https://images.unsplash.com/photo-1513805959324-96eb66ca8713?w=400' },
-      { id: '6', uri: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=400' },
-    ],
-    stats: { days: 14, cities: 3, photos: 247 },
-  },
-  '2': {
-    title: 'Japao',
-    date: 'Marco 2025',
-    location: 'Toquio, Kyoto, Osaka',
-    description: 'Explorando a cultura milenar e a modernidade do Japao. Dos templos antigos de Kyoto aos arranha-ceus de Toquio.',
-    coverImage: require('../../assets/images/japao.jpg'),
-    photos: [
-      { id: '1', uri: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400' },
-      { id: '2', uri: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400' },
-      { id: '3', uri: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400' },
-      { id: '4', uri: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=400' },
-      { id: '5', uri: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=400' },
-      { id: '6', uri: 'https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?w=400' },
-    ],
-    stats: { days: 21, cities: 3, photos: 412 },
-  },
-  '3': {
-    title: 'Turquia',
-    date: 'Dezembro 2023',
-    location: 'Istambul, Capadocia',
-    description: 'Entre o Oriente e o Ocidente, descobrindo mesquitas, bazares e paisagens surreais da Capadocia.',
-    coverImage: require('../../assets/images/turquia.jpg'),
-    photos: [
-      { id: '1', uri: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=400' },
-      { id: '2', uri: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=400' },
-      { id: '3', uri: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=400' },
-      { id: '4', uri: 'https://images.unsplash.com/photo-1589561454226-796a8aa89b05?w=400' },
-      { id: '5', uri: 'https://images.unsplash.com/photo-1604941807599-b89a5a0d29f9?w=400' },
-      { id: '6', uri: 'https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=400' },
-    ],
-    stats: { days: 10, cities: 2, photos: 189 },
-  },
 };
+
+function getTripData(t: (key: string) => string): Record<string, TripData> {
+  return {
+    '1': {
+      title: t('mockData.tripItalyTitle'),
+      date: t('mockData.tripItalyDate'),
+      location: t('mockData.tripItalyLocation'),
+      description: t('mockData.tripItalyDesc'),
+      coverImage: require('../../assets/images/italia.jpg'),
+      photos: [
+        { id: '1', uri: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400' },
+        { id: '2', uri: 'https://images.unsplash.com/photo-1515542622106-78bda8ba0e5b?w=400' },
+        { id: '3', uri: 'https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=400' },
+        { id: '4', uri: 'https://images.unsplash.com/photo-1520175480921-4edfa2983e0f?w=400' },
+        { id: '5', uri: 'https://images.unsplash.com/photo-1513805959324-96eb66ca8713?w=400' },
+        { id: '6', uri: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=400' },
+      ],
+      stats: { days: 14, cities: 3, photos: 247 },
+    },
+    '2': {
+      title: t('mockData.tripJapanTitle'),
+      date: t('mockData.tripJapanDate'),
+      location: t('mockData.tripJapanLocation'),
+      description: t('mockData.tripJapanDesc'),
+      coverImage: require('../../assets/images/japao.jpg'),
+      photos: [
+        { id: '1', uri: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=400' },
+        { id: '2', uri: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=400' },
+        { id: '3', uri: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=400' },
+        { id: '4', uri: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?w=400' },
+        { id: '5', uri: 'https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=400' },
+        { id: '6', uri: 'https://images.unsplash.com/photo-1504109586057-7a2ae83d1338?w=400' },
+      ],
+      stats: { days: 21, cities: 3, photos: 412 },
+    },
+    '3': {
+      title: t('mockData.tripTurkeyTitle'),
+      date: t('mockData.tripTurkeyDate'),
+      location: t('mockData.tripTurkeyLocation'),
+      description: t('mockData.tripTurkeyDesc'),
+      coverImage: require('../../assets/images/turquia.jpg'),
+      photos: [
+        { id: '1', uri: 'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?w=400' },
+        { id: '2', uri: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=400' },
+        { id: '3', uri: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=400' },
+        { id: '4', uri: 'https://images.unsplash.com/photo-1589561454226-796a8aa89b05?w=400' },
+        { id: '5', uri: 'https://images.unsplash.com/photo-1604941807599-b89a5a0d29f9?w=400' },
+        { id: '6', uri: 'https://images.unsplash.com/photo-1570939274717-7eda259b50ed?w=400' },
+      ],
+      stats: { days: 10, cities: 2, photos: 189 },
+    },
+  };
+}
 
 export default function TripAlbum() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const trip = TRIP_DATA[id || '1'];
+  const { t } = useTranslation();
+  const tripData = useMemo(() => getTripData(t), [t]);
+  const trip = tripData[id || '1'];
 
   if (!trip) {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Viagem nao encontrada</Text>
+          <Text style={styles.errorText}>{t('trip.notFound')}</Text>
           <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>Voltar</Text>
+            <Text style={styles.backButtonText}>{t('common.back')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -138,17 +146,17 @@ export default function TripAlbum() {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{trip.stats.days}</Text>
-            <Text style={styles.statLabel}>dias</Text>
+            <Text style={styles.statLabel}>{t('common.days')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{trip.stats.cities}</Text>
-            <Text style={styles.statLabel}>cidades</Text>
+            <Text style={styles.statLabel}>{t('trip.cities')}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{trip.stats.photos}</Text>
-            <Text style={styles.statLabel}>fotos</Text>
+            <Text style={styles.statLabel}>{t('common.photos')}</Text>
           </View>
         </View>
 
@@ -159,7 +167,7 @@ export default function TripAlbum() {
 
         {/* Photos Grid */}
         <View style={styles.photosSection}>
-          <Text style={styles.sectionTitle}>Fotos</Text>
+          <Text style={styles.sectionTitle}>{t('trip.photos')}</Text>
           <View style={styles.photosGrid}>
             {trip.photos.map((photo) => (
               <Pressable key={photo.id} style={styles.photoItem}>

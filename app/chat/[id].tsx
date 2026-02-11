@@ -3,6 +3,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActionSheetIOS,
   Alert,
@@ -248,6 +249,7 @@ export default function Conversation() {
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const conversation = getConversation(id as string);
   const messages = getMessages(id as string);
@@ -304,8 +306,8 @@ export default function Conversation() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permissão necessária',
-        'Precisamos de permissão para acessar suas fotos.'
+        t('chat.permissionRequired'),
+        t('chat.photoPermission')
       );
       return;
     }
@@ -332,8 +334,8 @@ export default function Conversation() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert(
-        'Permissão necessária',
-        'Precisamos de permissão para acessar seus vídeos.'
+        t('chat.permissionRequired'),
+        t('chat.videoPermission')
       );
       return;
     }
@@ -375,7 +377,7 @@ export default function Conversation() {
         });
       }
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível selecionar o documento.');
+      Alert.alert(t('common.error'), t('chat.documentError'));
     }
   }
 
@@ -383,7 +385,7 @@ export default function Conversation() {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancelar', 'Foto', 'Vídeo', 'Documento'],
+          options: [t('common.cancel'), t('chat.photoLabel'), t('chat.videoLabel'), t('chat.documentLabel')],
           cancelButtonIndex: 0,
         },
         (buttonIndex) => {
@@ -397,18 +399,18 @@ export default function Conversation() {
         }
       );
     } else {
-      Alert.alert('Enviar arquivo', 'Escolha o tipo de arquivo:', [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Foto', onPress: handlePickImage },
-        { text: 'Vídeo', onPress: handlePickVideo },
-        { text: 'Documento', onPress: handlePickDocument },
+      Alert.alert(t('chat.sendFile'), t('chat.chooseFileType'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('chat.photoLabel'), onPress: handlePickImage },
+        { text: t('chat.videoLabel'), onPress: handlePickVideo },
+        { text: t('chat.documentLabel'), onPress: handlePickDocument },
       ]);
     }
   }
 
   function handleLongPress(message: Message) {
     if (message.senderId !== currentUser.id) {
-      Alert.alert('Reagir à mensagem', '', [
+      Alert.alert(t('chat.reactToMessage'), '', [
         {
           text: '❤️',
           onPress: () => reactToMessage(message.id, '❤️'),
@@ -430,23 +432,23 @@ export default function Conversation() {
           onPress: () => reactToMessage(message.id, '👍'),
         },
         {
-          text: 'Cancelar',
+          text: t('common.cancel'),
           style: 'cancel',
         },
       ]);
     } else {
-      Alert.alert('Opções da mensagem', '', [
+      Alert.alert(t('chat.messageOptions'), '', [
         {
-          text: 'Excluir mensagem',
+          text: t('chat.deleteMessage'),
           style: 'destructive',
           onPress: () => {
             Alert.alert(
-              'Excluir mensagem',
-              'Tem certeza que deseja excluir esta mensagem?',
+              t('chat.deleteMessage'),
+              t('chat.deleteMessageConfirm'),
               [
-                { text: 'Cancelar', style: 'cancel' },
+                { text: t('common.cancel'), style: 'cancel' },
                 {
-                  text: 'Excluir',
+                  text: t('common.delete'),
                   style: 'destructive',
                   onPress: () => deleteMessage(message.id),
                 },
@@ -455,7 +457,7 @@ export default function Conversation() {
           },
         },
         {
-          text: 'Cancelar',
+          text: t('common.cancel'),
           style: 'cancel',
         },
       ]);
@@ -485,7 +487,7 @@ export default function Conversation() {
         {item.mediaType === 'video' && item.mediaUrl && (
           <View style={styles.mediaVideo}>
             <Ionicons name="play-circle" size={48} color="#fff" />
-            <Text style={styles.mediaVideoText}>Vídeo</Text>
+            <Text style={styles.mediaVideoText}>{t('chat.videoLabel')}</Text>
           </View>
         )}
 
@@ -503,7 +505,7 @@ export default function Conversation() {
               ]}
               numberOfLines={1}
             >
-              {item.mediaName || 'Documento'}
+              {item.mediaName || t('chat.document')}
             </Text>
           </View>
         )}
@@ -563,7 +565,7 @@ export default function Conversation() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Conversa não encontrada</Text>
+          <Text style={styles.errorText}>{t('chat.conversationNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -602,7 +604,7 @@ export default function Conversation() {
               )}
             </View>
             <Text style={styles.headerStatus}>
-              {isTyping ? 'digitando...' : 'Ativo há 5m'}
+              {isTyping ? t('chat.typing') : t('chat.activeAgo', { time: '5m' })}
             </Text>
           </Pressable>
         </View>
@@ -626,7 +628,7 @@ export default function Conversation() {
               <Text style={styles.emptyName}>{recipient.name}</Text>
               <Text style={styles.emptyUsername}>@{recipient.username}</Text>
               <Text style={styles.emptyText}>
-                Envie uma mensagem para iniciar a conversa
+                {t('chat.sendMessage')}
               </Text>
             </View>
           }
@@ -638,7 +640,7 @@ export default function Conversation() {
           </Pressable>
           <TextInput
             style={styles.chatInput}
-            placeholder="Mensagem..."
+            placeholder={t('chat.messagePlaceholder')}
             placeholderTextColor={colors.muted}
             value={text}
             onChangeText={setText}

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -32,6 +33,7 @@ export default function CommentsSheet({ post, onClose }: Props) {
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const [text, setText] = useState('');
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
@@ -112,7 +114,7 @@ export default function CommentsSheet({ post, onClose }: Props) {
             <View style={styles.drag} />
 
             <View style={styles.headerContent}>
-              <Text style={styles.title}>Comentários</Text>
+              <Text style={styles.title}>{t('comments.title')}</Text>
 
               <View style={styles.sortButtons}>
                 <Pressable
@@ -128,7 +130,7 @@ export default function CommentsSheet({ post, onClose }: Props) {
                       sortType === 'recent' && styles.sortButtonTextActive,
                     ]}
                   >
-                    Recentes
+                    {t('comments.recent')}
                   </Text>
                 </Pressable>
                 <Pressable
@@ -144,7 +146,7 @@ export default function CommentsSheet({ post, onClose }: Props) {
                       sortType === 'top' && styles.sortButtonTextActive,
                     ]}
                   >
-                    Top
+                    {t('comments.top')}
                   </Text>
                 </Pressable>
               </View>
@@ -182,9 +184,9 @@ export default function CommentsSheet({ post, onClose }: Props) {
                   size={48}
                   color={colors.muted}
                 />
-                <Text style={styles.emptyText}>Nenhum comentário ainda</Text>
+                <Text style={styles.emptyText}>{t('comments.empty')}</Text>
                 <Text style={styles.emptySubtext}>
-                  Seja o primeiro a comentar
+                  {t('comments.beFirst')}
                 </Text>
               </View>
             }
@@ -194,7 +196,7 @@ export default function CommentsSheet({ post, onClose }: Props) {
             {replyingTo && (
               <View style={styles.replyingToBar}>
                 <Text style={styles.replyingToText}>
-                  Respondendo @{replyingTo.username}
+                  {t('comments.replyingTo', { username: replyingTo.username })}
                 </Text>
                 <Pressable onPress={handleCancelReply} hitSlop={8}>
                   <Ionicons name="close" size={18} color={colors.muted} />
@@ -205,8 +207,8 @@ export default function CommentsSheet({ post, onClose }: Props) {
               <TextInput
                 placeholder={
                   replyingTo
-                    ? `Responder para @${replyingTo.username}...`
-                    : 'Adicione um comentário...'
+                    ? t('comments.replyTo', { username: replyingTo.username })
+                    : t('comments.addComment')
                 }
                 placeholderTextColor={colors.muted}
                 value={text}

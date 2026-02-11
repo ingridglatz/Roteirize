@@ -14,12 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { colors } from '../../theme/colors';
 
 export default function ResetPassword() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
@@ -60,12 +62,12 @@ export default function ResetPassword() {
     setEmailError('');
 
     if (!email.trim()) {
-      setEmailError('Por favor, informe seu e-mail');
+      setEmailError(t('auth.resetPassword.emptyEmailError'));
       return;
     }
 
     if (!validateEmail(email)) {
-      setEmailError('Por favor, informe um e-mail válido');
+      setEmailError(t('auth.resetPassword.invalidEmailError'));
       return;
     }
 
@@ -77,18 +79,18 @@ export default function ResetPassword() {
       setEmailSent(true);
 
       Alert.alert(
-        'Link enviado!',
-        'Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.',
+        t('auth.resetPassword.linkSentTitle'),
+        t('auth.resetPassword.linkSentMessage'),
         [
           {
-            text: 'OK',
+            text: t('common.ok'),
             onPress: () => router.back(),
           },
         ],
       );
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível enviar o link. Tente novamente.');
+      Alert.alert(t('common.error'), t('auth.resetPassword.errorMessage'));
     } finally {
       setLoading(false);
     }
@@ -147,11 +149,10 @@ export default function ResetPassword() {
                 },
               ]}
             >
-              <Text style={styles.title}>Esqueceu sua senha?</Text>
+              <Text style={styles.title}>{t('auth.resetPassword.title')}</Text>
               <View style={styles.titleUnderline} />
               <Text style={styles.subtitle}>
-                Não se preocupe! Informe seu e-mail e enviaremos um link seguro
-                para você redefinir sua senha.
+                {t('auth.resetPassword.subtitle')}
               </Text>
             </Animated.View>
 
@@ -166,7 +167,7 @@ export default function ResetPassword() {
             >
               <Input
                 icon="email-outline"
-                placeholder="Digite seu e-mail"
+                placeholder={t('auth.resetPassword.emailPlaceholder')}
                 value={email}
                 onChangeText={(text) => {
                   setEmail(text);
@@ -198,7 +199,7 @@ export default function ResetPassword() {
                     color={colors.success}
                   />
                   <Text style={styles.successText}>
-                    E-mail enviado com sucesso!
+                    {t('auth.resetPassword.emailSentSuccess')}
                   </Text>
                 </View>
               )}
@@ -218,7 +219,7 @@ export default function ResetPassword() {
                 color={colors.primary}
               />
               <Text style={styles.tipText}>
-                Verifique também sua caixa de spam caso não encontre o e-mail.
+                {t('auth.resetPassword.spamTip')}
               </Text>
             </Animated.View>
           </ScrollView>
@@ -233,7 +234,7 @@ export default function ResetPassword() {
             ]}
           >
             <Button
-              title={loading ? 'Enviando...' : 'Enviar link de recuperação'}
+              title={loading ? t('auth.resetPassword.sending') : t('auth.resetPassword.sendLink')}
               onPress={!loading && !emailSent ? handleReset : undefined}
             />
           </Animated.View>

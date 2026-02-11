@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { useState } from 'react';
 import { getCountryFlag, getCountryImageUrl } from '../utils/countryUtils';
+import { useTranslation } from 'react-i18next';
 
 type Visit = {
   id: string;
@@ -32,127 +33,134 @@ type Country = {
   imageUrl?: string;
 };
 
-const INITIAL_COUNTRIES: Country[] = [
-  {
-    id: '1',
-    name: 'Italia',
-    flag: '🇮🇹',
-    visits: [
-      { id: '1', startDate: 'Out 2024', endDate: 'Out 2024' },
-      { id: '2', startDate: 'Jun 2023', endDate: 'Jul 2023' },
-      { id: '3', startDate: 'Dez 2022', endDate: 'Jan 2023' },
-    ],
-    cities: ['Roma', 'Milao', 'Veneza', 'Florenca', 'Napoles', 'Turim', 'Bologna', 'Verona'],
-    image: require('../assets/images/italia.jpg'),
-  },
-  {
-    id: '2',
-    name: 'Japao',
-    flag: '🇯🇵',
-    visits: [
-      { id: '1', startDate: 'Mar 2025', endDate: 'Mar 2025' },
-      { id: '2', startDate: 'Abr 2024', endDate: 'Mai 2024' },
-    ],
-    cities: ['Toquio', 'Quioto', 'Osaka', 'Hiroshima', 'Nara', 'Yokohama'],
-    image: require('../assets/images/japao.jpg'),
-  },
-  {
-    id: '3',
-    name: 'Turquia',
-    flag: '🇹🇷',
-    visits: [{ id: '1', startDate: 'Dez 2023', endDate: 'Dez 2023' }],
-    cities: ['Istambul', 'Capadocia', 'Antalya', 'Izmir'],
-    image: require('../assets/images/turquia.jpg'),
-  },
-  {
-    id: '4',
-    name: 'Franca',
-    flag: '🇫🇷',
-    visits: [
-      { id: '1', startDate: 'Jul 2024', endDate: 'Ago 2024' },
-      { id: '2', startDate: 'Set 2022', endDate: 'Set 2022' },
-    ],
-    cities: ['Paris', 'Nice', 'Lyon', 'Marselha', 'Bordeaux'],
-    image: require('../assets/images/italia.jpg'),
-  },
-  {
-    id: '5',
-    name: 'Espanha',
-    flag: '🇪🇸',
-    visits: [
-      { id: '1', startDate: 'Mai 2024', endDate: 'Mai 2024' },
-      { id: '2', startDate: 'Fev 2023', endDate: 'Fev 2023' },
-    ],
-    cities: ['Madrid', 'Barcelona', 'Sevilha', 'Valencia', 'Granada', 'Bilbao', 'Malaga'],
-    image: require('../assets/images/turquia.jpg'),
-  },
-  {
-    id: '6',
-    name: 'Portugal',
-    flag: '🇵🇹',
-    visits: [
-      { id: '1', startDate: 'Jan 2024', endDate: 'Jan 2024' },
-      { id: '2', startDate: 'Nov 2023', endDate: 'Nov 2023' },
-      { id: '3', startDate: 'Jun 2022', endDate: 'Jun 2022' },
-    ],
-    cities: ['Lisboa', 'Porto', 'Sintra', 'Faro'],
-    image: require('../assets/images/japao.jpg'),
-  },
-  {
-    id: '7',
-    name: 'Reino Unido',
-    flag: '🇬🇧',
-    visits: [{ id: '1', startDate: 'Ago 2023', endDate: 'Ago 2023' }],
-    cities: ['Londres', 'Edimburgo', 'Manchester'],
-    image: require('../assets/images/italia.jpg'),
-  },
-  {
-    id: '8',
-    name: 'Alemanha',
-    flag: '🇩🇪',
-    visits: [
-      { id: '1', startDate: 'Nov 2023', endDate: 'Nov 2023' },
-      { id: '2', startDate: 'Jul 2022', endDate: 'Jul 2022' },
-    ],
-    cities: ['Berlim', 'Munique', 'Frankfurt', 'Hamburgo', 'Colonia'],
-    image: require('../assets/images/turquia.jpg'),
-  },
-  {
-    id: '9',
-    name: 'Estados Unidos',
-    flag: '🇺🇸',
-    visits: [
-      { id: '1', startDate: 'Abr 2024', endDate: 'Abr 2024' },
-      { id: '2', startDate: 'Dez 2022', endDate: 'Jan 2023' },
-    ],
-    cities: ['Nova York', 'Los Angeles', 'Miami', 'San Francisco', 'Las Vegas', 'Chicago'],
-    image: require('../assets/images/japao.jpg'),
-  },
-  {
-    id: '10',
-    name: 'Argentina',
-    flag: '🇦🇷',
-    visits: [{ id: '1', startDate: 'Fev 2024', endDate: 'Fev 2024' }],
-    cities: ['Buenos Aires', 'Mendoza', 'Bariloche'],
-    image: require('../assets/images/italia.jpg'),
-  },
-  {
-    id: '11',
-    name: 'Chile',
-    flag: '🇨🇱',
-    visits: [{ id: '1', startDate: 'Fev 2024', endDate: 'Fev 2024' }],
-    cities: ['Santiago', 'Valparaiso'],
-    image: require('../assets/images/turquia.jpg'),
-  },
-  {
-    id: '12',
-    name: 'Peru',
-    flag: '🇵🇪',
-    visits: [{ id: '1', startDate: 'Mar 2024', endDate: 'Mar 2024' }],
-    cities: ['Lima', 'Cusco'],
-    image: require('../assets/images/japao.jpg'),
-  },
-];
+function formatDate(month: number, year: number, t: (key: string) => string): string {
+  const monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  return `${t(`months.${monthKeys[month - 1]}`)} ${year}`;
+}
+
+function getInitialCountries(t: (key: string) => string): Country[] {
+  return [
+    {
+      id: '1',
+      name: t('mockData.countryItaly'),
+      flag: '🇮🇹',
+      visits: [
+        { id: '1', startDate: formatDate(10, 2024, t), endDate: formatDate(10, 2024, t) },
+        { id: '2', startDate: formatDate(6, 2023, t), endDate: formatDate(7, 2023, t) },
+        { id: '3', startDate: formatDate(12, 2022, t), endDate: formatDate(1, 2023, t) },
+      ],
+      cities: t('mockData.citiesItaly').split(', '),
+      image: require('../assets/images/italia.jpg'),
+    },
+    {
+      id: '2',
+      name: t('mockData.countryJapan'),
+      flag: '🇯🇵',
+      visits: [
+        { id: '1', startDate: formatDate(3, 2025, t), endDate: formatDate(3, 2025, t) },
+        { id: '2', startDate: formatDate(4, 2024, t), endDate: formatDate(5, 2024, t) },
+      ],
+      cities: t('mockData.citiesJapan').split(', '),
+      image: require('../assets/images/japao.jpg'),
+    },
+    {
+      id: '3',
+      name: t('mockData.countryTurkey'),
+      flag: '🇹🇷',
+      visits: [{ id: '1', startDate: formatDate(12, 2023, t), endDate: formatDate(12, 2023, t) }],
+      cities: t('mockData.citiesTurkey').split(', '),
+      image: require('../assets/images/turquia.jpg'),
+    },
+    {
+      id: '4',
+      name: t('mockData.countryFrance'),
+      flag: '🇫🇷',
+      visits: [
+        { id: '1', startDate: formatDate(7, 2024, t), endDate: formatDate(8, 2024, t) },
+        { id: '2', startDate: formatDate(9, 2022, t), endDate: formatDate(9, 2022, t) },
+      ],
+      cities: t('mockData.citiesFrance').split(', '),
+      image: require('../assets/images/italia.jpg'),
+    },
+    {
+      id: '5',
+      name: t('mockData.countrySpain'),
+      flag: '🇪🇸',
+      visits: [
+        { id: '1', startDate: formatDate(5, 2024, t), endDate: formatDate(5, 2024, t) },
+        { id: '2', startDate: formatDate(2, 2023, t), endDate: formatDate(2, 2023, t) },
+      ],
+      cities: t('mockData.citiesSpain').split(', '),
+      image: require('../assets/images/turquia.jpg'),
+    },
+    {
+      id: '6',
+      name: t('mockData.countryPortugal'),
+      flag: '🇵🇹',
+      visits: [
+        { id: '1', startDate: formatDate(1, 2024, t), endDate: formatDate(1, 2024, t) },
+        { id: '2', startDate: formatDate(11, 2023, t), endDate: formatDate(11, 2023, t) },
+        { id: '3', startDate: formatDate(6, 2022, t), endDate: formatDate(6, 2022, t) },
+      ],
+      cities: t('mockData.citiesPortugal').split(', '),
+      image: require('../assets/images/japao.jpg'),
+    },
+    {
+      id: '7',
+      name: t('mockData.countryUK'),
+      flag: '🇬🇧',
+      visits: [{ id: '1', startDate: formatDate(8, 2023, t), endDate: formatDate(8, 2023, t) }],
+      cities: t('mockData.citiesUK').split(', '),
+      image: require('../assets/images/italia.jpg'),
+    },
+    {
+      id: '8',
+      name: t('mockData.countryGermany'),
+      flag: '🇩🇪',
+      visits: [
+        { id: '1', startDate: formatDate(11, 2023, t), endDate: formatDate(11, 2023, t) },
+        { id: '2', startDate: formatDate(7, 2022, t), endDate: formatDate(7, 2022, t) },
+      ],
+      cities: t('mockData.citiesGermany').split(', '),
+      image: require('../assets/images/turquia.jpg'),
+    },
+    {
+      id: '9',
+      name: t('mockData.countryUSA'),
+      flag: '🇺🇸',
+      visits: [
+        { id: '1', startDate: formatDate(4, 2024, t), endDate: formatDate(4, 2024, t) },
+        { id: '2', startDate: formatDate(12, 2022, t), endDate: formatDate(1, 2023, t) },
+      ],
+      cities: t('mockData.citiesUSA').split(', '),
+      image: require('../assets/images/japao.jpg'),
+    },
+    {
+      id: '10',
+      name: t('mockData.countryArgentina'),
+      flag: '🇦🇷',
+      visits: [{ id: '1', startDate: formatDate(2, 2024, t), endDate: formatDate(2, 2024, t) }],
+      cities: t('mockData.citiesArgentina').split(', '),
+      image: require('../assets/images/italia.jpg'),
+    },
+    {
+      id: '11',
+      name: t('mockData.countryChile'),
+      flag: '🇨🇱',
+      visits: [{ id: '1', startDate: formatDate(2, 2024, t), endDate: formatDate(2, 2024, t) }],
+      cities: t('mockData.citiesChile').split(', '),
+      image: require('../assets/images/turquia.jpg'),
+    },
+    {
+      id: '12',
+      name: t('mockData.countryPeru'),
+      flag: '🇵🇪',
+      visits: [{ id: '1', startDate: formatDate(3, 2024, t), endDate: formatDate(3, 2024, t) }],
+      cities: t('mockData.citiesPeru').split(', '),
+      image: require('../assets/images/japao.jpg'),
+    },
+  ];
+}
 
 function CountryCard({
   country,
@@ -161,6 +169,7 @@ function CountryCard({
   country: Country;
   onPress: () => void;
 }) {
+  const { t } = useTranslation();
   const lastVisit = country.visits[0];
   return (
     <Pressable
@@ -181,15 +190,15 @@ function CountryCard({
             <View style={styles.countryStats}>
               <View style={styles.statItem}>
                 <Ionicons name="repeat" size={14} color="#FFF" />
-                <Text style={styles.statText}>{country.visits.length} visitas</Text>
+                <Text style={styles.statText}>{country.visits.length} {t('countries.visits')}</Text>
               </View>
               <View style={styles.statItem}>
                 <Ionicons name="location" size={14} color="#FFF" />
-                <Text style={styles.statText}>{country.cities.length} cidades</Text>
+                <Text style={styles.statText}>{country.cities.length} {t('countries.cities')}</Text>
               </View>
             </View>
             {lastVisit && (
-              <Text style={styles.lastVisit}>Ultima visita: {lastVisit.startDate}</Text>
+              <Text style={styles.lastVisit}>{t('countries.lastVisit')}: {lastVisit.startDate}</Text>
             )}
           </View>
           <View style={styles.editIndicator}>
@@ -203,7 +212,8 @@ function CountryCard({
 
 export default function Countries() {
   const router = useRouter();
-  const [countries, setCountries] = useState<Country[]>(INITIAL_COUNTRIES);
+  const { t } = useTranslation();
+  const [countries, setCountries] = useState<Country[]>(() => getInitialCountries(t));
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
   const [newCityName, setNewCityName] = useState('');
@@ -231,11 +241,11 @@ export default function Countries() {
     if (!editingCountry) return;
     const trimmed = newCityName.trim();
     if (!trimmed) {
-      Alert.alert('Erro', 'Digite o nome da cidade');
+      Alert.alert(t('common.error'), t('countries.enterCityName'));
       return;
     }
     if (editingCountry.cities.some(c => c.toLowerCase() === trimmed.toLowerCase())) {
-      Alert.alert('Erro', 'Esta cidade ja foi adicionada');
+      Alert.alert(t('common.error'), t('countries.cityAlreadyAdded'));
       return;
     }
     setEditingCountry({
@@ -256,7 +266,7 @@ export default function Countries() {
   function handleAddVisit() {
     if (!editingCountry) return;
     if (!newVisitStart.trim()) {
-      Alert.alert('Erro', 'Digite a data de ida');
+      Alert.alert(t('common.error'), t('countries.enterStartDate'));
       return;
     }
     const newVisit: Visit = {
@@ -275,7 +285,7 @@ export default function Countries() {
   function handleRemoveVisit(visitId: string) {
     if (!editingCountry) return;
     if (editingCountry.visits.length <= 1) {
-      Alert.alert('Erro', 'O pais deve ter pelo menos uma visita');
+      Alert.alert(t('common.error'), t('countries.minOneVisit'));
       return;
     }
     setEditingCountry({
@@ -287,11 +297,11 @@ export default function Countries() {
   function handleSave() {
     if (!editingCountry) return;
     if (editingCountry.cities.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma cidade');
+      Alert.alert(t('common.error'), t('countries.minOneCity'));
       return;
     }
     if (editingCountry.visits.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma visita');
+      Alert.alert(t('common.error'), t('countries.minOneVisit'));
       return;
     }
     setCountries(prev =>
@@ -303,12 +313,12 @@ export default function Countries() {
 
   function handleAddNewCountry() {
     Alert.prompt(
-      'Novo Pais',
-      'Digite o nome do pais',
+      t('countries.newCountry'),
+      t('countries.enterCountryName'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Adicionar',
+          text: t('countries.add'),
           onPress: (name: string | undefined) => {
             if (!name?.trim()) return;
             const countryName = name.trim();
@@ -316,7 +326,7 @@ export default function Countries() {
               id: Date.now().toString(),
               name: countryName,
               flag: getCountryFlag(countryName),
-              visits: [{ id: '1', startDate: 'Hoje', endDate: 'Hoje' }],
+              visits: [{ id: '1', startDate: t('countries.today'), endDate: t('countries.today') }],
               cities: [],
               image: require('../assets/images/italia.jpg'),
               imageUrl: getCountryImageUrl(countryName),
@@ -334,12 +344,12 @@ export default function Countries() {
     if (!editingCountry) return;
 
     Alert.alert(
-      'Excluir pais',
-      `Tem certeza que deseja excluir "${editingCountry.name}" e todas as suas visitas?`,
+      t('countries.deleteCountry'),
+      t('countries.deleteConfirm', { name: editingCountry.name }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Excluir',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             setCountries(prev => prev.filter(c => c.id !== editingCountry.id));
@@ -368,7 +378,7 @@ export default function Countries() {
             />
           )}
         </Pressable>
-        <Text style={styles.headerTitle}>Paises Visitados</Text>
+        <Text style={styles.headerTitle}>{t('countries.title')}</Text>
         <Pressable
           style={styles.addButton}
           onPress={handleAddNewCountry}
@@ -388,17 +398,17 @@ export default function Countries() {
       <View style={styles.summaryCard}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{totalCountries}</Text>
-          <Text style={styles.summaryLabel}>Paises</Text>
+          <Text style={styles.summaryLabel}>{t('countries.countries')}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{totalVisits}</Text>
-          <Text style={styles.summaryLabel}>Visitas totais</Text>
+          <Text style={styles.summaryLabel}>{t('countries.totalVisits')}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryValue}>{totalCities}</Text>
-          <Text style={styles.summaryLabel}>Cidades</Text>
+          <Text style={styles.summaryLabel}>{t('countries.citiesLabel')}</Text>
         </View>
       </View>
 
@@ -439,12 +449,12 @@ export default function Countries() {
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {/* Visits Section */}
               <Text style={styles.sectionTitle}>
-                Visitas ({editingCountry?.visits.length || 0})
+                {t('countries.visits')} ({editingCountry?.visits.length || 0})
               </Text>
               <View style={styles.addVisitContainer}>
                 <View style={styles.visitInputRow}>
                   <View style={styles.visitInputWrapper}>
-                    <Text style={styles.visitInputLabel}>Ida</Text>
+                    <Text style={styles.visitInputLabel}>{t('countries.departure')}</Text>
                     <TextInput
                       style={styles.visitInput}
                       value={newVisitStart}
@@ -454,7 +464,7 @@ export default function Countries() {
                     />
                   </View>
                   <View style={styles.visitInputWrapper}>
-                    <Text style={styles.visitInputLabel}>Volta</Text>
+                    <Text style={styles.visitInputLabel}>{t('countries.return')}</Text>
                     <TextInput
                       style={styles.visitInput}
                       value={newVisitEnd}
@@ -494,7 +504,7 @@ export default function Countries() {
 
               {/* Cities Section */}
               <Text style={styles.sectionTitle}>
-                Cidades visitadas ({editingCountry?.cities.length || 0})
+                {t('countries.citiesVisited')} ({editingCountry?.cities.length || 0})
               </Text>
               <View style={styles.citiesContainer}>
                 {editingCountry?.cities.map((city, index) => (
@@ -515,7 +525,7 @@ export default function Countries() {
                   style={styles.addCityInput}
                   value={newCityName}
                   onChangeText={setNewCityName}
-                  placeholder="Nome da cidade"
+                  placeholder={t('countries.cityName')}
                   placeholderTextColor={colors.muted}
                 />
                 <Pressable style={styles.addCityButton} onPress={handleAddCity}>
@@ -530,7 +540,7 @@ export default function Countries() {
               >
                 {({ pressed }) => (
                   <Text style={[styles.saveButtonText, { opacity: pressed ? 0.8 : 1 }]}>
-                    Salvar Alteracoes
+                    {t('countries.saveChanges')}
                   </Text>
                 )}
               </Pressable>
@@ -543,7 +553,7 @@ export default function Countries() {
                 {({ pressed }) => (
                   <View style={[styles.deleteButtonInner, { opacity: pressed ? 0.8 : 1 }]}>
                     <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                    <Text style={styles.deleteButtonText}>Excluir Pais</Text>
+                    <Text style={styles.deleteButtonText}>{t('countries.deleteCountry')}</Text>
                   </View>
                 )}
               </Pressable>

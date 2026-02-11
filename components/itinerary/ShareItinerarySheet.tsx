@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -45,6 +46,7 @@ export default function ShareItinerarySheet({
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t, i18n } = useTranslation();
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showChatList, setShowChatList] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,8 +61,8 @@ export default function ShareItinerarySheet({
         (day) => `
         <div class="day-card">
           <div class="day-header">
-            <div class="day-badge">DIA ${day.day}</div>
-            <h3 class="day-title">${day.title || `Dia ${day.day}`}</h3>
+            <div class="day-badge">${t('shareItinerary.day')} ${day.day}</div>
+            <h3 class="day-title">${day.title || `${t('shareItinerary.dayLabel')} ${day.day}`}</h3>
           </div>
           <div class="activities-list">
             ${day.places
@@ -83,7 +85,7 @@ export default function ShareItinerarySheet({
       itinerary.restaurants && itinerary.restaurants.length > 0
         ? `
       <div class="section">
-        <h2 class="section-title">🍽️ Restaurantes Sugeridos</h2>
+        <h2 class="section-title">${t('shareItinerary.suggestedRestaurants')}</h2>
         <div class="restaurants-grid">
           ${itinerary.restaurants
             .map(
@@ -109,7 +111,7 @@ export default function ShareItinerarySheet({
       itinerary.checklist && itinerary.checklist.length > 0
         ? `
       <div class="section">
-        <h2 class="section-title">✓ Checklist de Viagem</h2>
+        <h2 class="section-title">${t('shareItinerary.travelChecklist')}</h2>
         <div class="checklist">
           ${itinerary.checklist
             .map(
@@ -351,7 +353,7 @@ export default function ShareItinerarySheet({
               </div>
               <div class="meta-item">
                 <span>📅</span>
-                <span>${itinerary.days} dia${itinerary.days > 1 ? 's' : ''}</span>
+                <span>${t('shareItinerary.daysCount', { count: itinerary.days })}</span>
               </div>
               <div class="meta-item">
                 <span>💰</span>
@@ -361,7 +363,7 @@ export default function ShareItinerarySheet({
           </div>
 
           <div class="section">
-            <h2 class="section-title">📅 Roteiro Diário</h2>
+            <h2 class="section-title">📅 ${t('shareItinerary.dailyPlan')}</h2>
             ${dailyPlanHtml}
           </div>
 
@@ -370,7 +372,7 @@ export default function ShareItinerarySheet({
           ${checklistHtml}
 
           <div class="footer">
-            Roteiro gerado pelo Roteirize • ${new Date().toLocaleDateString('pt-BR')}
+            ${t('shareItinerary.generatedByDate')} • ${new Date().toLocaleDateString(i18n.language)}
           </div>
         </body>
       </html>
@@ -393,17 +395,17 @@ export default function ShareItinerarySheet({
       if (isAvailable) {
         await Sharing.shareAsync(uri, {
           mimeType: 'application/pdf',
-          dialogTitle: 'Compartilhar roteiro',
+          dialogTitle: t('shareItinerary.title'),
           UTI: 'com.adobe.pdf',
         });
       } else {
-        Alert.alert('Erro', 'Compartilhamento não disponível neste dispositivo');
+        Alert.alert(t('common.error'), t('shareItinerary.shareError'));
       }
 
       onClose();
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
-      Alert.alert('Erro', 'Não foi possível gerar o PDF');
+      Alert.alert(t('shareItinerary.pdfErrorTitle'), t('shareItinerary.pdfError'));
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -412,12 +414,12 @@ export default function ShareItinerarySheet({
   async function handleShareWhatsApp() {
     if (!itinerary) return;
 
-    const message = `*${itinerary.title}*\n\n📍 ${itinerary.destinationName}\n📅 ${itinerary.days} dia${itinerary.days > 1 ? 's' : ''}\n\n${itinerary.dailyPlan
+    const message = `*${itinerary.title}*\n\n📍 ${itinerary.destinationName}\n📅 ${t('shareItinerary.daysCount', { count: itinerary.days })}\n\n${itinerary.dailyPlan
       .map(
         (day) =>
-          `*Dia ${day.day}* - ${day.title}\n${day.places.map((p) => `• ${p}`).join('\n')}`,
+          `*${t('shareItinerary.dayLabel')} ${day.day}* - ${day.title}\n${day.places.map((p) => `• ${p}`).join('\n')}`,
       )
-      .join('\n\n')}\n\n_Gerado pelo Roteirize_`;
+      .join('\n\n')}\n\n_${t('shareItinerary.generatedBy')}_`;
 
     // Tentar múltiplos esquemas de URL do WhatsApp
     const urls = [
@@ -444,8 +446,8 @@ export default function ShareItinerarySheet({
 
     if (!opened) {
       Alert.alert(
-        'WhatsApp não encontrado',
-        'Não foi possível abrir o WhatsApp. Verifique se o aplicativo está instalado.',
+        t('shareItinerary.whatsappNotFound'),
+        t('shareItinerary.whatsappNotFoundMessage'),
       );
     }
   }
@@ -479,11 +481,11 @@ export default function ShareItinerarySheet({
     const dailyPlanText = itinerary.dailyPlan
       .map(
         (day) =>
-          `*Dia ${day.day}* - ${day.title}\n${day.places.map((p) => `• ${p}`).join('\n')}`,
+          `*${t('shareItinerary.dayLabel')} ${day.day}* - ${day.title}\n${day.places.map((p) => `• ${p}`).join('\n')}`,
       )
       .join('\n\n');
 
-    const message = `🗺️ Compartilhei um roteiro com você!\n\n*${itinerary.title}*\n📍 ${itinerary.destinationName}\n📅 ${itinerary.days} dia${itinerary.days > 1 ? 's' : ''}\n\n${dailyPlanText}`;
+    const message = `🗺️ ${t('shareItinerary.sharedItinerary')}\n\n*${itinerary.title}*\n📍 ${itinerary.destinationName}\n📅 ${t('shareItinerary.daysCount', { count: itinerary.days })}\n\n${dailyPlanText}`;
 
     sendMessage(conversationId, {
       conversationId,
@@ -506,21 +508,21 @@ export default function ShareItinerarySheet({
   const shareOptions: ShareOption[] = [
     {
       id: 'chat',
-      title: 'Compartilhar no chat',
+      title: t('shareItinerary.shareToChat'),
       icon: 'chatbubble-outline',
       color: colors.primary,
       action: handleShareToInternalChat,
     },
     {
       id: 'whatsapp',
-      title: 'Compartilhar no WhatsApp',
+      title: t('shareItinerary.shareToWhatsApp'),
       icon: 'logo-whatsapp',
       color: '#25D366',
       action: handleShareWhatsApp,
     },
     {
       id: 'pdf',
-      title: 'Exportar como PDF',
+      title: t('shareItinerary.exportPdf'),
       icon: 'document-text-outline',
       color: '#EF4444',
       action: handleExportPdf,
@@ -542,7 +544,7 @@ export default function ShareItinerarySheet({
               </Pressable>
             )}
             <Text style={styles.title}>
-              {showChatList ? 'Enviar para' : 'Compartilhar roteiro'}
+              {showChatList ? t('shareItinerary.sendTo') : t('shareItinerary.title')}
             </Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={24} color={colors.text} />
@@ -554,15 +556,14 @@ export default function ShareItinerarySheet({
               <View style={styles.itineraryPreview}>
                 <Text style={styles.itineraryTitle}>{itinerary.title}</Text>
                 <Text style={styles.itineraryMeta}>
-                  {itinerary.destinationName} · {itinerary.days} dia
-                  {itinerary.days > 1 ? 's' : ''}
+                  {itinerary.destinationName} · {t('shareItinerary.daysCount', { count: itinerary.days })}
                 </Text>
               </View>
 
               {isGeneratingPdf && (
                 <View style={styles.loadingContainer}>
                   <ActivityIndicator size="small" color={colors.primary} />
-                  <Text style={styles.loadingText}>Gerando PDF...</Text>
+                  <Text style={styles.loadingText}>{t('shareItinerary.generatingPdf')}</Text>
                 </View>
               )}
 
@@ -605,7 +606,7 @@ export default function ShareItinerarySheet({
                 />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Buscar conversa"
+                  placeholder={t('shareItinerary.searchConversation')}
                   placeholderTextColor={colors.muted}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -644,8 +645,8 @@ export default function ShareItinerarySheet({
                   <View style={styles.emptyState}>
                     <Text style={styles.emptyStateText}>
                       {searchQuery
-                        ? 'Nenhuma conversa encontrada'
-                        : 'Nenhuma conversa'}
+                        ? t('shareItinerary.noConversationFound')
+                        : t('shareItinerary.noConversation')}
                     </Text>
                   </View>
                 }

@@ -1,4 +1,5 @@
 import { Tabs, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -35,6 +36,7 @@ const createStyles = (colors: ColorScheme) => StyleSheet.create({
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const colors = useColors();
 
   const styles = createStyles(colors);
@@ -57,7 +59,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explorar"
         options={{
-          title: 'Explorar',
+          title: t('tabBar.explore'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'compass' : 'compass-outline'}
@@ -70,7 +72,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="social"
         options={{
-          title: 'Social',
+          title: t('tabBar.social'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'people' : 'people-outline'}
@@ -83,7 +85,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="create"
         options={{
-          title: 'Create',
+          title: t('tabBar.create'),
           tabBarIcon: ({ focused }) => (
             <View
               style={[
@@ -105,7 +107,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="roteiros"
         options={{
-          title: 'Roteiros',
+          title: t('tabBar.itineraries'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'map' : 'map-outline'}
@@ -118,7 +120,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="perfil"
         options={{
-          title: 'Perfil',
+          title: t('tabBar.profile'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}

@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Image,
   Pressable,
@@ -15,102 +16,106 @@ import { useTheme } from '../../context/ThemeContext';
 import { getColors } from '../../theme/colors';
 import { Itinerary } from '../../types/Itinerary';
 
-const MOCK_ITINERARY: Itinerary = {
-  id: '1',
-  title: 'Fim de semana em Ubatuba',
-  destinationId: 'ubatuba',
-  destinationName: 'Ubatuba, SP',
-  days: 3,
-  budget: 'Moderado',
-  interests: ['praia', 'natureza'],
-  createdAt: '15 de Janeiro, 2024',
-  dailyPlan: [
-    {
-      day: 1,
-      title: 'Chegada e relaxar',
-      activities: [
-        'Check-in no hotel',
-        'Almoco no restaurante local',
-        'Praia do Felix - banho de mar',
-        'Jantar na orla',
-      ],
-      places: [
-        'Check-in no hotel',
-        'Almoco no restaurante local',
-        'Praia do Felix',
-        'Jantar na orla',
-      ],
-    },
-    {
-      day: 2,
-      title: 'Aventura na ilha',
-      activities: [
-        'Passeio de barco ate a Ilha Anchieta',
-        'Mergulho nas aguas cristalinas',
-        'Almoco na ilha',
-        'Trilha do presidio',
-        'Retorno e jantar',
-      ],
-      places: [
-        'Ilha Anchieta',
-        'Mergulho',
-        'Almoco na ilha',
-        'Trilha do presidio',
-      ],
-    },
-    {
-      day: 3,
-      title: 'Explorando praias',
-      activities: [
-        'Cafe da manha no hotel',
-        'Praia da Almada',
-        'Almoco pe-na-areia',
-        'Check-out e retorno',
-      ],
-      places: ['Praia da Almada', 'Almoco pe-na-areia', 'Check-out'],
-    },
-  ],
-  restaurants: [
-    {
-      id: '1',
-      name: 'Peixe na Telha',
-      category: 'Frutos do mar',
-      priceLevel: '$$',
-      location: 'Centro',
-    },
-    {
-      id: '2',
-      name: 'Restaurante do Celo',
-      category: 'Brasileira',
-      priceLevel: '$',
-      location: 'Praia Grande',
-    },
-    {
-      id: '3',
-      name: 'Vila Picinguaba',
-      category: 'Contemporaneo',
-      priceLevel: '$$$',
-      location: 'Picinguaba',
-    },
-  ],
-  checklist: [
-    { id: '1', text: 'Protetor solar', done: true },
-    { id: '2', text: 'Roupa de banho', done: true },
-    { id: '3', text: 'Camera fotografica', done: false },
-    { id: '4', text: 'Remedios pessoais', done: false },
-    { id: '5', text: 'Dinheiro em especie', done: false },
-  ],
-};
+function getMockItinerary(t: (key: string) => string): Itinerary {
+  return {
+    id: '1',
+    title: t('mockData.itineraryTitle'),
+    destinationId: 'ubatuba',
+    destinationName: 'Ubatuba, SP',
+    days: 3,
+    budget: 'moderate',
+    interests: ['beach', 'nature'],
+    createdAt: t('mockData.itineraryDate'),
+    dailyPlan: [
+      {
+        day: 1,
+        title: t('mockData.day1Title'),
+        activities: [
+          t('mockData.day1Act1'),
+          t('mockData.day1Act2'),
+          t('mockData.day1Act3'),
+          t('mockData.day1Act4'),
+        ],
+        places: [
+          t('mockData.day1Place1'),
+          t('mockData.day1Place2'),
+          t('mockData.day1Place3'),
+          t('mockData.day1Place4'),
+        ],
+      },
+      {
+        day: 2,
+        title: t('mockData.day2Title'),
+        activities: [
+          t('mockData.day2Act1'),
+          t('mockData.day2Act2'),
+          t('mockData.day2Act3'),
+          t('mockData.day2Act4'),
+          t('mockData.day2Act5'),
+        ],
+        places: [
+          t('mockData.day2Place1'),
+          t('mockData.day2Place2'),
+          t('mockData.day2Place3'),
+          t('mockData.day2Place4'),
+        ],
+      },
+      {
+        day: 3,
+        title: t('mockData.day3Title'),
+        activities: [
+          t('mockData.day3Act1'),
+          t('mockData.day3Act2'),
+          t('mockData.day3Act3'),
+          t('mockData.day3Act4'),
+        ],
+        places: [t('mockData.day3Place1'), t('mockData.day3Place2'), t('mockData.day3Place3')],
+      },
+    ],
+    restaurants: [
+      {
+        id: '1',
+        name: 'Peixe na Telha',
+        category: t('mockData.rest1Category'),
+        priceLevel: '$$',
+        location: 'Centro',
+      },
+      {
+        id: '2',
+        name: 'Restaurante do Celo',
+        category: t('mockData.rest2Category'),
+        priceLevel: '$',
+        location: 'Praia Grande',
+      },
+      {
+        id: '3',
+        name: 'Vila Picinguaba',
+        category: t('mockData.rest3Category'),
+        priceLevel: '$$$',
+        location: 'Picinguaba',
+      },
+    ],
+    checklist: [
+      { id: '1', text: t('mockData.checklist1'), done: true },
+      { id: '2', text: t('mockData.checklist2'), done: true },
+      { id: '3', text: t('mockData.checklist3'), done: false },
+      { id: '4', text: t('mockData.checklist4'), done: false },
+      { id: '5', text: t('mockData.checklist5'), done: false },
+    ],
+  };
+}
 
 const MOCK_IMAGE = require('../../assets/images/ubatuba.jpg');
 
 export default function ItineraryDetail() {
   const router = useRouter();
+  const { t } = useTranslation();
   useLocalSearchParams();
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [showShareSheet, setShowShareSheet] = useState(false);
+  const itinerary = useMemo(() => getMockItinerary(t), [t]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -128,9 +133,9 @@ export default function ItineraryDetail() {
         </Pressable>
         <View style={styles.heroContent}>
           <View style={styles.daysBadge}>
-            <Text style={styles.daysBadgeText}>{MOCK_ITINERARY.days} dias</Text>
+            <Text style={styles.daysBadgeText}>{itinerary.days} {t('common.days')}</Text>
           </View>
-          <Text style={styles.heroTitle}>{MOCK_ITINERARY.title}</Text>
+          <Text style={styles.heroTitle}>{itinerary.title}</Text>
           <View style={styles.heroMeta}>
             <Ionicons
               name="location-outline"
@@ -138,7 +143,7 @@ export default function ItineraryDetail() {
               color="rgba(255,255,255,0.8)"
             />
             <Text style={styles.heroMetaText}>
-              {MOCK_ITINERARY.destinationName}
+              {itinerary.destinationName}
             </Text>
           </View>
         </View>
@@ -151,7 +156,7 @@ export default function ItineraryDetail() {
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Ionicons name="wallet-outline" size={18} color={colors.primary} />
-            <Text style={styles.infoText}>{MOCK_ITINERARY.budget}</Text>
+            <Text style={styles.infoText}>{t(`onboarding.travelStyle.${itinerary.budget}`)}</Text>
           </View>
           <View style={styles.infoItem}>
             <Ionicons
@@ -159,16 +164,16 @@ export default function ItineraryDetail() {
               size={18}
               color={colors.primary}
             />
-            <Text style={styles.infoText}>{MOCK_ITINERARY.createdAt}</Text>
+            <Text style={styles.infoText}>{itinerary.createdAt}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Roteiro diário</Text>
-        {MOCK_ITINERARY.dailyPlan.map((day) => (
+        <Text style={styles.sectionTitle}>{t('itinerary.dailyPlan')}</Text>
+        {itinerary.dailyPlan.map((day) => (
           <View key={day.day} style={styles.dayCard}>
             <View style={styles.dayHeader}>
               <View style={styles.dayBadge}>
-                <Text style={styles.dayBadgeText}>Dia {day.day}</Text>
+                <Text style={styles.dayBadgeText}>{t('itinerary.day', { number: day.day })}</Text>
               </View>
               <Text style={styles.dayTitle}>{day.title}</Text>
             </View>
@@ -181,9 +186,9 @@ export default function ItineraryDetail() {
           </View>
         ))}
 
-        <Text style={styles.sectionTitle}>Restaurantes sugeridos</Text>
+        <Text style={styles.sectionTitle}>{t('itinerary.suggestedRestaurants')}</Text>
         <View style={styles.restaurantsContainer}>
-          {MOCK_ITINERARY.restaurants.map((r, idx) => (
+          {itinerary.restaurants.map((r, idx) => (
             <View key={idx} style={styles.restaurantCard}>
               <View style={styles.restaurantIcon}>
                 <Ionicons
@@ -201,9 +206,9 @@ export default function ItineraryDetail() {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Checklist</Text>
+        <Text style={styles.sectionTitle}>{t('itinerary.checklist')}</Text>
         <View style={styles.checklistContainer}>
-          {MOCK_ITINERARY.checklist.map((item, idx) => (
+          {itinerary.checklist.map((item, idx) => (
             <View key={idx} style={styles.checklistItem}>
               <View style={[styles.checkbox, item.done && styles.checkboxDone]}>
                 {item.done && (
@@ -226,7 +231,7 @@ export default function ItineraryDetail() {
       </ScrollView>
 
       <ShareItinerarySheet
-        itinerary={showShareSheet ? MOCK_ITINERARY : null}
+        itinerary={showShareSheet ? itinerary : null}
         onClose={() => setShowShareSheet(false)}
         onShareToChat={() => {
           // TODO: Implementar navegação para chat interno

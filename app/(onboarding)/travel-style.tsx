@@ -9,54 +9,64 @@ import {
 } from 'react-native';
 import { useState, useRef } from 'react';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import Button from '../../components/Button';
 import { useOnboarding } from '../../context/OnboardingContext';
 
-type Option = 'Econômico' | 'Moderado' | 'Luxo';
-type Pace = 'Tranquilo' | 'Equilibrado' | 'Intenso';
+type Option = 'economic' | 'moderate' | 'luxury';
+type Pace = 'relaxed' | 'balanced' | 'intense';
 
 interface BudgetOption {
-  value: Option;
-  description: string;
+  id: Option;
+  labelKey: string;
+  descKey: string;
 }
 
 interface PaceOption {
-  value: Pace;
-  description: string;
+  id: Pace;
+  labelKey: string;
+  descKey: string;
 }
 
 const budgetOptions: BudgetOption[] = [
   {
-    value: 'Econômico',
-    description: 'Viagem com foco em economia',
+    id: 'economic',
+    labelKey: 'onboarding.travelStyle.economic',
+    descKey: 'onboarding.travelStyle.economicDesc',
   },
   {
-    value: 'Moderado',
-    description: 'Equilíbrio entre custo e conforto',
+    id: 'moderate',
+    labelKey: 'onboarding.travelStyle.moderate',
+    descKey: 'onboarding.travelStyle.moderateDesc',
   },
   {
-    value: 'Luxo',
-    description: 'Experiências premium e exclusivas',
+    id: 'luxury',
+    labelKey: 'onboarding.travelStyle.luxury',
+    descKey: 'onboarding.travelStyle.luxuryDesc',
   },
 ];
 
 const paceOptions: PaceOption[] = [
   {
-    value: 'Tranquilo',
-    description: 'Mais tempo para relaxar',
+    id: 'relaxed',
+    labelKey: 'onboarding.travelStyle.relaxed',
+    descKey: 'onboarding.travelStyle.relaxedDesc',
   },
   {
-    value: 'Equilibrado',
-    description: 'Mix de atividades e descanso',
+    id: 'balanced',
+    labelKey: 'onboarding.travelStyle.balanced',
+    descKey: 'onboarding.travelStyle.balancedDesc',
   },
   {
-    value: 'Intenso',
-    description: 'Muitas atividades e aventuras',
+    id: 'intense',
+    labelKey: 'onboarding.travelStyle.intense',
+    descKey: 'onboarding.travelStyle.intenseDesc',
   },
 ];
 
 export default function TravelStyle() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { setBudget, setPace } = useOnboarding();
 
@@ -115,17 +125,17 @@ export default function TravelStyle() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Seu estilo de viagem</Text>
+        <Text style={styles.title}>{t('onboarding.travelStyle.title')}</Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Orçamento</Text>
+          <Text style={styles.sectionTitle}>{t('onboarding.travelStyle.budgetSection')}</Text>
           <View style={styles.optionsContainer}>
             {budgetOptions.map((option) => {
-              const active = budget === option.value;
+              const active = budget === option.id;
               return (
                 <Pressable
-                  key={option.value}
-                  onPress={() => handleBudgetSelect(option.value)}
+                  key={option.id}
+                  onPress={() => handleBudgetSelect(option.id)}
                   style={[styles.optionCard, active && styles.optionCardActive]}
                 >
                   <View style={styles.optionContent}>
@@ -135,7 +145,7 @@ export default function TravelStyle() {
                         active && styles.optionTitleActive,
                       ]}
                     >
-                      {option.value}
+                      {t(option.labelKey)}
                     </Text>
                     <Text
                       style={[
@@ -143,7 +153,7 @@ export default function TravelStyle() {
                         active && styles.optionDescriptionActive,
                       ]}
                     >
-                      {option.description}
+                      {t(option.descKey)}
                     </Text>
                   </View>
                   {active && <View style={styles.activeIndicator} />}
@@ -154,14 +164,14 @@ export default function TravelStyle() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ritmo</Text>
+          <Text style={styles.sectionTitle}>{t('onboarding.travelStyle.paceSection')}</Text>
           <View style={styles.optionsContainer}>
             {paceOptions.map((option) => {
-              const active = pace === option.value;
+              const active = pace === option.id;
               return (
                 <Pressable
-                  key={option.value}
-                  onPress={() => handlePaceSelect(option.value)}
+                  key={option.id}
+                  onPress={() => handlePaceSelect(option.id)}
                   style={[styles.optionCard, active && styles.optionCardActive]}
                 >
                   <View style={styles.optionContent}>
@@ -171,7 +181,7 @@ export default function TravelStyle() {
                         active && styles.optionTitleActive,
                       ]}
                     >
-                      {option.value}
+                      {t(option.labelKey)}
                     </Text>
                     <Text
                       style={[
@@ -179,7 +189,7 @@ export default function TravelStyle() {
                         active && styles.optionDescriptionActive,
                       ]}
                     >
-                      {option.description}
+                      {t(option.descKey)}
                     </Text>
                   </View>
                   {active && <View style={styles.activeIndicator} />}
@@ -197,13 +207,13 @@ export default function TravelStyle() {
             ]}
           >
             <Text style={styles.errorText}>
-              Selecione o orçamento e o ritmo para continuar
+              {t('onboarding.travelStyle.errorSelectBoth')}
             </Text>
           </Animated.View>
         )}
 
         <View style={styles.actions}>
-          <Button title="Continuar" onPress={handleContinue} />
+          <Button title={t('common.continue')} onPress={handleContinue} />
         </View>
       </ScrollView>
     </SafeAreaView>

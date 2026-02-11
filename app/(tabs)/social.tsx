@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Animated,
@@ -56,6 +57,7 @@ function StoryBubble({
 
 export default function Social() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { currentUser } = useUser();
   const {
     posts: allPosts,
@@ -192,12 +194,12 @@ export default function Social() {
     setSelectedPostForActions(null);
 
     Alert.alert(
-      'Excluir publicação',
-      'Tem certeza que deseja excluir esta publicação?',
+      t('tabs.social.deletePostTitle'),
+      t('tabs.social.deletePostMessage'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Excluir',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             deletePostContext(postId);
@@ -213,9 +215,9 @@ export default function Social() {
     setSelectedPostForActions(null);
 
     Alert.alert(
-      'Denúncia enviada',
-      'Obrigado por nos ajudar a manter a comunidade segura. Analisaremos sua denúncia em breve.',
-      [{ text: 'OK' }],
+      t('tabs.social.reportSent'),
+      t('tabs.social.reportMessage'),
+      [{ text: t('common.ok') }],
     );
   }
 
@@ -233,7 +235,7 @@ export default function Social() {
       comments: 0,
       liked: false,
       saved: false,
-      time: 'agora',
+      time: t('common.now'),
       createdAt: new Date().toISOString(),
       allowComments: true,
       hideLikes: false,
@@ -242,7 +244,7 @@ export default function Social() {
     addPostContext(newPost);
     setCreateSheetVisible(false);
 
-    Alert.alert('Sucesso', 'Sua publicação foi criada!');
+    Alert.alert(t('common.success'), t('tabs.social.postCreatedSuccess'));
   }
 
   function handleCreateStory(image: any) {
@@ -258,7 +260,7 @@ export default function Social() {
     });
     setCreateSheetVisible(false);
 
-    Alert.alert('Sucesso', 'Seu story foi publicado!');
+    Alert.alert(t('common.success'), t('tabs.social.storyPublished'));
   }
 
   function renderPost({ item }: { item: Post }) {
@@ -373,7 +375,7 @@ export default function Social() {
         </View>
 
         <Pressable onPress={() => setSelectedPostForLikes(item.id)}>
-          <Text style={styles.postLikes}>{item.likes} curtidas</Text>
+          <Text style={styles.postLikes}>{item.likes} {t('tabs.social.likes')}</Text>
         </Pressable>
 
         <Text style={styles.postCaption}>
@@ -383,11 +385,11 @@ export default function Social() {
 
         <Pressable onPress={() => setSelectedPost(item)}>
           <Text style={styles.postCommentsLink}>
-            Ver todos os {item.comments} comentários
+            {t('tabs.social.viewAllComments', { count: item.comments })}
           </Text>
         </Pressable>
 
-        <Text style={styles.postTime}>{item.time} atrás</Text>
+        <Text style={styles.postTime}>{t('common.timeAgo', { time: item.time })}</Text>
       </View>
     );
   }
@@ -395,7 +397,7 @@ export default function Social() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>Social</Text>
+        <Text style={styles.topBarTitle}>{t('tabs.social.title')}</Text>
         <View style={styles.topBarActions}>
           <Pressable onPress={() => router.push('/search' as any)}>
             <Ionicons name="search-outline" size={24} color={colors.text} />

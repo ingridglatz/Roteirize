@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Modal,
@@ -88,6 +89,7 @@ export default function PostActionsSheet({
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   if (!post) return null;
 
@@ -96,12 +98,12 @@ export default function PostActionsSheet({
   function handleUnfollow() {
     if (!post) return;
     Alert.alert(
-      'Deixar de seguir',
-      `Tem certeza que deseja deixar de seguir @${post.username}?`,
+      t('post.unfollow'),
+      t('post.unfollowConfirm', { username: post.username }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Deixar de seguir',
+          text: t('post.unfollow'),
           style: 'destructive',
           onPress: () => {
             if (!post) return;
@@ -116,18 +118,18 @@ export default function PostActionsSheet({
   function handleBlock() {
     if (!post) return;
     Alert.alert(
-      'Bloquear usuário',
-      `Tem certeza que deseja bloquear @${post.username}?`,
+      t('post.blockUser'),
+      t('post.blockConfirm', { username: post.username }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Bloquear',
+          text: t('common.block'),
           style: 'destructive',
           onPress: () => {
             if (!post) return;
             blockUser(post.userId);
             onClose();
-            Alert.alert('Bloqueado', 'Usuário bloqueado com sucesso');
+            Alert.alert(t('post.blocked'), t('post.userBlocked'));
           },
         },
       ],
@@ -139,10 +141,10 @@ export default function PostActionsSheet({
     updatePost(post.id, { allowComments: !post.allowComments });
     onClose();
     Alert.alert(
-      post.allowComments ? 'Comentários desativados' : 'Comentários ativados',
+      post.allowComments ? t('post.commentsDisabled') : t('post.commentsEnabled'),
       post.allowComments
-        ? 'As pessoas não poderão mais comentar nesta publicação'
-        : 'As pessoas podem comentar nesta publicação novamente',
+        ? t('post.commentsDisabledMsg')
+        : t('post.commentsEnabledMsg'),
     );
   }
 
@@ -151,10 +153,10 @@ export default function PostActionsSheet({
     updatePost(post.id, { hideLikes: !post.hideLikes });
     onClose();
     Alert.alert(
-      post.hideLikes ? 'Curtidas visíveis' : 'Curtidas ocultas',
+      post.hideLikes ? t('post.likesVisible') : t('post.likesHidden'),
       post.hideLikes
-        ? 'O número de curtidas está visível novamente'
-        : 'O número de curtidas foi ocultado',
+        ? t('post.likesVisibleMsg')
+        : t('post.likesHiddenMsg'),
     );
   }
 
@@ -162,7 +164,7 @@ export default function PostActionsSheet({
     if (!post) return;
     try {
       await Share.share({
-        message: `Confira esta publicação de @${post.username}: roteirize://post/${post.id}`,
+        message: t('post.shareMessage', { username: post.username, postId: post.id }),
       });
       onClose();
     } catch (error) {
@@ -172,8 +174,8 @@ export default function PostActionsSheet({
 
   function handleCopyLink() {
     Alert.alert(
-      'Link copiado',
-      'O link foi copiado para a área de transferência',
+      t('post.linkCopied'),
+      t('post.linkCopiedMsg'),
     );
     onClose();
   }
@@ -186,18 +188,18 @@ export default function PostActionsSheet({
 
   function handleNotInterested() {
     Alert.alert(
-      'Não tenho interesse',
-      'Vamos mostrar menos publicações como esta.',
-      [{ text: 'OK', onPress: onClose }],
+      t('post.notInterested'),
+      t('post.notInterestedMsg'),
+      [{ text: t('common.ok'), onPress: onClose }],
     );
   }
 
   function handleWhySeeing() {
     if (!post) return;
     Alert.alert(
-      'Por que estou vendo isto?',
-      `Você está vendo esta publicação porque segue @${post.username} e interage com conteúdo similar.`,
-      [{ text: 'OK' }],
+      t('post.whySeeingThis'),
+      t('post.whySeeingMsg', { username: post.username }),
+      [{ text: t('common.ok') }],
     );
   }
 
@@ -214,7 +216,7 @@ export default function PostActionsSheet({
               <>
                 <ActionButton colors={colors} styles={styles}
                   icon="create-outline"
-                  label="Editar publicação"
+                  label={t('post.editPost')}
                   onPress={onEdit}
                 />
                 <ActionButton colors={colors} styles={styles}
@@ -225,8 +227,8 @@ export default function PostActionsSheet({
                   }
                   label={
                     post.allowComments
-                      ? 'Desativar comentários'
-                      : 'Ativar comentários'
+                      ? t('post.disableComments')
+                      : t('post.enableComments')
                   }
                   onPress={handleToggleComments}
                 />
@@ -234,24 +236,24 @@ export default function PostActionsSheet({
                   icon={post.hideLikes ? 'eye-outline' : 'eye-off-outline'}
                   label={
                     post.hideLikes
-                      ? 'Mostrar contagem de curtidas'
-                      : 'Ocultar contagem de curtidas'
+                      ? t('post.showLikeCount')
+                      : t('post.hideLikeCount')
                   }
                   onPress={handleToggleLikesVisibility}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="share-outline"
-                  label="Compartilhar para..."
+                  label={t('post.shareTo')}
                   onPress={handleShareLink}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="link-outline"
-                  label="Copiar link"
+                  label={t('post.copyLink')}
                   onPress={handleCopyLink}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="trash-outline"
-                  label="Excluir publicação"
+                  label={t('post.deletePost')}
                   onPress={onDelete}
                   destructive
                 />
@@ -260,64 +262,64 @@ export default function PostActionsSheet({
               <>
                 <ActionButton colors={colors} styles={styles}
                   icon="share-outline"
-                  label="Compartilhar para..."
+                  label={t('post.shareTo')}
                   onPress={handleShareLink}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="link-outline"
-                  label="Copiar link"
+                  label={t('post.copyLink')}
                   onPress={handleCopyLink}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="qr-code-outline"
-                  label="Código QR"
+                  label={t('post.qrCode')}
                   onPress={() => {
                     Alert.alert(
-                      'Código QR',
-                      'Funcionalidade em desenvolvimento',
+                      t('post.qrCode'),
+                      t('post.inDevelopment'),
                     );
                     onClose();
                   }}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="person-outline"
-                  label="Sobre esta conta"
+                  label={t('post.aboutAccount')}
                   onPress={handleViewProfile}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="information-circle-outline"
-                  label="Por que estou vendo isto?"
+                  label={t('post.whySeeingThis')}
                   onPress={handleWhySeeing}
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="eye-off-outline"
-                  label="Não tenho interesse"
+                  label={t('post.notInterested')}
                   onPress={handleNotInterested}
                 />
                 {following && (
                   <ActionButton colors={colors} styles={styles}
                     icon="person-remove-outline"
-                    label="Deixar de seguir"
+                    label={t('post.unfollow')}
                     onPress={handleUnfollow}
                     destructive
                   />
                 )}
                 <ActionButton colors={colors} styles={styles}
                   icon="ban-outline"
-                  label="Bloquear"
+                  label={t('common.block')}
                   onPress={handleBlock}
                   destructive
                 />
                 <ActionButton colors={colors} styles={styles}
                   icon="flag-outline"
-                  label="Denunciar"
+                  label={t('common.report')}
                   onPress={onReport}
                   destructive
                 />
               </>
             )}
 
-            <ActionButton icon="close" label="Cancelar" onPress={onClose} colors={colors} styles={styles} />
+            <ActionButton icon="close" label={t('common.cancel')} onPress={onClose} colors={colors} styles={styles} />
           </View>
         </Pressable>
       </Pressable>

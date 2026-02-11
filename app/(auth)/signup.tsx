@@ -3,12 +3,14 @@ import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { colors } from '../../theme/colors';
 
 export default function Signup() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,34 +38,34 @@ export default function Signup() {
                 color={colors.primary}
               />
             </View>
-            <Text style={styles.title}>Criar conta</Text>
+            <Text style={styles.title}>{t('auth.signup.title')}</Text>
             <Text style={styles.subtitle}>
-              Preencha os dados para começar sua jornada
+              {t('auth.signup.subtitle')}
             </Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              placeholder="Nome completo"
+              placeholder={t('auth.signup.fullName')}
               value={name}
               onChangeText={setName}
               icon="account-outline"
             />
             <Input
-              placeholder="Email"
+              placeholder={t('auth.signup.email')}
               value={email}
               onChangeText={setEmail}
               icon="email-outline"
             />
             <Input
-              placeholder="Senha"
+              placeholder={t('auth.signup.password')}
               secureTextEntry
               value={password}
               onChangeText={setPassword}
               icon="lock-outline"
             />
             <Input
-              placeholder="Confirmar senha"
+              placeholder={t('auth.signup.confirmPassword')}
               secureTextEntry
               value={confirmPassword}
               onChangeText={setConfirmPassword}
@@ -72,9 +74,9 @@ export default function Signup() {
           </View>
 
           <View style={styles.actions}>
-            <Button title="Criar conta" onPress={handleSignup} />
+            <Button title={t('auth.signup.createAccount')} onPress={handleSignup} />
             <Text style={styles.back} onPress={() => router.back()}>
-              Voltar
+              {t('common.back')}
             </Text>
           </View>
         </ScrollView>

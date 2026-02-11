@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Dimensions,
@@ -35,19 +36,19 @@ function EmptyState({
   colors: any;
   styles: any;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIcon}>
         <Ionicons name="map-outline" size={48} color={colors.muted} />
       </View>
-      <Text style={styles.emptyTitle}>Nenhum roteiro ainda</Text>
+      <Text style={styles.emptyTitle}>{t('tabs.roteiros.emptyTitle')}</Text>
       <Text style={styles.emptyText}>
-        Crie seu primeiro roteiro personalizado e comece a planejar sua proxima
-        aventura!
+        {t('tabs.roteiros.emptyText')}
       </Text>
       <Pressable style={styles.emptyButton} onPress={onPress}>
         <Ionicons name="add" size={20} color="#fff" />
-        <Text style={styles.emptyButtonText}>Criar roteiro</Text>
+        <Text style={styles.emptyButtonText}>{t('tabs.roteiros.createButton')}</Text>
       </Pressable>
     </View>
   );
@@ -64,6 +65,7 @@ function ItineraryCard({
   onDelete: () => void;
   styles: ReturnType<typeof createStyles>;
 }) {
+  const { t } = useTranslation();
   const image =
     DESTINATION_IMAGES[item.destinationId] || DESTINATION_IMAGES.ubatuba;
   const places = item.dailyPlan.flatMap((day) => day.places).filter(Boolean);
@@ -74,7 +76,7 @@ function ItineraryCard({
       <View style={styles.cardGradient} />
       <View style={styles.cardContent}>
         <View style={styles.cardBadge}>
-          <Text style={styles.cardBadgeText}>{item.days} dias</Text>
+          <Text style={styles.cardBadgeText}>{item.days} {t('common.days')}</Text>
         </View>
         <Text style={styles.cardTitle}>{item.title}</Text>
         <View style={styles.cardMeta}>
@@ -108,6 +110,7 @@ function ItineraryCard({
 
 export default function Roteiros() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { roteiros, deleteRoteiro } = useRoteiros();
   const { theme } = useTheme();
   const colors = getColors(theme);
@@ -123,12 +126,12 @@ export default function Roteiros() {
 
   function handleDelete(id: string) {
     Alert.alert(
-      'Excluir roteiro',
-      'Tem certeza que deseja excluir este roteiro?',
+      t('tabs.roteiros.deleteTitle'),
+      t('tabs.roteiros.deleteMessage'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Excluir',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             deleteRoteiro(id);
@@ -141,10 +144,9 @@ export default function Roteiros() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Meus Roteiros</Text>
+        <Text style={styles.headerTitle}>{t('tabs.roteiros.title')}</Text>
         <Text style={styles.headerSubtitle}>
-          {roteiros.length} roteiro{roteiros.length !== 1 ? 's' : ''} criado
-          {roteiros.length !== 1 ? 's' : ''}
+          {t('tabs.roteiros.subtitle', { count: roteiros.length })}
         </Text>
       </View>
 

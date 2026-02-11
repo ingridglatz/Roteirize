@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dimensions,
   Image,
@@ -24,6 +25,7 @@ export default function PlaceDetails() {
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const { t } = useTranslation();
   const place = slug ? getPlaceBySlug(slug) : null;
 
   if (!place) {
@@ -31,9 +33,9 @@ export default function PlaceDetails() {
       <SafeAreaView style={styles.safe}>
         <View style={styles.notFound}>
           <Ionicons name="compass-outline" size={56} color={colors.disabled} />
-          <Text style={styles.notFoundText}>Lugar não encontrado</Text>
+          <Text style={styles.notFoundText}>{t('place.notFound')}</Text>
           <Pressable style={styles.notFoundBtn} onPress={() => router.back()}>
-            <Text style={styles.notFoundBtnText}>Voltar</Text>
+            <Text style={styles.notFoundBtnText}>{t('common.back')}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -91,7 +93,7 @@ export default function PlaceDetails() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Curiosidades</Text>
+          <Text style={styles.sectionTitle}>{t('place.curiosities')}</Text>
           {place.curiosities.map((item, idx) => (
             <View key={idx} style={styles.curiosityCard}>
               <Text style={styles.curiosityEmoji}>{item.emoji}</Text>
@@ -102,7 +104,7 @@ export default function PlaceDetails() {
 
         {/* Activities */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>O que fazer</Text>
+          <Text style={styles.sectionTitle}>{t('place.whatToDo')}</Text>
           <View style={styles.activitiesGrid}>
             {place.activities.map((activity, idx) => (
               <View key={idx} style={styles.activityCard}>
@@ -121,7 +123,7 @@ export default function PlaceDetails() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dicas</Text>
+          <Text style={styles.sectionTitle}>{t('place.tips')}</Text>
           {place.tips.map((tip, idx) => (
             <View key={idx} style={styles.tipRow}>
               <View style={styles.tipIconCircle}>
@@ -142,7 +144,7 @@ export default function PlaceDetails() {
             onPress={() => router.push('/(tabs)/create')}
           >
             <Ionicons name="sparkles" size={20} color="#fff" />
-            <Text style={styles.ctaText}>Criar roteiro com este lugar</Text>
+            <Text style={styles.ctaText}>{t('place.createItinerary')}</Text>
           </Pressable>
         </View>
 

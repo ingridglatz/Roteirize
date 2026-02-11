@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 type Days = number | null;
-type Budget = 'Econômico' | 'Moderado' | 'Luxo' | null;
-type Pace = 'Tranquilo' | 'Equilibrado' | 'Intenso' | null;
+type Budget = 'economic' | 'moderate' | 'luxury' | null;
+type Pace = 'relaxed' | 'balanced' | 'intense' | null;
 
 type OnboardingState = {
   interests: string[];

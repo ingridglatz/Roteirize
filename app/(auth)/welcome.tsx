@@ -4,11 +4,13 @@ import { View, Text, StyleSheet, Image, Animated } from 'react-native';
 import { Link, Href, router } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import Button from '../../components/Button';
 import { colors } from '../../theme/colors';
 import Journey from '../../assets/images/Journey.png';
 
 export default function Welcome() {
+  const { t } = useTranslation();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
@@ -84,13 +86,12 @@ export default function Welcome() {
           ]}
         >
           <View style={styles.titleContainer}>
-            <Text style={styles.title}>Descubra. Planeje. Viva.</Text>
+            <Text style={styles.title}>{t('auth.welcome.tagline')}</Text>
             <View style={styles.titleUnderline} />
           </View>
 
           <Text style={styles.subtitle}>
-            Crie roteiros de viagens personalizados em minutos e aproveite cada
-            momento.
+            {t('auth.welcome.subtitle')}
           </Text>
 
           <View style={styles.features}>
@@ -102,7 +103,7 @@ export default function Welcome() {
                   color={colors.primary}
                 />
               </View>
-              <Text style={styles.featureText}>Roteiros inteligentes</Text>
+              <Text style={styles.featureText}>{t('auth.welcome.smartItineraries')}</Text>
             </View>
 
             <View style={styles.feature}>
@@ -113,7 +114,7 @@ export default function Welcome() {
                   color={colors.primary}
                 />
               </View>
-              <Text style={styles.featureText}>Economize tempo</Text>
+              <Text style={styles.featureText}>{t('auth.welcome.saveTime')}</Text>
             </View>
 
             <View style={styles.feature}>
@@ -124,7 +125,7 @@ export default function Welcome() {
                   color={colors.primary}
                 />
               </View>
-              <Text style={styles.featureText}>Personalizado para você</Text>
+              <Text style={styles.featureText}>{t('auth.welcome.personalizedForYou')}</Text>
             </View>
           </View>
         </Animated.View>
@@ -139,11 +140,11 @@ export default function Welcome() {
           ]}
         >
           <Button
-            title="Começar agora"
+            title={t('auth.welcome.startNow')}
             onPress={() => router.push('/(auth)/signup')}
           />
           <Link href={'/(auth)/login' as Href} style={styles.link}>
-            Já tenho uma conta
+            {t('auth.welcome.haveAccount')}
           </Link>
         </Animated.View>
       </SafeAreaView>

@@ -7,7 +7,7 @@ export const MOCK_ITINERARIES: Itinerary[] = [
     destinationId: 'ubatuba',
     destinationName: 'Ubatuba, Brasil',
     days: 3,
-    budget: 'Moderado',
+    budget: 'moderate',
     interests: ['Praias', 'Natureza'],
 
     dailyPlan: [

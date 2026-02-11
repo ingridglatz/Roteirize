@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   FlatList,
   Pressable,
@@ -24,6 +25,7 @@ export default function SearchScreen() {
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -71,7 +73,7 @@ export default function SearchScreen() {
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Buscar usuários"
+            placeholder={t('search.searchUsers')}
             placeholderTextColor={colors.muted}
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -126,9 +128,9 @@ export default function SearchScreen() {
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={64} color={colors.muted} />
-              <Text style={styles.emptyTitle}>Nenhum resultado</Text>
+              <Text style={styles.emptyTitle}>{t('search.noResults')}</Text>
               <Text style={styles.emptyText}>
-                Tente buscar por outro nome ou usuário
+                {t('search.trySearching')}
               </Text>
             </View>
           }
@@ -138,9 +140,9 @@ export default function SearchScreen() {
           {recentUsers.length > 0 && (
             <>
               <View style={styles.recentHeader}>
-                <Text style={styles.recentTitle}>Recentes</Text>
+                <Text style={styles.recentTitle}>{t('search.recent')}</Text>
                 <Pressable onPress={clearRecentSearches}>
-                  <Text style={styles.clearText}>Limpar tudo</Text>
+                  <Text style={styles.clearText}>{t('search.clearAll')}</Text>
                 </Pressable>
               </View>
               <FlatList
@@ -189,9 +191,9 @@ export default function SearchScreen() {
           {recentUsers.length === 0 && (
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={64} color={colors.muted} />
-              <Text style={styles.emptyTitle}>Buscar pessoas</Text>
+              <Text style={styles.emptyTitle}>{t('search.searchPeople')}</Text>
               <Text style={styles.emptyText}>
-                Encontre e siga pessoas para ver suas publicações
+                {t('search.findPeople')}
               </Text>
             </View>
           )}

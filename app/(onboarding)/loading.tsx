@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 
 const REDIRECT_DELAY_MS = 3000;
 
 export default function Loading() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export default function Loading() {
         />
 
         <Text style={styles.title}>
-          Estamos criando a viagem{'\n'}dos seus sonhos...
+          {t('onboarding.loading.title')}
         </Text>
 
         <ActivityIndicator

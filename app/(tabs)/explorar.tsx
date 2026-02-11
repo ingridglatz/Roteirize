@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dimensions,
   Image,
@@ -19,84 +20,8 @@ import { useTheme } from '../../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
-const DESTINATION = {
-  name: 'Ubatuba',
-  fullName: 'Ubatuba, Brasil',
-  tagline: 'Litoral norte de Sao Paulo',
-  description:
-    'Mais de 100 praias, trilhas na Mata Atlântica e diversas ilhas paradisíacas.',
-  whyVisit: [
-    {
-      icon: 'leaf-outline',
-      title: 'Natureza preservada',
-      text: 'Praias cercadas por Mata Atlântica, cachoeiras escondidas e trilhas com vistas incriveis.',
-    },
-    {
-      icon: 'restaurant-outline',
-      title: 'Gastronomia caiçara',
-      text: 'Frutos do mar frescos servidos pé-na-areia por comunidades tradicionais de pescadores.',
-    },
-    {
-      icon: 'compass-outline',
-      title: 'Aventura para todos',
-      text: 'Do surf em ondas fortes ao mergulho em águas cristalinas, há atividades para todos os perfis.',
-    },
-  ],
-  curiosities: [
-    {
-      emoji: '🏖️',
-      text: 'Ubatuba tem mais de 100 praias catalogadas, muitas acessíveis apenas por trilha ou barco.',
-    },
-    {
-      emoji: '🐢',
-      text: 'A cidade abriga o Projeto Tamar, referência na conservação de tartarugas marinhas no Brasil.',
-    },
-    {
-      emoji: '🌧️',
-      text: 'E conhecida como "Ubachuva" pela alta umidade, mas isso mantem a mata sempre verde e exuberante.',
-    },
-  ],
-  image: require('../../assets/images/ubatuba.jpg'),
-};
-
-const NOTIFICATIONS = [
-  {
-    id: '1',
-    type: 'trip',
-    title: 'Roteiro confirmado!',
-    message: 'Seu roteiro para Ubatuba está pronto para ser explorado.',
-    time: '2h atrás',
-    read: false,
-    icon: 'checkmark-circle',
-  },
-  {
-    id: '2',
-    type: 'recommendation',
-    title: 'Nova recomendação',
-    message: 'Descobrimos novos lugares em Ubatuba que combinam com você.',
-    time: '5h atrás',
-    read: false,
-    icon: 'sparkles',
-  },
-  {
-    id: '3',
-    type: 'reminder',
-    title: 'Não esqueça!',
-    message: 'Sua viagem começa em 3 dias. Já fez o check-in?',
-    time: '1d atrás',
-    read: true,
-    icon: 'calendar',
-  },
-  {
-    id: '4',
-    type: 'update',
-    title: 'Atualização de clima',
-    message: 'Previsão de sol para o final de semana em Ubatuba.',
-    time: '2d atrás',
-    read: true,
-    icon: 'sunny',
-  },
-];
+const DESTINATION_IMAGE = require('../../assets/images/ubatuba.jpg');
+const DESTINATION_NAME = 'Ubatuba';
 
 function HighlightCard({
   item,
@@ -128,10 +53,88 @@ function HighlightCard({
 
 export default function Explorar() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [notificationsVisible, setNotificationsVisible] = useState(false);
+
+  const destination = useMemo(
+    () => ({
+      name: DESTINATION_NAME,
+      fullName: t('tabs.explorar.destinationFullName'),
+      tagline: t('tabs.explorar.destinationTagline'),
+      description: t('tabs.explorar.destinationDescription'),
+      whyVisit: [
+        {
+          icon: 'leaf-outline',
+          title: t('tabs.explorar.whyNatureTitle'),
+          text: t('tabs.explorar.whyNatureText'),
+        },
+        {
+          icon: 'restaurant-outline',
+          title: t('tabs.explorar.whyGastronomyTitle'),
+          text: t('tabs.explorar.whyGastronomyText'),
+        },
+        {
+          icon: 'compass-outline',
+          title: t('tabs.explorar.whyAdventureTitle'),
+          text: t('tabs.explorar.whyAdventureText'),
+        },
+      ],
+      curiosities: [
+        { emoji: '🏖️', text: t('tabs.explorar.curiosityBeaches') },
+        { emoji: '🐢', text: t('tabs.explorar.curiosityTamar') },
+        { emoji: '🌧️', text: t('tabs.explorar.curiosityRain') },
+      ],
+      image: DESTINATION_IMAGE,
+    }),
+    [t],
+  );
+
+  const notifications = useMemo(
+    () => [
+      {
+        id: '1',
+        type: 'trip',
+        title: t('tabs.explorar.notifTripTitle'),
+        message: t('tabs.explorar.notifTripMessage'),
+        time: t('common.timeAgo', { time: '2h' }),
+        read: false,
+        icon: 'checkmark-circle',
+      },
+      {
+        id: '2',
+        type: 'recommendation',
+        title: t('tabs.explorar.notifRecommendTitle'),
+        message: t('tabs.explorar.notifRecommendMessage'),
+        time: t('common.timeAgo', { time: '5h' }),
+        read: false,
+        icon: 'sparkles',
+      },
+      {
+        id: '3',
+        type: 'reminder',
+        title: t('tabs.explorar.notifReminderTitle'),
+        message: t('tabs.explorar.notifReminderMessage'),
+        time: t('common.timeAgo', { time: '1d' }),
+        read: true,
+        icon: 'calendar',
+      },
+      {
+        id: '4',
+        type: 'update',
+        title: t('tabs.explorar.notifWeatherTitle'),
+        message: t('tabs.explorar.notifWeatherMessage'),
+        time: t('common.timeAgo', { time: '2d' }),
+        read: true,
+        icon: 'sunny',
+      },
+    ],
+    [t],
+  );
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleHighlightPress = useCallback(
     (slug: string) => {
@@ -148,8 +151,6 @@ export default function Explorar() {
     setNotificationsVisible((prev) => !prev);
   }, []);
 
-  const unreadCount = NOTIFICATIONS.filter((n) => !n.read).length;
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <Modal
@@ -164,14 +165,14 @@ export default function Explorar() {
             onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Notificações</Text>
+              <Text style={styles.modalTitle}>{t('tabs.explorar.notifications')}</Text>
               <Pressable onPress={toggleNotifications}>
                 <Ionicons name="close" size={24} color={colors.text} />
               </Pressable>
             </View>
 
             <ScrollView style={styles.notificationsList}>
-              {NOTIFICATIONS.map((notification) => (
+              {notifications.map((notification) => (
                 <Pressable
                   key={notification.id}
                   style={[
@@ -215,7 +216,7 @@ export default function Explorar() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Explorar</Text>
+          <Text style={styles.headerTitle}>{t('tabs.explorar.title')}</Text>
           <Pressable
             onPress={toggleNotifications}
             style={styles.notificationButton}
@@ -237,22 +238,22 @@ export default function Explorar() {
           <Ionicons name="search" size={20} color={colors.muted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Para onde voce quer ir?"
+            placeholder={t('tabs.explorar.searchPlaceholder')}
             placeholderTextColor={colors.muted}
           />
         </View>
 
         <View style={styles.heroContainer}>
-          <Image source={DESTINATION.image} style={styles.hero} />
+          <Image source={destination.image} style={styles.hero} />
           <View style={styles.heroGradient} />
           <View style={styles.heroContent}>
-            <Text style={styles.heroTagline}>{DESTINATION.tagline}</Text>
-            <Text style={styles.heroTitle}>{DESTINATION.fullName}</Text>
-            <Text style={styles.heroDesc}>{DESTINATION.description}</Text>
+            <Text style={styles.heroTagline}>{destination.tagline}</Text>
+            <Text style={styles.heroTitle}>{destination.fullName}</Text>
+            <Text style={styles.heroDesc}>{destination.description}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Destaques</Text>
+        <Text style={styles.sectionTitle}>{t('tabs.explorar.highlights')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -268,9 +269,9 @@ export default function Explorar() {
           ))}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Você sabia?</Text>
+        <Text style={styles.sectionTitle}>{t('tabs.explorar.didYouKnow')}</Text>
         <View style={styles.sectionContent}>
-          {DESTINATION.curiosities.map((item, idx) => (
+          {destination.curiosities.map((item, idx) => (
             <View key={idx} style={styles.curiosityRow}>
               <Text style={styles.curiosityEmoji}>{item.emoji}</Text>
               <Text style={styles.curiosityText}>{item.text}</Text>
@@ -278,7 +279,7 @@ export default function Explorar() {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>O que fazer</Text>
+        <Text style={styles.sectionTitle}>{t('tabs.explorar.whatToDo')}</Text>
         <View style={styles.sectionContent}>
           {PLACES_DATA.map((place) => (
             <Pressable
@@ -298,9 +299,9 @@ export default function Explorar() {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Por que visitar</Text>
+        <Text style={styles.sectionTitle}>{t('tabs.explorar.whyVisit')}</Text>
         <View style={styles.sectionContent}>
-          {DESTINATION.whyVisit.map((item, idx) => (
+          {destination.whyVisit.map((item, idx) => (
             <View key={idx} style={styles.reasonCard}>
               <View style={styles.reasonIconCircle}>
                 <Ionicons
@@ -320,7 +321,7 @@ export default function Explorar() {
         <Pressable style={styles.ctaButton} onPress={handleCreateTrip}>
           <Ionicons name="sparkles" size={18} color="#fff" />
           <Text style={styles.ctaText}>
-            Criar roteiro para {DESTINATION.name}
+            {t('tabs.explorar.createItinerary', { destination: destination.name })}
           </Text>
         </Pressable>
 

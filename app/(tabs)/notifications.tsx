@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import NotificationItem from '../../components/social/NotificationItem';
@@ -13,6 +14,7 @@ type FilterType = 'all' | 'likes' | 'comments' | 'follows';
 
 export default function Notifications() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { notifications, markAsRead, markAllAsRead } = useNotifications();
   const { theme } = useTheme();
   const colors = getColors(theme);
@@ -52,7 +54,7 @@ export default function Notifications() {
           <Pressable onPress={() => router.push('/(tabs)/social')} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color={colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>Notificações</Text>
+          <Text style={styles.headerTitle}>{t('tabs.notifications.title')}</Text>
         </View>
         {notifications.some((n) => !n.read) && (
           <Pressable onPress={markAllAsRead} style={styles.markAllButton}>
@@ -77,7 +79,7 @@ export default function Notifications() {
               activeFilter === 'all' && styles.filterTextActive,
             ]}
           >
-            Todas
+            {t('tabs.notifications.all')}
           </Text>
         </Pressable>
         <Pressable
@@ -93,7 +95,7 @@ export default function Notifications() {
               activeFilter === 'likes' && styles.filterTextActive,
             ]}
           >
-            Curtidas
+            {t('tabs.notifications.likes')}
           </Text>
         </Pressable>
         <Pressable
@@ -109,7 +111,7 @@ export default function Notifications() {
               activeFilter === 'comments' && styles.filterTextActive,
             ]}
           >
-            Comentários
+            {t('tabs.notifications.comments')}
           </Text>
         </Pressable>
         <Pressable
@@ -125,7 +127,7 @@ export default function Notifications() {
               activeFilter === 'follows' && styles.filterTextActive,
             ]}
           >
-            Seguindo
+            {t('tabs.notifications.follows')}
           </Text>
         </Pressable>
       </ScrollView>
@@ -143,7 +145,7 @@ export default function Notifications() {
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="notifications-off-outline" size={64} color={colors.muted} />
-            <Text style={styles.emptyText}>Nenhuma notificação</Text>
+            <Text style={styles.emptyText}>{t('tabs.notifications.empty')}</Text>
           </View>
         }
         contentContainerStyle={styles.listContent}

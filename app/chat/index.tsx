@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   FlatList,
@@ -248,6 +249,7 @@ function UserSearchModal({
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const filteredUsers = searchUsers(searchQuery).filter(
     (user) => user.id !== currentUser.id,
@@ -258,7 +260,7 @@ function UserSearchModal({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Nova mensagem</Text>
+            <Text style={styles.modalTitle}>{t('chat.newMessage')}</Text>
             <Pressable onPress={onClose} hitSlop={12}>
               <Ionicons name="close" size={24} color={colors.text} />
             </Pressable>
@@ -268,7 +270,7 @@ function UserSearchModal({
             <Ionicons name="search" size={20} color={colors.muted} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar usuários..."
+              placeholder={t('chat.searchUsers')}
               placeholderTextColor={colors.muted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -310,7 +312,7 @@ function UserSearchModal({
               </Pressable>
             )}
             ListEmptyComponent={
-              <Text style={styles.emptyText}>Nenhum usuário encontrado</Text>
+              <Text style={styles.emptyText}>{t('chat.noUserFound')}</Text>
             }
           />
         </View>
@@ -328,6 +330,7 @@ export default function ChatScreen() {
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const handleSelectUser = (userId: string) => {
     const existingConv = conversations.find(
@@ -345,19 +348,19 @@ export default function ChatScreen() {
   };
 
   const handleLongPress = (conversation: Conversation) => {
-    Alert.alert('Opções', 'O que deseja fazer com esta conversa?', [
-      { text: 'Cancelar', style: 'cancel' },
+    Alert.alert(t('chat.options'), t('chat.whatToDo'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Deletar conversa',
+        text: t('chat.deleteConversation'),
         style: 'destructive',
         onPress: () => {
           Alert.alert(
-            'Deletar conversa',
-            'Tem certeza que deseja deletar esta conversa? Esta ação não pode ser desfeita.',
+            t('chat.deleteConversation'),
+            t('chat.deleteConversationConfirm'),
             [
-              { text: 'Cancelar', style: 'cancel' },
+              { text: t('common.cancel'), style: 'cancel' },
               {
-                text: 'Deletar',
+                text: t('common.delete'),
                 style: 'destructive',
                 onPress: () => deleteConversation(conversation.id),
               },
@@ -376,22 +379,22 @@ export default function ChatScreen() {
   };
 
   const getLastMessageText = (conversation: Conversation) => {
-    if (!conversation.lastMessage) return 'Sem mensagens';
+    if (!conversation.lastMessage) return t('chat.noMessages');
 
     if (conversation.lastMessage.text) {
       return conversation.lastMessage.text;
     }
     if (conversation.lastMessage.sharedPost) {
-      return '📎 Publicação compartilhada';
+      return t('chat.sharedPost');
     }
     if (conversation.lastMessage.mediaType === 'image') {
-      return '📷 Foto';
+      return t('chat.photo');
     }
     if (conversation.lastMessage.mediaType === 'video') {
-      return '🎥 Vídeo';
+      return t('chat.video');
     }
     if (conversation.lastMessage.mediaType === 'document') {
-      return `📄 ${conversation.lastMessage.mediaName || 'Documento'}`;
+      return `📄 ${conversation.lastMessage.mediaName || t('chat.document')}`;
     }
     return '';
   };
@@ -402,14 +405,14 @@ export default function ChatScreen() {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'agora';
-    if (diffMins < 60) return `${diffMins}min`;
+    if (diffMins < 1) return t('common.now');
+    if (diffMins < 60) return t('common.minutesShort', { count: diffMins });
 
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h`;
+    if (diffHours < 24) return t('common.hoursShort', { count: diffHours });
 
     const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}d`;
+    return t('common.daysShort', { count: diffDays });
   };
 
   return (
@@ -418,7 +421,7 @@ export default function ChatScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Mensagens</Text>
+        <Text style={styles.headerTitle}>{t('chat.messages')}</Text>
         <Pressable onPress={() => setShowUserSearch(true)} hitSlop={12}>
           <Ionicons name="create-outline" size={24} color={colors.text} />
         </Pressable>
@@ -501,9 +504,9 @@ export default function ChatScreen() {
               size={64}
               color={colors.muted}
             />
-            <Text style={styles.emptyTitle}>Nenhuma conversa</Text>
+            <Text style={styles.emptyTitle}>{t('chat.noConversations')}</Text>
             <Text style={styles.emptyTextDesc}>
-              Toque no ícone + para iniciar uma conversa
+              {t('chat.startConversation')}
             </Text>
           </View>
         }

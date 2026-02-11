@@ -14,6 +14,7 @@ import {
   Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors } from '../../theme/colors';
 import { useTheme } from '../../context/ThemeContext';
@@ -47,108 +48,110 @@ type Highlight = {
   stories: Story[];
 };
 
-const HIGHLIGHTS: Highlight[] = [
-  {
-    id: '1',
-    title: 'Italia',
-    cover: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=200',
-    stories: [
-      {
-        id: 'h1-1',
-        userId: 'current-user',
-        user: 'Juliana',
-        username: 'juliana_viaja',
-        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-        images: [{ uri: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800' }],
-        seen: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        reactions: [],
-        replies: [],
-      },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Japao',
-    cover: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=200',
-    stories: [
-      {
-        id: 'h2-1',
-        userId: 'current-user',
-        user: 'Juliana',
-        username: 'juliana_viaja',
-        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-        images: [{ uri: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800' }],
-        seen: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        reactions: [],
-        replies: [],
-      },
-    ],
-  },
-  {
-    id: '3',
-    title: 'Praias',
-    cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200',
-    stories: [
-      {
-        id: 'h3-1',
-        userId: 'current-user',
-        user: 'Juliana',
-        username: 'juliana_viaja',
-        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-        images: [{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800' }],
-        seen: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        reactions: [],
-        replies: [],
-      },
-    ],
-  },
-  {
-    id: '4',
-    title: 'Comidas',
-    cover: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200',
-    stories: [
-      {
-        id: 'h4-1',
-        userId: 'current-user',
-        user: 'Juliana',
-        username: 'juliana_viaja',
-        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-        images: [{ uri: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800' }],
-        seen: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        reactions: [],
-        replies: [],
-      },
-    ],
-  },
-  {
-    id: '5',
-    title: 'Amigos',
-    cover: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=200',
-    stories: [
-      {
-        id: 'h5-1',
-        userId: 'current-user',
-        user: 'Juliana',
-        username: 'juliana_viaja',
-        avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-        images: [{ uri: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800' }],
-        seen: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        reactions: [],
-        replies: [],
-      },
-    ],
-  },
-];
+function getHighlights(t: (key: string) => string): Highlight[] {
+  return [
+    {
+      id: '1',
+      title: t('tabs.perfil.highlightItaly'),
+      cover: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=200',
+      stories: [
+        {
+          id: 'h1-1',
+          userId: 'current-user',
+          user: 'Juliana',
+          username: 'juliana_viaja',
+          avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+          images: [{ uri: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=800' }],
+          seen: false,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          reactions: [],
+          replies: [],
+        },
+      ],
+    },
+    {
+      id: '2',
+      title: t('tabs.perfil.highlightJapan'),
+      cover: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=200',
+      stories: [
+        {
+          id: 'h2-1',
+          userId: 'current-user',
+          user: 'Juliana',
+          username: 'juliana_viaja',
+          avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+          images: [{ uri: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800' }],
+          seen: false,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          reactions: [],
+          replies: [],
+        },
+      ],
+    },
+    {
+      id: '3',
+      title: t('tabs.perfil.highlightBeaches'),
+      cover: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200',
+      stories: [
+        {
+          id: 'h3-1',
+          userId: 'current-user',
+          user: 'Juliana',
+          username: 'juliana_viaja',
+          avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+          images: [{ uri: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800' }],
+          seen: false,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          reactions: [],
+          replies: [],
+        },
+      ],
+    },
+    {
+      id: '4',
+      title: t('tabs.perfil.highlightFood'),
+      cover: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200',
+      stories: [
+        {
+          id: 'h4-1',
+          userId: 'current-user',
+          user: 'Juliana',
+          username: 'juliana_viaja',
+          avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+          images: [{ uri: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800' }],
+          seen: false,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          reactions: [],
+          replies: [],
+        },
+      ],
+    },
+    {
+      id: '5',
+      title: t('tabs.perfil.highlightFriends'),
+      cover: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=200',
+      stories: [
+        {
+          id: 'h5-1',
+          userId: 'current-user',
+          user: 'Juliana',
+          username: 'juliana_viaja',
+          avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
+          images: [{ uri: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800' }],
+          seen: false,
+          createdAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          reactions: [],
+          replies: [],
+        },
+      ],
+    },
+  ];
+}
 
 function HighlightItem({
   highlight,
@@ -180,12 +183,13 @@ function AddHighlight({
   styles: ReturnType<typeof createStyles>;
   colors: ReturnType<typeof getColors>;
 }) {
+  const { t } = useTranslation();
   return (
     <Pressable style={styles.highlightItem} onPress={onPress}>
       <View style={styles.addHighlightCircle}>
         <Ionicons name="add" size={28} color={colors.text} />
       </View>
-      <Text style={styles.highlightTitle}>Novo</Text>
+      <Text style={styles.highlightTitle}>{t('common.new')}</Text>
     </Pressable>
   );
 }
@@ -231,6 +235,7 @@ function MenuSheet({
   styles: ReturnType<typeof createStyles>;
   colors: ReturnType<typeof getColors>;
 }) {
+  const { t } = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -266,7 +271,7 @@ function MenuSheet({
             </Pressable>
           ))}
           <Pressable style={styles.menuCancelButton} onPress={onClose}>
-            <Text style={styles.menuCancelText}>Cancelar</Text>
+            <Text style={styles.menuCancelText}>{t('common.cancel')}</Text>
           </Pressable>
         </Pressable>
       </Pressable>
@@ -276,6 +281,7 @@ function MenuSheet({
 
 export default function Perfil() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { posts: allPosts } = useSocial();
   const { currentUser } = useUser();
   const { theme } = useTheme();
@@ -309,6 +315,8 @@ export default function Perfil() {
   const [tempBio, setTempBio] = useState(currentUser.bio || '');
   const [tempWebsite, setTempWebsite] = useState('roteirize.app/juliana');
 
+  const highlights = useMemo(() => getHighlights(t), [t]);
+
   // Filter posts to show only current user's posts
   const myPosts = useMemo(
     () => allPosts.filter((post) => post.userId === currentUser.id),
@@ -319,7 +327,7 @@ export default function Perfil() {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permissao necessaria', 'Precisamos de acesso a sua galeria para alterar a foto.');
+      Alert.alert(t('tabs.perfil.permissionRequired'), t('tabs.perfil.galleryPermission'));
       return;
     }
 
@@ -344,7 +352,7 @@ export default function Perfil() {
 
   function handleSaveProfile() {
     setEditModalVisible(false);
-    Alert.alert('Sucesso', 'Perfil atualizado!');
+    Alert.alert(t('common.success'), t('tabs.perfil.profileUpdated'));
   }
 
   function handlePostPress(postId: string, index: number) {
@@ -361,14 +369,14 @@ export default function Perfil() {
 
   function handleAddHighlight() {
     Alert.alert(
-      'Novo destaque',
-      'Selecione stories para adicionar ao destaque',
+      t('tabs.perfil.newHighlight'),
+      t('tabs.perfil.selectStories'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Selecionar',
+          text: t('tabs.perfil.select'),
           onPress: () => {
-            Alert.alert('Em breve', 'Esta funcionalidade estara disponivel em breve!');
+            Alert.alert(t('common.comingSoon'), t('tabs.perfil.featureComingSoon'));
           },
         },
       ]
@@ -386,7 +394,7 @@ export default function Perfil() {
   async function handleShareProfile() {
     try {
       await Share.share({
-        message: `Confira o perfil de @${currentUser.username} no Roteirize!\nhttps://roteirize.app/${currentUser.username}`,
+        message: t('tabs.perfil.shareProfileMessage', { username: currentUser.username }),
       });
     } catch (error) {
       console.log('Error sharing:', error);
@@ -407,7 +415,7 @@ export default function Perfil() {
 
   function handleWebsitePress() {
     Linking.openURL(`https://${tempWebsite}`).catch(() => {
-      Alert.alert('Erro', 'Nao foi possivel abrir o link');
+      Alert.alert(t('common.error'), t('tabs.perfil.cantOpenLink'));
     });
   }
 
@@ -423,7 +431,7 @@ export default function Perfil() {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permissao necessaria', 'Precisamos de acesso a sua galeria para adicionar fotos.');
+      Alert.alert(t('tabs.perfil.permissionRequired'), t('tabs.perfil.galleryPermissionAlbum'));
       return;
     }
 
@@ -445,12 +453,12 @@ export default function Perfil() {
 
   function handleSaveAlbum() {
     if (!newAlbumTitle.trim()) {
-      Alert.alert('Erro', 'Digite um titulo para o album');
+      Alert.alert(t('common.error'), t('tabs.perfil.albumTitleRequired'));
       return;
     }
 
     if (newAlbumPhotos.length === 0) {
-      Alert.alert('Erro', 'Adicione pelo menos uma foto ao album');
+      Alert.alert(t('common.error'), t('tabs.perfil.albumPhotosRequired'));
       return;
     }
 
@@ -466,7 +474,7 @@ export default function Perfil() {
 
     setAlbums((prev) => [newAlbum, ...prev]);
     setCreateAlbumModalVisible(false);
-    Alert.alert('Sucesso', 'Album criado com sucesso!');
+    Alert.alert(t('common.success'), t('tabs.perfil.albumCreated'));
   }
 
   function handleAlbumPress(album: TripAlbum) {
@@ -476,12 +484,12 @@ export default function Perfil() {
 
   function handleDeleteAlbum(albumId: string) {
     Alert.alert(
-      'Excluir album',
-      'Tem certeza que deseja excluir este album?',
+      t('tabs.perfil.deleteAlbum'),
+      t('tabs.perfil.deleteAlbumConfirm'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Excluir',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: () => {
             setAlbums((prev) => prev.filter((a) => a.id !== albumId));
@@ -496,33 +504,33 @@ export default function Perfil() {
   const menuOptions: MenuOption[] = [
     {
       icon: 'settings-outline',
-      label: 'Configuracoes',
+      label: t('tabs.perfil.settings'),
       onPress: handleSettingsPress,
     },
     {
       icon: 'time-outline',
-      label: 'Seu historico',
-      onPress: () => Alert.alert('Historico', 'Seu historico de atividades'),
+      label: t('tabs.perfil.yourHistory'),
+      onPress: () => Alert.alert(t('tabs.perfil.historyTitle'), t('tabs.perfil.historyMessage')),
     },
     {
       icon: 'bookmark-outline',
-      label: 'Salvos',
+      label: t('tabs.perfil.saved'),
       onPress: () => router.push('/saved' as any),
     },
     {
       icon: 'qr-code-outline',
-      label: 'Codigo QR',
-      onPress: () => Alert.alert('QR Code', 'Seu codigo QR pessoal'),
+      label: t('tabs.perfil.qrCode'),
+      onPress: () => Alert.alert(t('tabs.perfil.qrCode'), t('tabs.perfil.qrCodeMessage')),
     },
     {
       icon: 'star-outline',
-      label: 'Favoritos',
-      onPress: () => Alert.alert('Favoritos', 'Lista de amigos favoritos'),
+      label: t('tabs.perfil.favorites'),
+      onPress: () => Alert.alert(t('tabs.perfil.favorites'), t('tabs.perfil.favoritesMessage')),
     },
     {
       icon: 'people-outline',
-      label: 'Melhores amigos',
-      onPress: () => Alert.alert('Melhores amigos', 'Gerenciar lista de melhores amigos'),
+      label: t('tabs.perfil.bestFriends'),
+      onPress: () => Alert.alert(t('tabs.perfil.bestFriends'), t('tabs.perfil.bestFriendsMessage')),
     },
   ];
 
@@ -554,15 +562,15 @@ export default function Perfil() {
           <View style={styles.statsContainer}>
             <Pressable style={styles.statItem}>
               <Text style={styles.statNumber}>{myPosts.length}</Text>
-              <Text style={styles.statLabel}>publicacoes</Text>
+              <Text style={styles.statLabel}>{t('tabs.perfil.posts')}</Text>
             </Pressable>
             <Pressable style={styles.statItem} onPress={handleFollowersPress}>
               <Text style={styles.statNumber}>{currentUser.followersCount}</Text>
-              <Text style={styles.statLabel}>seguidores</Text>
+              <Text style={styles.statLabel}>{t('tabs.perfil.followers')}</Text>
             </Pressable>
             <Pressable style={styles.statItem} onPress={handleFollowingPress}>
               <Text style={styles.statNumber}>{currentUser.followingCount}</Text>
-              <Text style={styles.statLabel}>seguindo</Text>
+              <Text style={styles.statLabel}>{t('tabs.perfil.following')}</Text>
             </Pressable>
           </View>
         </View>
@@ -580,7 +588,7 @@ export default function Perfil() {
         <View style={styles.actionButtons}>
           <View style={styles.actionButtonWrapper}>
             <Button
-              title="Editar perfil"
+              title={t('tabs.perfil.editProfile')}
               variant="secondary"
               size="small"
               onPress={handleEditProfile}
@@ -588,7 +596,7 @@ export default function Perfil() {
           </View>
           <View style={styles.actionButtonWrapper}>
             <Button
-              title="Compartilhar perfil"
+              title={t('tabs.perfil.shareProfile')}
               variant="secondary"
               size="small"
               onPress={handleShareProfile}
@@ -606,7 +614,7 @@ export default function Perfil() {
           contentContainerStyle={styles.highlightsContainer}
         >
           <AddHighlight onPress={handleAddHighlight} styles={styles} colors={colors} />
-          {HIGHLIGHTS.map((highlight) => (
+          {highlights.map((highlight) => (
             <HighlightItem
               key={highlight.id}
               highlight={highlight}
@@ -650,12 +658,12 @@ export default function Perfil() {
         <View style={styles.emptyIconContainer}>
           <Ionicons name="camera-outline" size={48} color={colors.text} />
         </View>
-        <Text style={styles.emptyTitle}>Compartilhe fotos</Text>
+        <Text style={styles.emptyTitle}>{t('tabs.perfil.sharePhotos')}</Text>
         <Text style={styles.emptySubtitle}>
-          Quando voce compartilhar fotos, elas aparecerao no seu perfil.
+          {t('tabs.perfil.whenYouSharePhotos')}
         </Text>
         <Pressable onPress={() => router.push('/post/create' as any)}>
-          <Text style={styles.emptyLink}>Compartilhe sua primeira foto</Text>
+          <Text style={styles.emptyLink}>{t('tabs.perfil.shareFirstPhoto')}</Text>
         </Pressable>
       </View>
     );
@@ -686,12 +694,12 @@ export default function Perfil() {
           <View style={styles.emptyIconContainer}>
             <Ionicons name="albums-outline" size={48} color={colors.text} />
           </View>
-          <Text style={styles.emptyTitle}>Nenhum album ainda</Text>
+          <Text style={styles.emptyTitle}>{t('tabs.perfil.noAlbumsYet')}</Text>
           <Text style={styles.emptySubtitle}>
-            Crie albuns para organizar e compartilhar suas viagens.
+            {t('tabs.perfil.createAlbumsText')}
           </Text>
           <Pressable onPress={handleCreateAlbum}>
-            <Text style={styles.emptyLink}>Criar primeiro album</Text>
+            <Text style={styles.emptyLink}>{t('tabs.perfil.createFirstAlbum')}</Text>
           </Pressable>
         </View>
       );
@@ -701,7 +709,7 @@ export default function Perfil() {
       <View>
         <Pressable style={styles.addAlbumButton} onPress={handleCreateAlbum}>
           <Ionicons name="add-circle-outline" size={20} color={colors.primary} />
-          <Text style={styles.addAlbumButtonText}>Criar novo album</Text>
+          <Text style={styles.addAlbumButtonText}>{t('tabs.perfil.createNewAlbum')}</Text>
         </Pressable>
         <View style={styles.albumsGrid}>
           {albums.map((album) => (
@@ -713,7 +721,7 @@ export default function Perfil() {
               <Image source={{ uri: album.coverImage }} style={styles.albumCoverImage} />
               <View style={styles.albumOverlay}>
                 <Text style={styles.albumTitle} numberOfLines={1}>{album.title}</Text>
-                <Text style={styles.albumPhotoCount}>{album.photos.length} fotos</Text>
+                <Text style={styles.albumPhotoCount}>{album.photos.length} {t('common.photos')}</Text>
               </View>
               {album.location && (
                 <View style={styles.albumLocationBadge}>
@@ -747,11 +755,11 @@ export default function Perfil() {
         <SafeAreaView style={styles.modalSafe}>
           <View style={styles.modalHeader}>
             <Pressable onPress={() => setEditModalVisible(false)}>
-              <Text style={styles.modalCancel}>Cancelar</Text>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
             </Pressable>
-            <Text style={styles.modalTitle}>Editar perfil</Text>
+            <Text style={styles.modalTitle}>{t('tabs.perfil.editProfileTitle')}</Text>
             <Pressable onPress={handleSaveProfile}>
-              <Text style={styles.modalDone}>Concluir</Text>
+              <Text style={styles.modalDone}>{t('tabs.perfil.done')}</Text>
             </Pressable>
           </View>
 
@@ -762,53 +770,53 @@ export default function Perfil() {
                 source={profileImage ? { uri: profileImage } : { uri: currentUser.avatar }}
                 style={styles.editAvatar}
               />
-              <Text style={styles.editPhotoText}>Editar foto</Text>
+              <Text style={styles.editPhotoText}>{t('tabs.perfil.editPhoto')}</Text>
             </Pressable>
 
             {/* Edit Fields */}
             <View style={styles.editFieldsContainer}>
               <View style={styles.editField}>
-                <Text style={styles.editFieldLabel}>Nome</Text>
+                <Text style={styles.editFieldLabel}>{t('tabs.perfil.nameField')}</Text>
                 <TextInput
                   style={styles.editFieldInput}
                   value={tempName}
                   onChangeText={setTempName}
-                  placeholder="Nome"
+                  placeholder={t('tabs.perfil.nameField')}
                   placeholderTextColor={colors.muted}
                 />
               </View>
 
               <View style={styles.editField}>
-                <Text style={styles.editFieldLabel}>Nome de usuario</Text>
+                <Text style={styles.editFieldLabel}>{t('tabs.perfil.usernameField')}</Text>
                 <TextInput
                   style={styles.editFieldInput}
                   value={tempUsername}
                   onChangeText={setTempUsername}
-                  placeholder="Nome de usuario"
+                  placeholder={t('tabs.perfil.usernameField')}
                   placeholderTextColor={colors.muted}
                   autoCapitalize="none"
                 />
               </View>
 
               <View style={styles.editField}>
-                <Text style={styles.editFieldLabel}>Bio</Text>
+                <Text style={styles.editFieldLabel}>{t('tabs.perfil.bioField')}</Text>
                 <TextInput
                   style={styles.editFieldInput}
                   value={tempBio}
                   onChangeText={setTempBio}
-                  placeholder="Bio"
+                  placeholder={t('tabs.perfil.bioField')}
                   placeholderTextColor={colors.muted}
                   multiline
                 />
               </View>
 
               <View style={styles.editField}>
-                <Text style={styles.editFieldLabel}>Link</Text>
+                <Text style={styles.editFieldLabel}>{t('tabs.perfil.linkField')}</Text>
                 <TextInput
                   style={styles.editFieldInput}
                   value={tempWebsite}
                   onChangeText={setTempWebsite}
-                  placeholder="Adicionar link"
+                  placeholder={t('tabs.perfil.addLink')}
                   placeholderTextColor={colors.muted}
                   autoCapitalize="none"
                 />
@@ -819,9 +827,9 @@ export default function Perfil() {
 
             <Pressable
               style={styles.editOption}
-              onPress={() => Alert.alert('Conta profissional', 'Mude para conta profissional')}
+              onPress={() => Alert.alert(t('tabs.perfil.switchToProfessional'), t('tabs.perfil.professionalAccount'))}
             >
-              <Text style={styles.editOptionText}>Mudar para conta profissional</Text>
+              <Text style={styles.editOptionText}>{t('tabs.perfil.switchToProfessional')}</Text>
             </Pressable>
 
             <Pressable
@@ -831,7 +839,7 @@ export default function Perfil() {
                 router.push('/settings' as any);
               }}
             >
-              <Text style={styles.editOptionText}>Configuracoes de privacidade</Text>
+              <Text style={styles.editOptionText}>{t('tabs.perfil.privacySettings')}</Text>
             </Pressable>
           </ScrollView>
         </SafeAreaView>
@@ -868,11 +876,11 @@ export default function Perfil() {
         <SafeAreaView style={styles.modalSafe}>
           <View style={styles.createAlbumHeader}>
             <Pressable onPress={() => setCreateAlbumModalVisible(false)}>
-              <Text style={styles.modalCancel}>Cancelar</Text>
+              <Text style={styles.modalCancel}>{t('common.cancel')}</Text>
             </Pressable>
-            <Text style={styles.modalTitle}>Novo Album</Text>
+            <Text style={styles.modalTitle}>{t('tabs.perfil.newAlbumTitle')}</Text>
             <Pressable onPress={handleSaveAlbum}>
-              <Text style={styles.modalDone}>Criar</Text>
+              <Text style={styles.modalDone}>{t('common.create')}</Text>
             </Pressable>
           </View>
 
@@ -881,7 +889,7 @@ export default function Perfil() {
             <View style={styles.photoPickerSection}>
               <Pressable style={styles.photoPickerButton} onPress={handlePickAlbumPhotos}>
                 <Ionicons name="images-outline" size={32} color={colors.muted} />
-                <Text style={styles.photoPickerText}>Adicionar fotos</Text>
+                <Text style={styles.photoPickerText}>{t('tabs.perfil.addPhotos')}</Text>
               </Pressable>
 
               {newAlbumPhotos.length > 0 && (
@@ -899,7 +907,7 @@ export default function Perfil() {
                       </View>
                     ))}
                   </ScrollView>
-                  <Text style={styles.photosCount}>{newAlbumPhotos.length} foto(s) selecionada(s)</Text>
+                  <Text style={styles.photosCount}>{t('tabs.perfil.photosSelected', { count: newAlbumPhotos.length })}</Text>
                 </View>
               )}
             </View>
@@ -907,23 +915,23 @@ export default function Perfil() {
             {/* Album Form */}
             <View style={styles.albumFormSection}>
               <View style={styles.albumFormField}>
-                <Text style={styles.albumFormLabel}>Titulo do album *</Text>
+                <Text style={styles.albumFormLabel}>{t('tabs.perfil.albumTitleLabel')}</Text>
                 <TextInput
                   style={styles.albumFormInput}
                   value={newAlbumTitle}
                   onChangeText={setNewAlbumTitle}
-                  placeholder="Ex: Viagem a Paris"
+                  placeholder={t('tabs.perfil.albumTitlePlaceholder')}
                   placeholderTextColor={colors.muted}
                 />
               </View>
 
               <View style={styles.albumFormField}>
-                <Text style={styles.albumFormLabel}>Descricao</Text>
+                <Text style={styles.albumFormLabel}>{t('tabs.perfil.descriptionLabel')}</Text>
                 <TextInput
                   style={styles.albumFormTextArea}
                   value={newAlbumDescription}
                   onChangeText={setNewAlbumDescription}
-                  placeholder="Conte um pouco sobre essa viagem..."
+                  placeholder={t('tabs.perfil.descriptionPlaceholder')}
                   placeholderTextColor={colors.muted}
                   multiline
                   numberOfLines={3}
@@ -931,12 +939,12 @@ export default function Perfil() {
               </View>
 
               <View style={styles.albumFormField}>
-                <Text style={styles.albumFormLabel}>Localizacao</Text>
+                <Text style={styles.albumFormLabel}>{t('tabs.perfil.locationLabel')}</Text>
                 <TextInput
                   style={styles.albumFormInput}
                   value={newAlbumLocation}
                   onChangeText={setNewAlbumLocation}
-                  placeholder="Ex: Paris, Franca"
+                  placeholder={t('tabs.perfil.locationPlaceholder')}
                   placeholderTextColor={colors.muted}
                 />
               </View>
@@ -991,7 +999,7 @@ export default function Perfil() {
               onPress={() => selectedAlbum && handleDeleteAlbum(selectedAlbum.id)}
             >
               <Ionicons name="trash-outline" size={20} color="#ED4956" />
-              <Text style={styles.deleteAlbumText}>Excluir album</Text>
+              <Text style={styles.deleteAlbumText}>{t('tabs.perfil.deleteAlbum')}</Text>
             </Pressable>
           </ScrollView>
         </SafeAreaView>

@@ -28,7 +28,7 @@ export type Place = {
   activities: PlaceActivity[];
   tips: PlaceTip[];
   bestTime: string;
-  difficulty: 'Facil' | 'Moderado' | 'Dificil';
+  difficulty: 'Fácil' | 'Moderado' | 'Difícil';
 };
 
 export const PLACES_DATA: Place[] = [
@@ -39,20 +39,20 @@ export const PLACES_DATA: Place[] = [
     category: 'Praia',
     image: require('../assets/images/praia1.jpg'),
     description:
-      'Uma das praias mais bonitas de Ubatuba, dividida em duas partes por uma formacao rochosa. O lado esquerdo tem ondas fortes, perfeito para surf, enquanto o lado direito e mais calmo e ideal para banho.',
+      'Uma das praias mais bonitas de Ubatuba, dividida em duas partes por uma formação rochosa. O lado esquerdo tem ondas fortes, perfeito para surf, enquanto o lado direito é mais calmo e ideal para banho.',
     rating: 4.8,
     curiosities: [
       {
         emoji: '🌊',
-        text: 'A praia e dividida em duas por pedras no meio, criando duas praias com caracteristicas diferentes.',
+        text: 'A praia é dividida em duas por pedras no meio, criando duas praias com características diferentes.',
       },
       {
         emoji: '🏄',
-        text: 'O lado esquerdo e um dos melhores picos de surf de Ubatuba, com ondas consistentes o ano todo.',
+        text: 'O lado esquerdo é um dos melhores picos de surf de Ubatuba, com ondas consistentes o ano todo.',
       },
       {
         emoji: '🌿',
-        text: 'Cercada por Mata Atlantica preservada, e comum avistar tucanos e saguis na vegetacao ao redor.',
+        text: 'Cercada por Mata Atlântica preservada, é comum avistar tucanos e saguis na vegetação ao redor.',
       },
       {
         emoji: '📸',
@@ -68,35 +68,35 @@ export const PLACES_DATA: Place[] = [
       {
         icon: 'walk-outline',
         title: 'Trilha do Mirante',
-        description: 'Caminhada leve com vista panoramica da praia',
+        description: 'Caminhada leve com vista panorâmica da praia',
       },
       {
         icon: 'fish-outline',
         title: 'Snorkeling',
-        description: 'Lado direito com aguas calmas e piscinas naturais',
+        description: 'Lado direito com águas calmas e piscinas naturais',
       },
       {
         icon: 'camera-outline',
         title: 'Fotografia',
-        description: 'Por do sol espetacular com vista para as ilhas',
+        description: 'Pôr do sol espetacular com vista para as ilhas',
       },
     ],
     tips: [
       {
         icon: 'time-outline',
-        text: 'Chegue cedo nos fins de semana, o estacionamento lota rapido.',
+        text: 'Chegue cedo nos fins de semana, o estacionamento lota rápido.',
       },
       {
         icon: 'restaurant-outline',
-        text: 'Ha quiosques simples na praia com peixe fresco e acai.',
+        text: 'Há quiosques simples na praia com peixe fresco e açaí.',
       },
       {
         icon: 'warning-outline',
-        text: 'Cuidado com as correntes no lado esquerdo se nao for surfista.',
+        text: 'Cuidado com as correntes no lado esquerdo se não for surfista.',
       },
     ],
     bestTime: 'Abril a Novembro',
-    difficulty: 'Facil',
+    difficulty: 'Fácil',
   },
   {
     slug: 'ilha-anchieta',
@@ -105,7 +105,7 @@ export const PLACES_DATA: Place[] = [
     category: 'Ilha',
     image: require('../assets/images/praia2.jpg'),
     description:
-      'Antiga colonia penal transformada em parque estadual, a Ilha Anchieta combina historia, trilhas ecologicas e praias paradisiacas com aguas cristalinas perfeitas para mergulho.',
+      'Antiga colônia penal transformada em parque estadual, a Ilha Anchieta combina história, trilhas ecológicas e praias paradisíacas com águas cristalinas perfeitas para mergulho.',
     rating: 4.9,
     curiosities: [
       {
@@ -118,11 +118,11 @@ export const PLACES_DATA: Place[] = [
       },
       {
         emoji: '🐢',
-        text: 'E um importante ponto de desova de tartarugas marinhas no litoral de São Paulo.',
+        text: 'É um importante ponto de desova de tartarugas marinhas no litoral de São Paulo.',
       },
       {
         emoji: '🐠',
-        text: 'As águas ao redor tem visibilidade de ate 15 metros, sendo um dos melhores pontos de mergulho do estado.',
+        text: 'As águas ao redor têm visibilidade de até 15 metros, sendo um dos melhores pontos de mergulho do estado.',
       },
     ],
     activities: [
@@ -138,13 +138,13 @@ export const PLACES_DATA: Place[] = [
       },
       {
         icon: 'footsteps-outline',
-        title: 'Trilha do Presidio',
+        title: 'Trilha do Presídio',
         description: 'Percurso histórico pelas ruínas da colônia penal',
       },
       {
         icon: 'leaf-outline',
         title: 'Trilha do Saco Grande',
-        description: 'Caminhada pela mata ate praia deserta',
+        description: 'Caminhada pela mata até praia deserta',
       },
     ],
     tips: [
@@ -177,11 +177,11 @@ export const PLACES_DATA: Place[] = [
       },
       {
         emoji: '🦜',
-        text: 'Na mata ao fundo da praia vivem diversas especíes de aves raras da Mata Atlântica.',
+        text: 'Na mata ao fundo da praia vivem diversas espécies de aves raras da Mata Atlântica.',
       },
       {
         emoji: '🛶',
-        text: 'É possível alugar caiaques e fazer o percurso ate a vizinha Praia do Engenho.',
+        text: 'É possível alugar caiaques e fazer o percurso até a vizinha Praia do Engenho.',
       },
       {
         emoji: '🍤',
@@ -213,11 +213,11 @@ export const PLACES_DATA: Place[] = [
     tips: [
       {
         icon: 'cash-outline',
-        text: 'Peça o peixe do dia nos restaurantes, e sempre mais fresco e barato.',
+        text: 'Peça o peixe do dia nos restaurantes, é sempre mais fresco e barato.',
       },
       {
         icon: 'car-outline',
-        text: 'Há estacionamento pago próximo, mas da para ir a pé da Praia do Lázaro.',
+        text: 'Há estacionamento pago próximo, mas dá para ir a pé da Praia do Lázaro.',
       },
       {
         icon: 'umbrella-outline',
@@ -225,7 +225,7 @@ export const PLACES_DATA: Place[] = [
       },
     ],
     bestTime: 'Ano todo',
-    difficulty: 'Facil',
+    difficulty: 'Fácil',
   },
 ];
 

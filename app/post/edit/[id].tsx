@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getColors } from '../../../theme/colors';
@@ -24,6 +25,7 @@ export default function EditPost() {
   const { theme } = useTheme();
   const colors = getColors(theme);
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   const post = posts.find((p) => p.id === id);
 
@@ -36,7 +38,7 @@ export default function EditPost() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Post não encontrado</Text>
+          <Text style={styles.errorText}>{t('post.postNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -50,9 +52,9 @@ export default function EditPost() {
       hideLikes,
     });
 
-    Alert.alert('Sucesso', 'Publicação atualizada com sucesso', [
+    Alert.alert(t('common.success'), t('post.postUpdated'), [
       {
-        text: 'OK',
+        text: t('common.ok'),
         onPress: () => router.back(),
       },
     ]);
@@ -68,9 +70,9 @@ export default function EditPost() {
         <Pressable onPress={handleCancel}>
           <Ionicons name="close" size={28} color={colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>Editar publicação</Text>
+        <Text style={styles.headerTitle}>{t('post.editTitle')}</Text>
         <Pressable onPress={handleSave}>
-          <Text style={styles.saveButton}>Salvar</Text>
+          <Text style={styles.saveButton}>{t('common.save')}</Text>
         </Pressable>
       </View>
 
@@ -80,12 +82,12 @@ export default function EditPost() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Legenda</Text>
+          <Text style={styles.label}>{t('post.caption')}</Text>
           <TextInput
             style={styles.captionInput}
             value={caption}
             onChangeText={setCaption}
-            placeholder="Escreva uma legenda..."
+            placeholder={t('post.captionPlaceholder')}
             placeholderTextColor={colors.muted}
             multiline
             maxLength={2200}
@@ -94,12 +96,12 @@ export default function EditPost() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Localização</Text>
+          <Text style={styles.label}>{t('post.location')}</Text>
           <TextInput
             style={styles.input}
             value={location}
             onChangeText={setLocation}
-            placeholder="Adicionar localização"
+            placeholder={t('post.addLocation')}
             placeholderTextColor={colors.muted}
           />
         </View>
@@ -107,9 +109,9 @@ export default function EditPost() {
         <View style={styles.section}>
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingTitle}>Desativar comentários</Text>
+              <Text style={styles.settingTitle}>{t('post.disableCommentsToggle')}</Text>
               <Text style={styles.settingDescription}>
-                As pessoas não poderão comentar nesta publicação
+                {t('post.disableCommentsDesc')}
               </Text>
             </View>
             <Switch
@@ -122,9 +124,9 @@ export default function EditPost() {
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingTitle}>Ocultar curtidas</Text>
+              <Text style={styles.settingTitle}>{t('post.hideLikesToggle')}</Text>
               <Text style={styles.settingDescription}>
-                Somente você verá o número de curtidas
+                {t('post.hideLikesDesc')}
               </Text>
             </View>
             <Switch
@@ -143,8 +145,7 @@ export default function EditPost() {
             color={colors.muted}
           />
           <Text style={styles.infoText}>
-            As alterações serão visíveis para todos que puderem ver esta
-            publicação
+            {t('post.editInfo')}
           </Text>
         </View>
       </ScrollView>

@@ -14,12 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, Link } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { useTranslation } from 'react-i18next';
 import { colors } from '../../theme/colors';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
 export default function Login() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,7 +38,7 @@ export default function Login() {
 
     setTimeout(() => {
       setSocialLoading(null);
-      Alert.alert('Em breve', 'Login com Apple estará disponível em breve.');
+      Alert.alert(t('common.comingSoon'), t('auth.login.appleComingSoon'));
     }, 800);
   }
 
@@ -45,7 +47,7 @@ export default function Login() {
 
     setTimeout(() => {
       setSocialLoading(null);
-      Alert.alert('Em breve', 'Login com Google estará disponível em breve.');
+      Alert.alert(t('common.comingSoon'), t('auth.login.googleComingSoon'));
     }, 800);
   }
 
@@ -68,8 +70,8 @@ export default function Login() {
                 color={colors.primary}
               />
             </View>
-            <Text style={styles.title}>Bem-vindo de volta</Text>
-            <Text style={styles.subtitle}>Entre na sua conta para continuar</Text>
+            <Text style={styles.title}>{t('auth.login.title')}</Text>
+            <Text style={styles.subtitle}>{t('auth.login.subtitle')}</Text>
           </View>
 
           <View style={styles.social}>
@@ -83,7 +85,7 @@ export default function Login() {
             >
               <MaterialCommunityIcons name="apple" size={22} color="#fff" />
               <Text style={styles.appleText}>
-                {socialLoading === 'apple' ? 'Aguarde...' : 'Continuar com Apple'}
+                {socialLoading === 'apple' ? t('common.loading') : t('auth.login.continueWithApple')}
               </Text>
             </Pressable>
 
@@ -101,27 +103,27 @@ export default function Login() {
               />
               <Text style={styles.googleText}>
                 {socialLoading === 'google'
-                  ? 'Aguarde...'
-                  : 'Continuar com Google'}
+                  ? t('common.loading')
+                  : t('auth.login.continueWithGoogle')}
               </Text>
             </Pressable>
           </View>
 
           <View style={styles.divider}>
             <View style={styles.line} />
-            <Text style={styles.dividerText}>ou</Text>
+            <Text style={styles.dividerText}>{t('common.or')}</Text>
             <View style={styles.line} />
           </View>
 
           <View style={styles.form}>
             <Input
-              placeholder="Email"
+              placeholder={t('auth.login.email')}
               value={email}
               onChangeText={setEmail}
               icon="email-outline"
             />
             <Input
-              placeholder="Senha"
+              placeholder={t('auth.login.password')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -132,25 +134,25 @@ export default function Login() {
               style={styles.forgot}
               onPress={() => router.push('/(auth)/reset-password')}
             >
-              Esqueci minha senha
+              {t('auth.login.forgotPassword')}
             </Text>
           </View>
 
           <View style={styles.actions}>
-            <Button title="Entrar" onPress={handleLogin} />
+            <Button title={t('auth.login.login')} onPress={handleLogin} />
 
             <Text style={styles.signupText}>
-              Não tem uma conta?{' '}
+              {t('auth.login.noAccount')}{' '}
               <Text
                 style={styles.signupLink}
                 onPress={() => router.push('/(auth)/signup')}
               >
-                Criar conta
+                {t('auth.login.createAccount')}
               </Text>
             </Text>
 
             <Link href="/(auth)/welcome" style={styles.link}>
-              Voltar
+              {t('common.back')}
             </Link>
           </View>
         </ScrollView>
